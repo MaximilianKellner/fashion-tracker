@@ -81,6 +81,16 @@ export default async function ItemPage({ params }: PageProps<"/items/[id]">) {
           <Row k="Formalität" v={data.formality ? `${data.formality} · ${FORMALITY[data.formality]}` : undefined} />
           <Row k="Gekauft" v={[data.purchase?.date, data.purchase?.shop].filter(Boolean).join(" · ")} />
           <Row k="Preis" v={data.purchase?.price !== undefined ? euro(data.purchase.price) : undefined} />
+          <Row
+            k="Shop-Seite"
+            v={
+              data.link ? (
+                <a href={data.link} target="_blank" rel="noopener noreferrer" className="underline">
+                  öffnen ↗
+                </a>
+              ) : undefined
+            }
+          />
         </dl>
 
         {item.body && <p className="mt-4 whitespace-pre-line rounded-xl bg-surface-2 p-4 text-sm">{item.body}</p>}

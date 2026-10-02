@@ -32,6 +32,7 @@ Fotos liegen im selben Ordner als `photo-1.webp`, `photo-2.webp` … (max. 1024p
 | `purchase`    |         | Objekt       | `{ date: "2024-03", price: 39.90, shop: Uniqlo }` |
 | `photos`      |         | Liste        | `[photo-1.webp]` |
 | `tags`        |         | Liste        | frei: `[lieblingsteil, buero]` |
+| `link`        |         | Text         | Produktseite im Shop (wird beim Import per Lesezeichen gesetzt) |
 
 Der Text unter dem Frontmatter ist für Notizen: Passform, Pflege, Kombinationstipps, Mängel.
 

@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import * as lib from "@lib/data.mjs";
 import { processPhoto } from "@lib/photo.mjs";
 import { commitAndPush } from "@lib/git-sync.mjs";
+import { downloadImage } from "@lib/product-import.mjs";
 import { ITEM_FIELDS, OUTFIT_FIELDS, WISHLIST_FIELDS, validateFields } from "@lib/schema.mjs";
 import { isSafeId } from "@/lib/data";
 import type { FormState, ItemData, OutfitData, WishData } from "@/lib/types";
@@ -81,15 +82,36 @@ export async function saveItem(_prev: FormState, fd: FormData): Promise<FormStat
     purchase: Object.values(purchase).some((v) => v !== undefined) ? purchase : undefined,
     photos: keptPhotos,
     tags: list(fd, "tags"),
+    link: text(fd, "link"),
   };
 
   const errors = validateFields(data, ITEM_FIELDS);
   if (purchase.price !== undefined && Number.isNaN(purchase.price)) errors.push("Preis muss eine Zahl sein");
+  if (data.link && !/^https?:\/\//.test(data.link)) errors.push("Link muss mit http:// oder https:// beginnen");
   if (errors.length) return { errors };
+
+  // Produktbilder aus dem Shop-Import vor dem Speichern laden, damit bei einem Fehler nichts halb angelegt wird
+  const importedImages: Buffer[] = [];
+  for (const url of all(fd, "importPhotos").slice(0, 4)) {
+    try {
+      importedImages.push(await downloadImage(url));
+    } catch (err) {
+      return {
+        errors: [`Produktbild konnte nicht geladen werden (${(err as Error).message}). Haken entfernen und erneut speichern.`],
+      };
+    }
+  }
 
   const id = existingId ?? lib.makeId(data.name, await existingIds(lib.dirs.wardrobe(), false));
   const itemDir = path.join(lib.dirs.wardrobe(), id);
 
+  for (const image of importedImages) {
+    try {
+      data.photos!.push(await processPhoto(image, itemDir));
+    } catch {
+      return { errors: ["Ein Produktbild hat ein unbekanntes Format. Haken entfernen und erneut speichern."] };
+    }
+  }
   for (const file of fd.getAll("photos")) {
     if (!(file instanceof File) || file.size === 0) continue;
     try {

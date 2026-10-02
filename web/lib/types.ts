@@ -18,6 +18,7 @@ export type ItemData = {
   purchase?: Purchase;
   photos?: string[];
   tags?: string[];
+  link?: string;
 };
 
 export type OutfitData = {

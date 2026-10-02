@@ -38,6 +38,7 @@ export const ITEM_FIELDS = {
   purchase: { type: 'object' },
   photos: { type: 'string[]' },
   tags: { type: 'string[]' },
+  link: { type: 'string' },
 };
 
 export const OUTFIT_FIELDS = {

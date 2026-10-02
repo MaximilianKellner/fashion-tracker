@@ -14,6 +14,12 @@ npm run dev:lan
 - Am Handy (gleiches WLAN): `http://<PC-IP>:3000`. Die IP zeigt der Server beim Start unter „Network“ an.
   Beim ersten Mal fragt Windows ggf. nach einer Firewall-Freigabe für Node.js. Diese nur für **private Netzwerke** erlauben.
 
+## Teile aus Online-Shops übernehmen
+
+Auf der Website unter **Neues Teil → „Aus Online-Shop übernehmen“** (`/bookmarklet`) das Lesezeichen „Zum Kleiderschrank“
+in die Firefox-Symbolleiste ziehen. Auf einer Produktseite angeklickt, übernimmt es Name, Marke, Preis, Farbe,
+Material und Produktbild ins Formular (getestet mit Zara, H&M, About You). Läuft komplett lokal, ohne KI.
+
 ## Mit Claude arbeiten
 
 | Befehl | Was passiert |

@@ -13,6 +13,8 @@ type Props = {
   body?: string;
   fromWish?: string;
   colorSuggestions: string[];
+  /** Produktbilder aus dem Shop-Import, werden beim Speichern vom Server heruntergeladen */
+  importedPhotos?: string[];
 };
 
 /** Verkleinert ein Foto im Browser auf max. 2048px (JPEG). Der Server verkleinert danach final auf 1024px WebP. */
@@ -33,7 +35,7 @@ async function downscale(file: File): Promise<Blob> {
   }
 }
 
-export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions }: Props) {
+export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions, importedPhotos = [] }: Props) {
   const [state, formAction, pending] = useActionState(saveItem, null);
   // Neue Fotos samt Vorschau-URL; URLs werden beim Entfernen bzw. Verlassen der Seite freigegeben
   const [files, setFiles] = useState<{ file: File; url: string }[]>([]);
@@ -86,6 +88,22 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions 
                 </span>
               </label>
             ))}
+          </div>
+        )}
+        {importedPhotos.length > 0 && (
+          <div>
+            <p className="mb-2 text-sm text-muted">Produktbilder aus dem Shop (angehakte werden übernommen):</p>
+            <div className="flex flex-wrap gap-3">
+              {importedPhotos.map((src, i) => (
+                <label key={src} className="block w-24">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={src} alt="" referrerPolicy="no-referrer" className="aspect-[3/4] w-24 rounded-lg bg-surface-2 object-cover" />
+                  <span className="mt-1 flex items-center gap-1 text-xs text-muted">
+                    <input type="checkbox" name="importPhotos" value={src} defaultChecked={i === 0} /> übernehmen
+                  </span>
+                </label>
+              ))}
+            </div>
           </div>
         )}
         {files.length > 0 && (
@@ -251,6 +269,9 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions 
             <input name="purchaseShop" defaultValue={data.purchase?.shop} className="field" />
           </Field>
         </div>
+        <Field label="Produkt-Link">
+          <input name="link" type="url" defaultValue={data.link} placeholder="https://…" className="field" />
+        </Field>
       </Section>
 
       <Section title="Notizen">
