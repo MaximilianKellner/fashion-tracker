@@ -43,3 +43,12 @@ Claude ist der Stilberater: Er liest die Daten, sieht sich die Fotos an und gibt
 - Fotos nie direkt kopieren, immer über `npm run photo` verarbeiten (Größe + Datenschutz).
 - Unbekannte Felder weglassen, nicht raten (z. B. Preis, Marke). Beim Nutzer nachfragen.
 - Nicht selbstständig committen, außer der Nutzer bittet darum.
+
+## Sync mit dem Home-PC
+Die Website läuft dauerhaft auf dem Home-PC (NixOS, `max@192.168.178.151`, Port 3000) und committet und pusht
+jede Änderung automatisch (`GIT_AUTOSYNC=1`, siehe `scripts/lib/git-sync.mjs`). Alle 5 Minuten holt sie neue Commits.
+- **Vor jeder Analyse oder Empfehlung `git pull` ausführen**, sonst fehlen Teile, die über die Website erfasst wurden.
+- Nach Änderungen an Daten (`wardrobe/`, `outfits/`, `wishlist/`, `profile.md`) anbieten, sie zu committen und zu pushen.
+  Erst dann erscheinen sie auf der Website.
+- Code-Änderungen landen auf dem Home-PC erst nach einem Neustart des Service: `ssh max@192.168.178.151 sudo systemctl restart fashion-tracker`
+  (braucht sudo, also durch den Nutzer).

@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import * as lib from "@lib/data.mjs";
 import { processPhoto } from "@lib/photo.mjs";
+import { commitAndPush } from "@lib/git-sync.mjs";
 import { ITEM_FIELDS, OUTFIT_FIELDS, WISHLIST_FIELDS, validateFields } from "@lib/schema.mjs";
 import { isSafeId } from "@/lib/data";
 import type { FormState, ItemData, OutfitData, WishData } from "@/lib/types";
@@ -45,8 +46,10 @@ async function existingIds(dir: string, flat: boolean) {
   }
 }
 
-function refreshAll() {
+/** Seiten neu laden lassen und die Änderung (falls GIT_AUTOSYNC=1) committen und pushen */
+function refreshAll(commitMessage: string) {
   revalidatePath("/", "layout");
+  commitAndPush(commitMessage);
 }
 
 // ---------- Kleidungsstücke ----------
@@ -113,7 +116,7 @@ export async function saveItem(_prev: FormState, fd: FormData): Promise<FormStat
     if (wish) await lib.writeWish(fromWish, { ...wish.data, status: "gekauft" }, wish.body);
   }
 
-  refreshAll();
+  refreshAll(`Website: ${existingId ? "Teil geändert" : "Teil hinzugefügt"}: ${data.name}`);
   redirect(`/items/${id}`);
 }
 
@@ -127,7 +130,7 @@ export async function deleteItem(id: string) {
       await lib.writeOutfit(outfit.id, { ...outfit.data, items: items.filter((i) => i !== id) }, outfit.body);
     }
   }
-  refreshAll();
+  refreshAll(`Website: Teil gelöscht: ${id}`);
   redirect("/");
 }
 
@@ -151,14 +154,14 @@ export async function saveOutfit(_prev: FormState, fd: FormData): Promise<FormSt
 
   const id = existingId ?? lib.makeId(data.name, await existingIds(lib.dirs.outfits(), true));
   await lib.writeOutfit(id, data, text(fd, "body") ?? "");
-  refreshAll();
+  refreshAll(`Website: Outfit ${existingId ? "geändert" : "gespeichert"}: ${data.name}`);
   redirect("/outfits");
 }
 
 export async function deleteOutfit(id: string) {
   if (!isSafeId(id)) return;
   await fs.rm(path.join(lib.dirs.outfits(), `${id}.md`), { force: true });
-  refreshAll();
+  refreshAll(`Website: Outfit gelöscht: ${id}`);
 }
 
 // ---------- Wunschliste ----------
@@ -183,7 +186,7 @@ export async function saveWish(_prev: FormState, fd: FormData): Promise<FormStat
 
   const id = existingId ?? lib.makeId(data.name, await existingIds(lib.dirs.wishlist(), true));
   await lib.writeWish(id, data, text(fd, "body") ?? "");
-  refreshAll();
+  refreshAll(`Website: Wunsch ${existingId ? "geändert" : "hinzugefügt"}: ${data.name}`);
   redirect("/wishlist");
 }
 
@@ -191,11 +194,11 @@ export async function setWishStatus(id: string, status: string) {
   if (!isSafeId(id) || !["offen", "gekauft", "verworfen"].includes(status)) return;
   const wish = await lib.readWish(id);
   await lib.writeWish(id, { ...wish.data, status }, wish.body);
-  refreshAll();
+  refreshAll(`Website: Wunsch ${status}: ${wish.data.name}`);
 }
 
 export async function deleteWish(id: string) {
   if (!isSafeId(id)) return;
   await fs.rm(path.join(lib.dirs.wishlist(), `${id}.md`), { force: true });
-  refreshAll();
+  refreshAll(`Website: Wunsch gelöscht: ${id}`);
 }
