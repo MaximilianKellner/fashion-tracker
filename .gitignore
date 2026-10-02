@@ -1,0 +1,9 @@
+node_modules/
+.next/
+out/
+*.log
+.env*.local
+
+# Rohfotos werden nach dem Verarbeiten gelöscht
+inbox/*
+!inbox/.gitkeep

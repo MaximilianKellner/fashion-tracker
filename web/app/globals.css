@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f6f4f0;
+  --surface: #ffffff;
+  --surface-2: #efebe5;
+  --ink: #1c1a17;
+  --muted: #6f6a62;
+  --line: #e2ddd5;
+  --accent: #2f4a3a;
+  --accent-ink: #ffffff;
+  --danger: #a33a2c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141311;
+    --surface: #1d1b19;
+    --surface-2: #272522;
+    --ink: #f0ece6;
+    --muted: #a39d94;
+    --line: #34312d;
+    --accent: #9cc4a8;
+    --accent-ink: #12201a;
+    --danger: #e0806f;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* Wiederverwendbare Bausteine für Formulare, Buttons und Filter-Chips */
+@utility field {
+  @apply w-full rounded-lg border border-line bg-surface px-3 py-2 text-base text-ink outline-none focus:border-accent;
+}
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium transition-opacity disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-accent text-accent-ink hover:opacity-90;
+}
+@utility btn-ghost {
+  @apply btn border border-line bg-surface text-ink hover:bg-surface-2;
+}
+@utility chip {
+  @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 text-sm text-ink;
+}
+@utility chip-active {
+  @apply border-accent bg-accent text-accent-ink;
+}
