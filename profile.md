@@ -1,34 +1,61 @@
 # Mein Style-Profil
 
-> Fülle die Abschnitte nach Gefühl aus. Stichpunkte reichen. Je ehrlicher und konkreter,
-> desto besser werden Outfit- und Kaufempfehlungen. Du kannst auch Claude bitten, dich durch das Profil zu interviewen.
+> Grundlage für alle Outfit- und Kaufempfehlungen. Bei Änderungen einfach anpassen oder Claude bitten, nachzufragen.
 
 ## Über mich
-- Alter / Geschlecht:
-- Größe / Statur (z. B. groß und schlank, breite Schultern …):
+- Herrenmode
+- 188 cm, 84 kg, ca. 15 % Körperfett, athletisch (leicht sichtbare Bauchmuskulatur)
+- Alter:
 - Haut-/Haarfarbe (hilft bei Farbempfehlungen):
 
 ## Größen
+> Noch offen, ich messe nach (siehe Anleitung unten).
+
 - Oberteile:
-- Hosen (W/L):
+- Hosen (W/L bzw. Bundweite):
 - Schuhe:
 - Marken, bei denen die Größe abweicht:
 
+<details>
+<summary>Messanleitung</summary>
+
+Mit einem Maßband, über dünner Kleidung, entspannt stehen:
+- **Brust**: an der breitesten Stelle, unter den Achseln
+- **Taille / Bund**: dort, wo die Hose sitzt (bei Bundfaltenhosen eher etwas höher, Höhe Bauchnabel)
+- **Innenbeinlänge**: Schritt bis Boden, ohne Schuhe
+- **Schulterbreite**: von Schulternaht zu Schulternaht hinten
+- **Ärmellänge**: Schulternaht bis Handgelenk, Arm leicht angewinkelt
+- **Fuß**: Ferse bis längster Zeh, in cm
+
+Am genauesten: Lieblingshose und Lieblingspulli flach hinlegen und ausmessen (Bundweite, Leibhöhe, Oberschenkel- und Saumweite, Breite von Achsel zu Achsel, Länge). Diese Maße lassen sich direkt mit den Größentabellen der Shops vergleichen.
+</details>
+
 ## Stil
-- So würde ich meinen Stil beschreiben:
-- So möchte ich gern aussehen (Vorbilder, Instagram-Accounts, Stichworte):
-- Lieblingsfarben:
-- Farben/Muster, die ich nie trage:
-- Absolute No-Gos (Schnitte, Materialien, Marken):
+- **Heute**: gepflegt und eher elegant, mit etwas Streetwear. Gedeckte Farben.
+  - Anzughosen, besonders mit Bundfalten, Straight oder etwas weiter geschnitten
+  - Strick: Quarter-Zip und Pullover in verschiedenen Farben
+  - Eine Baggy Jeans für den lässigeren Look
+  - Im Sommer lockere Hemden, sonst einfarbige Shirts
+  - Schuhe: Adidas Campus (schwarz), Adidas Spezial (bordeaux)
+- **Ziel**: hochwertige, minimalistische Outfits mit gezielten Farbakzenten, insgesamt etwas weitere Hosen
+- **Will mehr von**: Pullovern, Mänteln, Hosen
+- **Basis**: neutrale, gedeckte Töne
+- **Farbakzente**: Bordeaux/Burgunder, Dunkelgrün/Oliv, Braun/Cognac/Schoko, Navy/Blau/Hellblau. Ein sonnengelber Pulli wäre interessant.
+- **No-Gos**: große Logos und Prints, Skinny/Slim Fits, knallige Neonfarben
 
 ## Alltag & Anlässe
-- Job / Dresscode:
-- Typische Woche (Büro, Homeoffice, Sport, Ausgehen …):
+- Mischung aus Büro (Business Casual), Homeoffice bzw. lockerem Büro und Uni
+- Ein Look sollte also möglichst sowohl im Büro als auch an der Uni funktionieren
+- Wohnort: Düsseldorf (NRW). Gemäßigtes Klima, viel Regen, milde Winter, Übergangszeiten lang
 - Besondere Anlässe in nächster Zeit:
-- Wohnort / Klima (für Wetter und Saison):
 
 ## Einkaufen
-- Budget pro Monat bzw. pro Teil:
-- Bevorzugte Shops / Marken:
-- Wichtig beim Kauf (Nachhaltigkeit, Qualität, Second Hand, pflegeleicht …):
-- Was ich gerade suche / was mir fehlt:
+- **Budget**: meist bis ca. 50 € pro Teil. Für Jacken und Mäntel darf es mehr sein.
+- **Shops**: H&M, Uniqlo, Zara, Zalando, About You. In seltenen Fällen COS, Arket, Weekday.
+- **Wichtig**: Material und Qualität, pflegeleicht (Waschmaschine), vielseitig kombinierbar
+- **Was mir gerade fehlt**: mehr Pullover, Mäntel und (weitere) Hosen
+
+## Notizen von Claude
+- Bei 1,88 m und athletischer Statur tragen weite Hosen mit Bundfalten gut, ohne zu verschlucken. Ein hoher Bund und eine leichte Länge mit wenig Stauchung am Saum strecken das Bein. Oben passen gerade, leicht entspannte Schnitte (auch Dropped Shoulders) besser als enge, Slim Fits sind ohnehin ein No-Go.
+- Im Budget bis 50 € auf das Material achten: Wolle- bzw. Merino-Anteil bei Strick (z. B. Uniqlo Merino, Extra Fine Merino), Baumwolle oder Leinen bei Hemden. Polyester-lastigen Strick meiden, er pillt schnell.
+- Der Mantel ist das Teil, bei dem sich mehr Budget lohnt (Wollanteil ≥ 50–70 %). Er prägt jedes Herbst- und Winteroutfit, und in Düsseldorf trägt man ihn von Oktober bis März.
