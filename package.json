@@ -6,6 +6,7 @@
     "dev": "npm run dev -w web",
     "dev:lan": "npm run dev:lan -w web",
     "build": "npm run build -w web",
+    "start:lan": "npm run start:lan -w web",
     "photo": "node scripts/process-photo.mjs",
     "validate": "node scripts/validate.mjs",
     "stats": "node scripts/stats.mjs"

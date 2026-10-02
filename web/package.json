@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "start:lan": "next start -H 0.0.0.0",
     "lint": "eslint",
     "dev:lan": "next dev -H 0.0.0.0",
     "typecheck": "tsc --noEmit"
