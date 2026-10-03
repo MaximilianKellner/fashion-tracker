@@ -12,7 +12,7 @@ purchase:
   price: 56.91
   shop: aboutyou.de
 photos:
-  - photo-1.webp
+  - photo-2.webp
 link: 'https://www.zalando.se/bershka-tunn-jacka-dark-red-zir03j9ik-001.html'
 ---
 
