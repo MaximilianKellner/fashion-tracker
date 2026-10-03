@@ -1,5 +1,5 @@
 ---
-name: Sneakers Runfalcon 2.0 K FY9496 Weiß
+name: Sneakers Runfalcon 2.0 Weiß
 category: schuhe
 subcategory: sneaker
 colors:
