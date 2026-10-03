@@ -15,7 +15,7 @@ purchase:
   price: 49.99
   shop: H&M
 photos:
-  - photo-1.webp
+  - photo-2.webp
 link: 'https://www2.hm.com/de_de/productpage.1281852003.html?imwidth=264'
 ---
 
