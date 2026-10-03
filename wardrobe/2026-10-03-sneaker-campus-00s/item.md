@@ -13,11 +13,11 @@ seasons:
   - winter
 status: aktiv
 purchase:
-  date: "2026-10-03"
+  date: '2026-10-03'
   price: 84
   shop: About You
 photos:
-  - photo-1.webp
+  - photo-2.webp
 link: 'https://www.aboutyou.de/p/adidas-originals/sneaker-campus-00s-9577719'
 ---
 
