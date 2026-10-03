@@ -14,7 +14,6 @@ purchase:
   price: 44.9
   shop: Straight Outta Cotton
 photos:
-  - photo-1.webp
   - photo-2.webp
 link: >-
   https://straight-outta-cotton.com/products/oversize-hoodie-bordeaux-red?variant=45386178363659
