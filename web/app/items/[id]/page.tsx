@@ -121,7 +121,7 @@ export default async function ItemPage({ params }: PageProps<"/items/[id]">) {
         )}
 
         <div className="mt-8 flex justify-between gap-2">
-          <Link href={`/outfits/new?item=${id}`} className="btn-ghost">
+          <Link href={`/outfits/builder?items=${id}`} className="btn-ghost">
             Outfit mit diesem Teil
           </Link>
           <ConfirmButton
