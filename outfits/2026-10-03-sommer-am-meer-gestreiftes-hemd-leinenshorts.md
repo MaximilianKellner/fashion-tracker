@@ -1,9 +1,10 @@
 ---
 name: 'Sommer am Meer: gestreiftes Hemd & Leinenshorts'
 items:
-  - 2026-10-03-comfort-fit-hemd
-  - 2026-10-03-leinenmix-shorts
   - 2026-10-03-lehman-brothers-risk-managment-hat-bestickte-cord-
+  - 2026-10-03-comfort-fit-hemd
+  - 2026-10-03-t-shirt
+  - 2026-10-03-leinenmix-shorts
   - 2026-10-03-sneaker-campus-00s
 occasion: 'Urlaub, Sommer'
 seasons:
@@ -12,5 +13,3 @@ source: ich
 ---
 
 Hemd offen über einem weißen T-Shirt, dazu schwarze Socken. Vom Foto auf Hvar.
-
-Noch nicht im Kleiderschrank erfasst: weißes T-Shirt.
