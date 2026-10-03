@@ -3,7 +3,8 @@ name: Handball Spezial maroon/cream white/gold Handball Spezial
 category: schuhe
 subcategory: sneaker
 colors:
-  - rot
+  - bordeaux
+  - creme
 brand: adidas Originals
 size: '46'
 status: aktiv

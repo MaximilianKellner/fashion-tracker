@@ -3,8 +3,7 @@ name: Oversize Zipper Knit Polo T-shirt
 category: oberteil
 subcategory: strickpolohemd
 colors:
-  - rot
-  - pflaume
+  - bordeaux
 brand: kleidermafia
 size: M
 status: aktiv

@@ -13,7 +13,7 @@ sizes: {}
 ## Über mich
 - Herrenmode
 - Statur: athletisch, ca. 15 % Körperfett (leicht sichtbare Bauchmuskulatur)
-- Haut-/Haarfarbe (hilft bei Farbempfehlungen):
+- Typ: helle Haut, dunkelblondes bis hellbraunes, welliges Haar, runde Brille mit dünnem Metallrahmen. Mittlerer Kontrast, gedeckte und warme Töne stehen besonders gut (eingeschätzt von Claude anhand von Fotos)
 
 ## Stil
 - **Heute**: gepflegt und eher elegant, mit etwas Streetwear. Gedeckte Farben.
@@ -44,3 +44,10 @@ sizes: {}
 - Bei 1,88 m und athletischer Statur tragen weite Hosen mit Bundfalten gut, ohne zu verschlucken. Ein hoher Bund und eine leichte Länge mit wenig Stauchung am Saum strecken das Bein. Oben passen gerade, leicht entspannte Schnitte (auch Dropped Shoulders) besser als enge, Slim Fits sind ohnehin ein No-Go.
 - Im Budget bis 50 € auf das Material achten: Wolle- bzw. Merino-Anteil bei Strick (z. B. Uniqlo Merino, Extra Fine Merino), Baumwolle oder Leinen bei Hemden. Polyester-lastigen Strick meiden, er pillt schnell.
 - Der Mantel ist das Teil, bei dem sich mehr Budget lohnt (Wollanteil ≥ 50–70 %). Er prägt jedes Herbst- und Winteroutfit, und in Düsseldorf trägt man ihn von Oktober bis März.
+- Beobachtungen aus Fotos (Oktober 2026):
+  - Die Silhouette sitzt: oben gerade bis leicht oversized, unten weit (Baggy Jeans, Relaxed- und Loose-Fit-Hosen). Das passt gut zur Größe.
+  - Stärkster Look: Strickpolo in Bordeaux zur braunen Bundfaltenhose. Ton-in-Ton in warmen, gedeckten Farben ist genau die Richtung des Ziels.
+  - Wiederkehrendes Muster: dunkles Oberteil (Navy, Schwarz) zur hellen Jeans und Adidas Campus. Funktioniert, ist aber fast immer dieselbe Formel.
+  - Schuhe: fast immer schwarze Campus. Für Büro und Abend fehlt ein Lederschuh (z. B. brauner Loafer oder Derby), für Abwechslung die bordeauxfarbenen Spezial öfter einsetzen.
+  - Navy, Bordeaux, Oliv und Braun schmeicheln mehr als hartes Schwarz-Weiß; Schwarz eher unten oder bei Schuhen einsetzen.
+  - Im Sommer funktioniert das offene, gestreifte Hemd über weißem Shirt mit Leinenshorts gut, ebenso Ringer-Tees in Oliv.
