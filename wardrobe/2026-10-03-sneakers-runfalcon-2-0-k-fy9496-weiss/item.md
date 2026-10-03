@@ -14,7 +14,7 @@ purchase:
   price: 32
   shop: Modivo.de
 photos:
-  - photo-1.webp
+  - photo-2.webp
 link: >-
   https://modivo.de/p/adidas-schuhe-runfalcon-2-0-k-fy9496-weiss?cookie_consent=true
 ---
