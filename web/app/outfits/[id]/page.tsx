@@ -36,14 +36,9 @@ export default async function OutfitPage({ params }: PageProps<"/outfits/[id]">)
               .join(" · ")}
           </p>
         </div>
-        <div className="flex shrink-0 gap-2">
-          <Link href={`/outfits/builder?outfit=${id}`} className="btn-ghost">
-            Im Builder
-          </Link>
-          <Link href={`/outfits/${id}/edit`} className="btn-ghost">
-            Bearbeiten
-          </Link>
-        </div>
+        <Link href={`/outfits/${id}/edit`} className="btn-ghost shrink-0">
+          Bearbeiten
+        </Link>
       </div>
 
       {outfit.body && <p className="mt-4 whitespace-pre-line rounded-xl bg-surface-2 p-4 text-sm">{outfit.body}</p>}

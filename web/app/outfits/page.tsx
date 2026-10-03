@@ -12,14 +12,9 @@ export default async function OutfitsPage() {
     <div>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Outfits</h1>
-        <div className="flex gap-2">
-          <Link href="/outfits/new" className="btn-ghost">
-            Aus Liste
-          </Link>
-          <Link href="/outfits/builder" className="btn-primary">
-            Outfit bauen
-          </Link>
-        </div>
+        <Link href="/outfits/new" className="btn-primary">
+          Neues Outfit
+        </Link>
       </div>
 
       {outfits.length === 0 ? (
