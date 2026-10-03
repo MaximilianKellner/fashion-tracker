@@ -13,7 +13,7 @@ seasons:
   - winter
 status: aktiv
 purchase:
-  date: 2026-10
+  date: "2026-10-03"
   price: 84
   shop: About You
 photos:

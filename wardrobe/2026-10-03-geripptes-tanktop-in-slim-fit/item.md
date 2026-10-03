@@ -11,7 +11,7 @@ size: M
 fit: slim
 status: aktiv
 purchase:
-  date: 2026-10
+  date: "2026-10-03"
   price: 9.99
   shop: H&M
 photos:
