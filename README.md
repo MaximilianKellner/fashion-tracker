@@ -101,5 +101,3 @@ scripts/lib/               Schema, Lesen/Schreiben, Fotos, Farben, Outfit-Bewert
 web/                       Next.js-16-App (npm-Workspace)
 .claude/commands/          Slash-Commands für Claude
 ```
-
-> Das Repo enthält Fotos, Körpermaße, Größen und Ausgaben. Es bleibt ein **privates** Repository.
