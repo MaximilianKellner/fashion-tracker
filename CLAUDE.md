@@ -12,6 +12,8 @@ Claude ist der Stilberater: Er liest die Daten, sieht sich die Fotos an und gibt
 - `wishlist/<id>.md`: Kaufwünsche und -empfehlungen
 - `recommendations/<id>.md`: Fragen von der Website und Claudes Antworten bzw. Empfehlungen (auf der Website unter „Empfehlungen“)
 - `inbox/`: neue Rohfotos, die noch erfasst werden müssen (siehe `/neues-teil`)
+- `docs/`: `website.md` (alle Seiten), `outfit-builder.md` (Bewertung), `home-pc.md` (Server, Auto-Update), Screenshots in `docs/screenshots/`.
+  Bei Änderungen an Website, Builder oder Server die passende Seite aktualisieren.
 - `docs/schema.md`: alle Felder und erlaubten Werte. Die maschinenlesbare Version steht in `scripts/lib/schema.mjs`.
 - `scripts/lib/outfit-match.mjs`: Farb- und Outfit-Bewertung des Outfit-Builders (Website unter Outfits → „Outfit bauen“). Für Outfit-Vorschläge
   kann sie per `node -e` genutzt werden (`scoreCandidate`, `scoreOutfit`, `completeOutfit`), statt alle Farben selbst abzuwägen.
