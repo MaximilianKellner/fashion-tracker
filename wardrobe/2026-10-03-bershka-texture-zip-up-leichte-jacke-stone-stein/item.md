@@ -4,6 +4,7 @@ category: jacke
 colors:
   - creme
 brand: Bershka
+size: L
 status: aktiv
 purchase:
   price: 30
