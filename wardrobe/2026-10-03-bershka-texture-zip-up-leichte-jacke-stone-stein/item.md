@@ -10,6 +10,6 @@ purchase:
   price: 30
   shop: Zalando
 photos:
-  - photo-1.webp
+  - photo-2.webp
 ---
 
