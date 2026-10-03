@@ -23,7 +23,7 @@ export default async function ImportPage({ searchParams }: PageProps<"/import">)
 
   const q = `import=${encodeURIComponent(d as string)}`;
   const facts = [
-    ["Kategorie", [label(product.category), product.subcategory].filter(Boolean).join(" · ")],
+    ["Kategorie", [label(product.category), label(product.subcategory)].filter(Boolean).join(" · ")],
     ["Material", product.materialRaw],
     ["Schnitt", product.fit],
     ["Muster", label(product.pattern)],

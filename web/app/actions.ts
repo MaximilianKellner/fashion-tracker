@@ -22,6 +22,7 @@ import {
   isIsoDate,
   normalizeDate,
   normalizePrice,
+  subcategoryError,
   validateFields,
 } from "@lib/schema.mjs";
 import { isSafeId } from "@/lib/data";
@@ -169,6 +170,8 @@ export async function saveItem(_prev: FormState, fd: FormData): Promise<FormStat
   };
 
   const errors = validateFields(data, ITEM_FIELDS);
+  const subError = subcategoryError(data.category, data.subcategory);
+  if (subError) errors.push(subError);
   if (purchase.price !== undefined && Number.isNaN(purchase.price)) errors.push("Preis nicht erkannt (z. B. 39,90 oder 39,90 €)");
   if (purchase.date !== undefined && !isIsoDate(purchase.date)) errors.push("Kaufdatum ist kein gültiges Datum (JJJJ-MM-TT oder TT.MM.JJJJ)");
   if (data.link && !/^https?:\/\//.test(data.link)) errors.push("Link muss mit http:// oder https:// beginnen");

@@ -2,7 +2,7 @@
 // und lädt Produktbilder herunter. Getestet mit Zara, H&M und About You (schema.org ProductGroup).
 import dns from 'node:dns/promises';
 import net from 'node:net';
-import { normalizePrice } from './schema.mjs';
+import { SUBCATEGORIES, normalizePrice } from './schema.mjs';
 import { mapColors, translit } from './colors.mjs';
 
 export { mapColors };
@@ -31,7 +31,7 @@ function fixCaps(text) {
 
 // Reihenfolge ist wichtig: "Hemdjacke" ist eine Jacke, "Jogginghose" eine Hose
 const CATEGORY_KEYWORDS = [
-  ['schuhe', ['schuh', 'sneaker', 'stiefel', 'boots', 'loafer', 'sandale', 'slipper', 'mokassin']],
+  ['schuhe', ['schuh', 'schnuerer', 'sneaker', 'stiefel', 'boots', 'loafer', 'sandale', 'slipper', 'mokassin']],
   ['unterwaesche', ['unterhose', 'boxershort', 'socke', 'unterwaesche', 'unterhemd']],
   ['jacke', ['jacke', 'mantel', 'blazer', 'sakko', 'parka', 'overshirt', 'weste', 'coat', 'jacket', 'bomber']],
   ['hose', ['hose', 'jeans', 'chino', 'shorts', 'jogger', 'trousers', 'pants', 'cargo']],
@@ -40,18 +40,23 @@ const CATEGORY_KEYWORDS = [
   ['oberteil', ['hemd', 'shirt', 'pullover', 'pulli', 'strick', 'hoodie', 'sweat', 'polo', 'top', 'cardigan', 'rollkragen', 'troyer', 'longsleeve']],
 ];
 
-// Spezifische Unterkategorien, die erste Übereinstimmung gewinnt
-const SUBCATEGORIES = [
-  ['quarter-zip', ['quarter zip', 'quarter-zip', 'troyer', 'reissverschluss']],
-  ['anzughose', ['anzughose', 'suit pants', 'elegante hose', 'stoffhose']],
-  ['bundfaltenhose', ['bundfalte']],
-  ['chino', ['chino']], ['jeans', ['jeans']], ['cargohose', ['cargo']], ['jogginghose', ['jogger', 'jogginghose']],
-  ['shorts', ['shorts']], ['overshirt', ['overshirt', 'hemdjacke']], ['mantel', ['mantel', 'coat']],
-  ['blazer', ['blazer', 'sakko']], ['bomberjacke', ['bomber']], ['parka', ['parka']], ['weste', ['weste']],
+// Spezifische Unterkategorien (Werte aus SUBCATEGORIES in schema.mjs), die erste Übereinstimmung gewinnt
+const SUBCATEGORY_KEYWORDS = [
+  ['quarter-zip', ['quarter zip', 'quarter-zip', 'half zip', 'half-zip', 'troyer']],
+  ['anzughose', ['anzughose', 'suit pants', 'elegante hose', 'stoffhose', 'bundfalte']],
+  ['chino', ['chino']], ['jeans', ['jeans']], ['cordhose', ['cordhose']], ['cargohose', ['cargo']],
+  ['jogginghose', ['jogger', 'jogginghose']], ['shorts', ['shorts']],
+  ['overshirt', ['overshirt', 'hemdjacke']], ['fleecejacke', ['fleece']], ['jeansjacke', ['jeansjacke', 'denim jacket']],
+  ['lederjacke', ['lederjacke']], ['bomberjacke', ['bomber']], ['steppjacke', ['stepp', 'daunen', 'puffer']],
+  ['parka', ['parka']], ['regenjacke', ['regenjacke']], ['mantel', ['mantel', 'coat']], ['blazer', ['blazer', 'sakko']],
+  ['weste', ['weste']], ['blouson', ['blouson', 'harrington', 'zip-up', 'leichte jacke']],
   ['hoodie', ['hoodie', 'kapuze']], ['sweatshirt', ['sweat']], ['cardigan', ['cardigan', 'strickjacke']],
-  ['rollkragenpullover', ['rollkragen']], ['strickpullover', ['strick', 'knit']], ['pullover', ['pullover', 'pulli']],
-  ['polo', ['polo']], ['t-shirt', ['t-shirt', 'tshirt', 'tee']], ['hemd', ['hemd']], ['longsleeve', ['longsleeve']],
-  ['sneaker', ['sneaker']], ['stiefel', ['stiefel', 'boots']], ['loafer', ['loafer']],
+  ['rollkragenpullover', ['rollkragen']], ['strickpullover', ['strick', 'knit', 'pullover', 'pulli']],
+  ['polo', ['polo']], ['tanktop', ['tanktop', 'tank top']], ['longsleeve', ['longsleeve', 'langarmshirt']],
+  ['t-shirt', ['t-shirt', 'tshirt', 'tee']], ['hemd', ['hemd']],
+  ['sneaker', ['sneaker']], ['chelsea-boots', ['chelsea']], ['stiefel', ['stiefel', 'boots']], ['loafer', ['loafer']],
+  ['schnuerschuh', ['schnuerer', 'schnuerschuh', 'derby', 'oxford']], ['sandale', ['sandale']],
+  ['guertel', ['guertel']], ['cap', ['cap']], ['muetze', ['muetze', 'beanie']], ['schal', ['schal']],
 ];
 
 const findKeyword = (text, list) => list.find(([, words]) => words.some((w) => text.includes(w)))?.[0];
@@ -121,7 +126,8 @@ export function normalizeProduct(raw) {
   const secondary = translit(description);
 
   const category = findKeyword(primary, CATEGORY_KEYWORDS) ?? findKeyword(secondary, CATEGORY_KEYWORDS);
-  const subcategory = findKeyword(primary, SUBCATEGORIES) ?? findKeyword(secondary, SUBCATEGORIES);
+  const foundSub = findKeyword(primary, SUBCATEGORY_KEYWORDS) ?? findKeyword(secondary, SUBCATEGORY_KEYWORDS);
+  const subcategory = category && SUBCATEGORIES[category]?.[foundSub] ? foundSub : undefined;
   const fitMatch = translit(`${name} ${description}`).match(/\b(loose|regular|relaxed|slim|oversized|comfort|wide|straight|boxy|baggy)[ -]fit\b/);
   const pattern = findKeyword(translit(`${raw.pattern ?? ''} ${name}`), PATTERN_KEYWORDS);
   const price = normalizePrice(raw.price);

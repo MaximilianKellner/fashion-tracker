@@ -1,7 +1,7 @@
 ---
 name: only and sons quarter zip
 category: oberteil
-subcategory: quarter zip
+subcategory: quarter-zip
 colors:
   - beige
   - sand

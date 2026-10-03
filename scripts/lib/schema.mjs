@@ -11,6 +11,45 @@ export const CATEGORIES = [
   'unterwaesche',
 ];
 
+// Unterkategorien je Kategorie: Wert in der Datei -> Anzeigename. Auf der Website als Auswahl.
+export const SUBCATEGORIES = {
+  oberteil: {
+    't-shirt': 'T-Shirt', longsleeve: 'Longsleeve', tanktop: 'Tanktop', polo: 'Polo', hemd: 'Hemd',
+    strickpullover: 'Strickpullover', rollkragenpullover: 'Rollkragenpullover', cardigan: 'Cardigan',
+    sweatshirt: 'Sweatshirt', hoodie: 'Hoodie', 'quarter-zip': 'Half-/Quarter-Zip',
+  },
+  hose: {
+    jeans: 'Jeans', chino: 'Chino', anzughose: 'Anzug-/Stoffhose', cordhose: 'Cordhose', cargohose: 'Cargohose',
+    jogginghose: 'Jogginghose', shorts: 'Shorts',
+  },
+  jacke: {
+    blouson: 'Blouson', overshirt: 'Overshirt', fleecejacke: 'Fleecejacke', jeansjacke: 'Jeansjacke',
+    lederjacke: 'Lederjacke', bomberjacke: 'Bomberjacke', steppjacke: 'Stepp-/Daunenjacke', parka: 'Parka',
+    regenjacke: 'Regenjacke', mantel: 'Mantel', blazer: 'Blazer/Sakko', weste: 'Weste',
+  },
+  schuhe: {
+    sneaker: 'Sneaker', schnuerschuh: 'Schnürschuh', loafer: 'Loafer', 'chelsea-boots': 'Chelsea Boots',
+    stiefel: 'Stiefel', sandale: 'Sandale', hausschuh: 'Hausschuh',
+  },
+  kleid: { kleid: 'Kleid', rock: 'Rock', jumpsuit: 'Jumpsuit' },
+  accessoire: {
+    guertel: 'Gürtel', cap: 'Cap', muetze: 'Mütze', schal: 'Schal', handschuhe: 'Handschuhe', tasche: 'Tasche',
+    rucksack: 'Rucksack', sonnenbrille: 'Sonnenbrille', uhr: 'Uhr', schmuck: 'Schmuck', krawatte: 'Krawatte',
+  },
+  sport: {
+    sportshirt: 'Sportshirt', sporthose: 'Sporthose', trainingsjacke: 'Trainingsjacke', sportschuh: 'Sportschuh',
+    badehose: 'Badehose',
+  },
+  unterwaesche: { boxershorts: 'Boxershorts', unterhemd: 'Unterhemd', socken: 'Socken' },
+};
+
+/** Fehlertext, wenn die Unterkategorie nicht zur Kategorie passt (sonst null) */
+export function subcategoryError(category, subcategory) {
+  if (!subcategory || !SUBCATEGORIES[category]) return null;
+  if (SUBCATEGORIES[category][subcategory]) return null;
+  return `Unterkategorie "${subcategory}" passt nicht zu "${category}" (erlaubt: ${Object.keys(SUBCATEGORIES[category]).join(', ')})`;
+}
+
 export const PATTERNS = ['uni', 'gestreift', 'kariert', 'gemustert', 'print'];
 
 export const SEASONS = ['fruehling', 'sommer', 'herbst', 'winter'];

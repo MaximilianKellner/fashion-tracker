@@ -1,6 +1,7 @@
 ---
 name: C&A Strickpullover
 category: oberteil
+subcategory: strickpullover
 colors:
   - grau
   - anthrazit

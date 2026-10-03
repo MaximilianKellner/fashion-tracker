@@ -1,6 +1,7 @@
 ---
 name: DUNMORE Strickpullover
 category: oberteil
+subcategory: strickpullover
 colors:
   - rost
 brand: DUNMORE

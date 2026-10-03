@@ -46,7 +46,7 @@ export default async function ItemPage({ params }: PageProps<"/items/[id]">) {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">{data.name}</h1>
             <p className="mt-1 text-muted">
-              {[data.brand, label(data.category), data.subcategory].filter(Boolean).join(" · ")}
+              {[data.brand, label(data.category), label(data.subcategory)].filter(Boolean).join(" · ")}
             </p>
           </div>
           <Link href={`/items/${id}/edit`} className="btn-ghost shrink-0">

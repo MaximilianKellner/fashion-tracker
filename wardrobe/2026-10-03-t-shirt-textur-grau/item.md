@@ -1,6 +1,7 @@
 ---
 name: T Shirt Textur Grau
 category: oberteil
+subcategory: t-shirt
 colors:
   - creme
 brand: C&A

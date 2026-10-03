@@ -1,6 +1,7 @@
 ---
 name: Bershka
 category: jacke
+subcategory: blouson
 colors:
   - schwarz
 pattern: uni

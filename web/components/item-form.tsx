@@ -1,8 +1,8 @@
 "use client";
 
-import { startTransition, useActionState, type FormEvent } from "react";
+import { startTransition, useActionState, useState, type FormEvent } from "react";
 import { saveItem } from "@/app/actions";
-import { CATEGORIES, ITEM_STATUS, PATTERNS, SEASONS, normalizeDate } from "@lib/schema.mjs";
+import { CATEGORIES, ITEM_STATUS, PATTERNS, SEASONS, SUBCATEGORIES, normalizeDate } from "@lib/schema.mjs";
 import { FORMALITY, formatPriceInput, label } from "@/lib/labels";
 import type { ItemData } from "@/lib/types";
 import { ColorPicker } from "./color-picker";
@@ -24,6 +24,9 @@ type Props = {
 export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions, importedPhotos = [], wishPhotos = [] }: Props) {
   const [state, formAction, pending] = useActionState(saveItem, null);
   const picker = usePhotoPicker(importedPhotos);
+  const [category, setCategory] = useState(data.category ?? "");
+  const [subcategory, setSubcategory] = useState(data.subcategory ?? "");
+  const subOptions: Record<string, string> = (SUBCATEGORIES as Record<string, Record<string, string>>)[category] ?? {};
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     // Eigenes Submit statt <form action>, damit das Formular bei Validierungsfehlern nicht geleert wird
@@ -56,7 +59,16 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Kategorie *">
-            <select name="category" required defaultValue={data.category ?? ""} className="field">
+            <select
+              name="category"
+              required
+              value={category}
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setSubcategory("");
+              }}
+              className="field"
+            >
               <option value="" disabled>
                 wählen …
               </option>
@@ -68,7 +80,22 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
             </select>
           </Field>
           <Field label="Unterkategorie">
-            <input name="subcategory" defaultValue={data.subcategory} placeholder="chino, hemd, sneaker …" className="field" />
+            <select
+              name="subcategory"
+              value={subcategory}
+              onChange={(e) => setSubcategory(e.target.value)}
+              disabled={!category}
+              className="field"
+            >
+              <option value="">{category ? "keine" : "erst Kategorie wählen"}</option>
+              {Object.entries(subOptions).map(([value, text]) => (
+                <option key={value} value={value}>
+                  {text}
+                </option>
+              ))}
+              {/* Alter Freitext-Wert, der nicht in der Liste steht: anzeigen, damit er beim Speichern nicht verloren geht */}
+              {subcategory && !subOptions[subcategory] && <option value={subcategory}>{subcategory}</option>}
+            </select>
           </Field>
         </div>
         <div>

@@ -1,6 +1,7 @@
 ---
 name: DEF Hoodie Oversized
 category: oberteil
+subcategory: hoodie
 colors:
   - dunkelgruen
 brand: DEF

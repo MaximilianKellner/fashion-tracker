@@ -1,6 +1,7 @@
 ---
 name: tom tailor strickpullover
 category: oberteil
+subcategory: strickpullover
 colors:
   - dunkelgruen
 brand: tom tailor

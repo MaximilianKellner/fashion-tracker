@@ -1,6 +1,7 @@
 ---
 name: Bershka TEXTURE ZIP-UP - Leichte Jacke - stone/stein ...
 category: jacke
+subcategory: blouson
 colors:
   - creme
 brand: Bershka

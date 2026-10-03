@@ -23,7 +23,7 @@ Fotos liegen im selben Ordner als `photo-1.webp`, `photo-2.webp` … (max. 1024p
 |---------------|---------|--------------|------------------|
 | `name`        | ja      | Text         | `Navy Chino` |
 | `category`    | ja      | Text         | `oberteil`, `hose`, `jacke`, `schuhe`, `kleid`, `accessoire`, `sport`, `unterwaesche` |
-| `subcategory` |         | Text         | frei: `chino`, `t-shirt`, `hemd`, `hoodie`, `sneaker`, `mantel` … |
+| `subcategory` |         | Text         | passend zur Kategorie, Liste in `SUBCATEGORIES` (`scripts/lib/schema.mjs`), z. B. `t-shirt`, `strickpullover`, `jeans`, `blouson`, `sneaker` |
 | `colors`      | ja      | Liste        | Hauptfarbe zuerst: `[navy, weiss]` (siehe Farbnamen unten) |
 | `pattern`     |         | Text         | `uni`, `gestreift`, `kariert`, `gemustert`, `print` |
 | `material`    |         | Text         | `baumwolle`, `wolle`, `leinen`, `denim`, `leder`, `polyester` … |

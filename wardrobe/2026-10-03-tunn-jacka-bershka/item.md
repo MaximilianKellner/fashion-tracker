@@ -1,6 +1,7 @@
 ---
 name: Tunn jacka Bershka
 category: jacke
+subcategory: blouson
 colors:
   - rot
 pattern: uni

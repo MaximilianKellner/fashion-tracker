@@ -1,7 +1,7 @@
 ---
 name: Anzughose mit Bundfalte Mert
 category: hose
-subcategory: Anzughose
+subcategory: anzughose
 colors:
   - navy
 pattern: gestreift

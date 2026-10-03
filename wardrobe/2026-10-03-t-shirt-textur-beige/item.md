@@ -1,6 +1,7 @@
 ---
 name: T Shirt Textur Beige
 category: oberteil
+subcategory: t-shirt
 colors:
   - khaki
   - beige

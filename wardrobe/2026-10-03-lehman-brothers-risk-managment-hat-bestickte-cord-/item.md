@@ -1,6 +1,7 @@
 ---
 name: Lehman Brothers Risk Managment Hat - Bestickte Cord-Mütze
 category: accessoire
+subcategory: cap
 colors:
   - navy
   - weiss

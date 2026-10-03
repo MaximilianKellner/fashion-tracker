@@ -1,7 +1,7 @@
 ---
 name: Hellblauen Baggy Jeans
 category: hose
-subcategory: Jeans
+subcategory: jeans
 colors:
   - hellblau
   - denim

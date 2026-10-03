@@ -1,6 +1,7 @@
 ---
 name: T shirt
 category: oberteil
+subcategory: t-shirt
 colors:
   - sand
 brand: C&A

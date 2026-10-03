@@ -1,6 +1,7 @@
 ---
 name: T-Shirt Grün
 category: oberteil
+subcategory: t-shirt
 colors:
   - dunkelgruen
 brand: C&A

@@ -1,7 +1,7 @@
 ---
 name: Half Zip
 category: oberteil
-subcategory: sweatshirt
+subcategory: quarter-zip
 colors:
   - schwarz
 brand: Straight Outta Cotton

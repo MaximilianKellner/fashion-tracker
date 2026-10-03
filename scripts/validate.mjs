@@ -6,6 +6,7 @@ import { COLORS } from './lib/colors.mjs';
 import { readItems, readOutfits, readProfile, readRecommendations, readWishlist } from './lib/data.mjs';
 import {
   ITEM_FIELDS,
+  subcategoryError,
   APPEARANCE,
   MEASUREMENTS,
   PALETTE,
@@ -30,6 +31,8 @@ for (const item of items) {
   const where = `wardrobe/${item.id}`;
   if (!ID_PATTERN.test(item.id)) report(where, 'Ordnername entspricht nicht JJJJ-MM-TT-slug');
   for (const e of validateFields(item.data, ITEM_FIELDS)) report(where, e);
+  const subError = subcategoryError(item.data.category, item.data.subcategory);
+  if (subError) report(where, subError);
   for (const photo of item.data.photos ?? []) {
     if (!fs.existsSync(path.join(path.dirname(item.file), photo))) report(where, `Foto "${photo}" fehlt`);
   }

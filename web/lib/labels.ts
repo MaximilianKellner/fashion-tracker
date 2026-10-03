@@ -1,4 +1,5 @@
 import { COLORS, colorInfo } from "@lib/colors.mjs";
+import { SUBCATEGORIES } from "@lib/schema.mjs";
 
 // Anzeigenamen für die Schema-Werte (in den Dateien stehen sie ohne Umlaute)
 
@@ -33,6 +34,7 @@ const LABELS: Record<string, string> = {
   empfehlung: "Empfehlung",
   beantwortet: "Beantwortet",
   archiviert: "Archiviert",
+  ...Object.assign({}, ...Object.values(SUBCATEGORIES)),
 };
 
 /** Themen von Fragen und Empfehlungen */

@@ -1,7 +1,7 @@
 ---
 name: The classic belt
 category: accessoire
-subcategory: Gürtel
+subcategory: guertel
 colors:
   - schwarz
   - silber

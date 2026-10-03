@@ -1,7 +1,7 @@
 ---
 name: seidensticker hemd
 category: oberteil
-subcategory: Hemd
+subcategory: hemd
 colors:
   - dunkelgruen
 brand: seidensticker

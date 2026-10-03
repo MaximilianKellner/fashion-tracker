@@ -1,7 +1,7 @@
 ---
 name: Mangoon Hemd
 category: oberteil
-subcategory: Hemd
+subcategory: hemd
 colors:
   - schwarz
 brand: Mangoon

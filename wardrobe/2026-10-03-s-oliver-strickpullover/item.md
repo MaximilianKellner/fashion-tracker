@@ -1,6 +1,7 @@
 ---
 name: S oliver Strickpullover
 category: oberteil
+subcategory: strickpullover
 colors:
   - hellgrau
   - grau

@@ -1,7 +1,7 @@
 ---
 name: Geripptes Tanktop in Slim Fit
 category: oberteil
-subcategory: Tanktop
+subcategory: tanktop
 colors:
   - weiss
 pattern: uni
@@ -11,7 +11,7 @@ size: M
 fit: slim
 status: aktiv
 purchase:
-  date: "2026-10-03"
+  date: '2026-10-03'
   price: 9.99
   shop: H&M
 photos:

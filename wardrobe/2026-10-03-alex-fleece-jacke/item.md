@@ -1,6 +1,7 @@
 ---
 name: Alex Fleece jacke
-category: oberteil
+category: jacke
+subcategory: fleecejacke
 colors:
   - blau
   - gelb

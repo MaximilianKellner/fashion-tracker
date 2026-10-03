@@ -1,6 +1,7 @@
 ---
 name: T Shirt Textur Gruen
 category: oberteil
+subcategory: t-shirt
 colors:
   - oliv
   - gruen
