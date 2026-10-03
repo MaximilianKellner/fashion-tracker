@@ -16,7 +16,7 @@ purchase:
   price: 49.95
   shop: ZARA
 photos:
-  - photo-2.webp
+  - photo-1.webp
 link: >-
   https://www.zara.com/de/de/strickpullover-mit-reissverschluss-p03332310.html?v1=545409940
 ---
