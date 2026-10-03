@@ -3,7 +3,7 @@ name: Bordeaux-Strickpolo & braune Bundfaltenhose
 items:
   - 2026-10-03-oversize-zipper-knit-polo-t-shirt
   - 2026-10-03-braun-elegante-hose-in-loose-fit
-  - 2026-10-03-sneaker-campus-00s
+  - 2026-10-03-handball-spezial-maroon-cream-white-gold-handball-
 occasion: 'Stadt, Büro, Abend'
 seasons:
   - fruehling
