@@ -17,7 +17,7 @@ purchase:
   price: 84
   shop: About You
 photos:
-  - photo-2.webp
+  - photo-1.webp
 link: 'https://www.aboutyou.de/p/adidas-originals/sneaker-campus-00s-9577719'
 ---
 
