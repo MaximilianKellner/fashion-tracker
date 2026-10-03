@@ -1,5 +1,5 @@
 ---
-name: DAN FOX APPAREL
+name: Anzughose mit Bundfalte Mert
 category: hose
 subcategory: Anzughose
 colors:
