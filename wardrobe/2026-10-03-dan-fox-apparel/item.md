@@ -16,6 +16,6 @@ purchase:
   price: 48.93
   shop: aboutyou
 photos:
-  - photo-1.webp
+  - photo-2.webp
 ---
 
