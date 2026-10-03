@@ -13,7 +13,7 @@ purchase:
   price: 19.9
   shop: Kleidermafia
 photos:
-  - photo-1.webp
+  - photo-2.webp
 link: >-
   https://kleidermafia.com/products/oversize-zipper-knit-polo-sweater-plum?variant=51678784553289
 ---
