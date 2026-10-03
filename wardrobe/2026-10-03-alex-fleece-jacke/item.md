@@ -8,5 +8,7 @@ brand: Alex
 status: aktiv
 purchase:
   price: 35
+photos:
+  - photo-1.webp
 ---
 
