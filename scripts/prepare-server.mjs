@@ -29,10 +29,27 @@ try {
   stamp = JSON.parse(fs.readFileSync(stampFile, 'utf8'));
 } catch {}
 
+// Ist der Build für genau diesen Code schon einmal fehlgeschlagen, nicht bei jedem Neustart erneut ~600 MB schreiben.
+// Erst ein neuer Commit (anderer Hash) versucht es wieder.
+if (stamp.failedHash === codeHash) {
+  console.error(`[prepare] Build für diesen Code ist schon fehlgeschlagen (${stamp.failedAt}), warte auf neuen Commit`);
+  process.exit(1);
+}
+const fail = (err) => {
+  fs.mkdirSync(path.dirname(stampFile), { recursive: true });
+  fs.writeFileSync(stampFile, JSON.stringify({ ...stamp, failedHash: codeHash, failedAt: new Date().toISOString() }, null, 2));
+  console.error('[prepare] fehlgeschlagen:', err.message);
+  process.exit(1);
+};
+
 const hasModules = fs.existsSync(path.join(root, 'node_modules', '.package-lock.json'));
 if (!hasModules || stamp.lockHash !== lockHash) {
   console.log('[prepare] Abhängigkeiten haben sich geändert -> npm ci');
-  npm('ci', '--no-audit', '--no-fund');
+  try {
+    npm('ci', '--no-audit', '--no-fund');
+  } catch (err) {
+    fail(err);
+  }
 } else {
   console.log('[prepare] Abhängigkeiten unverändert, npm ci übersprungen');
 }
@@ -40,7 +57,11 @@ if (!hasModules || stamp.lockHash !== lockHash) {
 const hasBuild = fs.existsSync(path.join(root, 'web', '.next', 'BUILD_ID'));
 if (!hasBuild || stamp.codeHash !== codeHash || stamp.lockHash !== lockHash) {
   console.log('[prepare] Code hat sich geändert -> Build');
-  npm('run', 'build');
+  try {
+    npm('run', 'build');
+  } catch (err) {
+    fail(err);
+  }
 } else {
   console.log('[prepare] Code unverändert, Build übersprungen');
 }

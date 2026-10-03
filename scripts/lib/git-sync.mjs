@@ -2,12 +2,17 @@
 // Aktiv nur mit GIT_AUTOSYNC=1: Änderungen der Website werden committet und gepusht.
 // Neue Commits (z. B. von Claude) werden nur geholt, wenn die Website benutzt wird, und höchstens alle
 // GIT_SYNC_MINUTES Minuten (Standard 15). Ohne Besucher passiert nichts, das schont die SD-Karte.
+// Bringt ein Pull neuen Code mit, beendet sich der Server; systemd startet ihn neu und prepare-server.mjs baut.
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { dataRoot } from './data.mjs';
 
 const run = promisify(execFile);
 const DATA_PATHS = ['wardrobe', 'outfits', 'wishlist', 'profile.md'];
+// Dieselben Pfade wie in scripts/prepare-server.mjs: Nur Änderungen hier erfordern einen Neubau
+const CODE_PATHS = ['web', 'scripts', 'package.json', 'package-lock.json'];
+// Exit-Code ungleich 0, damit systemd (Restart=on-failure) den Service neu startet
+const RESTART_EXIT_CODE = 75;
 
 export const autosyncEnabled = () => process.env.GIT_AUTOSYNC === '1';
 const minIntervalMs = () => (Number(process.env.GIT_SYNC_MINUTES) || 15) * 60_000;
@@ -24,8 +29,15 @@ function enqueue(task) {
 
 let lastSync = Date.now(); // Beim Serverstart hat systemd gerade erst `git pull` ausgeführt
 
+/** Git-Tree-Hashes des Codes (rein lokal, kein Netzwerk) */
+async function codeVersion() {
+  const { stdout } = await git('rev-parse', ...CODE_PATHS.map((p) => `HEAD:${p}`));
+  return stdout.trim();
+}
+
 async function pullAndPush() {
   lastSync = Date.now();
+  const codeBefore = await codeVersion().catch(() => null);
   try {
     await git('pull', '--rebase', '--autostash', '--quiet');
   } catch (err) {
@@ -36,6 +48,12 @@ async function pullAndPush() {
   }
   const { stdout } = await git('rev-list', '--count', '@{u}..HEAD');
   if (Number(stdout.trim()) > 0) await git('push', '--quiet');
+
+  if (codeBefore && codeBefore !== (await codeVersion())) {
+    console.log('[git-sync] neuer Code geholt, Server startet neu und baut die Website');
+    // Kurz warten, damit laufende Anfragen noch fertig werden
+    setTimeout(() => process.exit(RESTART_EXIT_CODE), 3000);
+  }
 }
 
 /** Committet Datenänderungen mit der Nachricht und pusht sie. Wartet nicht auf GitHub (läuft im Hintergrund). */

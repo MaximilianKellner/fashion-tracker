@@ -4,6 +4,23 @@ import { label } from "@/lib/labels";
 import { CATEGORIES, SEASONS } from "@lib/schema.mjs";
 import { ColorDot, ItemCard } from "@/components/item-card";
 
+// Reihenfolge im Kleiderschrank: von oben nach unten wie ein Outfit, dann der Rest
+const CATEGORY_ORDER = ["jacke", "oberteil", "kleid", "hose", "schuhe", "accessoire", "sport", "unterwaesche"];
+const GROUP_TITLES: Record<string, string> = {
+  jacke: "Jacken & Mäntel",
+  oberteil: "Oberteile",
+  kleid: "Kleider",
+  hose: "Hosen",
+  schuhe: "Schuhe",
+  accessoire: "Accessoires",
+  sport: "Sport",
+  unterwaesche: "Unterwäsche",
+};
+const rank = (c: string) => {
+  const i = CATEGORY_ORDER.indexOf(c);
+  return i < 0 ? CATEGORY_ORDER.length : i;
+};
+
 type Filters = { category?: string; color?: string; season?: string; status?: string };
 
 /** Link, der einen Filter setzt bzw. beim erneuten Klick wieder entfernt */
@@ -34,7 +51,11 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
   );
 
   // Nur Filter anbieten, die im Bestand vorkommen
-  const categories = CATEGORIES.filter((c) => all.some((i) => i.data.category === c));
+  const categories = CATEGORIES.filter((c) => all.some((i) => i.data.category === c)).sort((a, b) => rank(a) - rank(b));
+  // Gefilterte Teile nach Kategorie gruppieren (Filter wirken also weiterhin)
+  const groups = [...new Set(items.map((i) => i.data.category))]
+    .sort((a, b) => rank(a) - rank(b))
+    .map((c) => ({ category: c, items: items.filter((i) => i.data.category === c) }));
   const colors = [...new Set(all.flatMap((i) => i.data.colors ?? []))].sort();
   const hasOtherStatus = all.some((i) => i.data.status !== "aktiv");
 
@@ -92,9 +113,19 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
       {items.length === 0 ? (
         <p className="py-12 text-center text-muted">Keine Teile für diese Filter.</p>
       ) : (
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {items.map((item) => (
-            <ItemCard key={item.id} item={item} />
+        <div className="mt-4 space-y-6">
+          {groups.map((g) => (
+            <section key={g.category}>
+              <h2 className="mb-2 flex items-baseline gap-2 text-lg font-semibold">
+                {GROUP_TITLES[g.category] ?? label(g.category)}
+                <span className="text-sm font-normal text-muted">{g.items.length}</span>
+              </h2>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {g.items.map((item) => (
+                  <ItemCard key={item.id} item={item} />
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       )}
