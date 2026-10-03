@@ -8,7 +8,18 @@ import { label, swatch } from "@/lib/labels";
  * Farbauswahl: Palette zum Anklicken plus Eingabefeld mit Vorschlägen (auch über Synonyme wie "plum" -> Pflaume).
  * Die erste Farbe ist die Hauptfarbe. Schickt die Auswahl als kommagetrenntes Feld `name` mit.
  */
-export function ColorPicker({ name, defaultValue = [], extra = [] }: { name: string; defaultValue?: string[]; extra?: string[] }) {
+export function ColorPicker({
+  name,
+  defaultValue = [],
+  extra = [],
+  ranked = true,
+}: {
+  name: string;
+  defaultValue?: string[];
+  extra?: string[];
+  /** false: alle Farben gleichrangig, ohne Hauptfarbe (z. B. Farbpalette im Profil) */
+  ranked?: boolean;
+}) {
   const [selected, setSelected] = useState<string[]>(defaultValue);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
@@ -54,16 +65,16 @@ export function ColorPicker({ name, defaultValue = [], extra = [] }: { name: str
 
       <div className="field flex min-h-11 flex-wrap items-center gap-1.5 py-1.5">
         {selected.map((c, i) => (
-          <span key={c} className={`chip py-0.5 ${i === 0 ? "border-accent" : ""}`}>
+          <span key={c} className={`chip py-0.5 ${ranked && i === 0 ? "border-accent" : ""}`}>
             <button
               type="button"
-              onClick={() => makeMain(c)}
-              title={i === 0 ? "Hauptfarbe" : "Zur Hauptfarbe machen"}
+              onClick={() => ranked && makeMain(c)}
+              title={ranked ? (i === 0 ? "Hauptfarbe" : "Zur Hauptfarbe machen") : undefined}
               className="flex items-center gap-1.5"
             >
               <span className="h-3 w-3 rounded-full border border-black/15" style={{ backgroundColor: swatch(c) }} />
               {label(c)}
-              {i === 0 && selected.length > 1 && <span className="text-[10px] text-muted">Haupt</span>}
+              {ranked && i === 0 && selected.length > 1 && <span className="text-[10px] text-muted">Haupt</span>}
             </button>
             <button type="button" onClick={() => toggle(c)} aria-label={`${label(c)} entfernen`} className="text-muted hover:text-ink">
               ×

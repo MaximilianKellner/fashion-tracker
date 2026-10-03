@@ -10,8 +10,10 @@ import { commitAndPush } from "@lib/git-sync.mjs";
 import { downloadImage } from "@lib/product-import.mjs";
 import {
   ITEM_FIELDS,
+  APPEARANCE,
   MEASUREMENTS,
   OUTFIT_FIELDS,
+  PALETTE,
   PROFILE_FIELDS,
   RECOMMENDATION_FIELDS,
   RECOMMENDATION_STATUS,
@@ -313,6 +315,16 @@ export async function saveProfile(_prev: FormState, fd: FormData): Promise<FormS
     const n = measure(`m_${key}`, label);
     if (n !== undefined) measurements[key] = n;
   }
+  const appearance: Record<string, string> = {};
+  for (const key of Object.keys(APPEARANCE)) {
+    const v = text(fd, `a_${key}`);
+    if (v) appearance[key] = v;
+  }
+  const palette: Record<string, string[]> = {};
+  for (const key of Object.keys(PALETTE)) {
+    const colors = list(fd, `p_${key}`);
+    if (colors.length) palette[key] = colors;
+  }
   const sizes: Record<string, string> = {};
   for (const key of Object.keys(SIZES)) {
     const v = text(fd, `s_${key}`);
@@ -324,6 +336,8 @@ export async function saveProfile(_prev: FormState, fd: FormData): Promise<FormS
     height_cm: measure("height_cm", "Größe"),
     weight_kg: measure("weight_kg", "Gewicht"),
     age: measure("age", "Alter"),
+    appearance,
+    palette,
     measurements,
     sizes,
   };

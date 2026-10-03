@@ -2,10 +2,13 @@
 // Prüft alle Kleidungsstücke, Outfits und Wunschlisten-Einträge gegen das Schema.
 import fs from 'node:fs';
 import path from 'node:path';
+import { COLORS } from './lib/colors.mjs';
 import { readItems, readOutfits, readProfile, readRecommendations, readWishlist } from './lib/data.mjs';
 import {
   ITEM_FIELDS,
+  APPEARANCE,
   MEASUREMENTS,
+  PALETTE,
   OUTFIT_FIELDS,
   PROFILE_FIELDS,
   RECOMMENDATION_FIELDS,
@@ -69,6 +72,15 @@ for (const e of validateFields(profile.data, PROFILE_FIELDS)) report('profile.md
 for (const [key, value] of Object.entries(profile.data.measurements ?? {})) {
   if (!(key in MEASUREMENTS)) report('profile.md', `unbekanntes Maß "measurements.${key}" (erlaubt: ${Object.keys(MEASUREMENTS).join(', ')})`);
   else if (typeof value !== 'number' || value <= 0) report('profile.md', `"measurements.${key}" muss eine Zahl in cm sein`);
+}
+for (const [key, value] of Object.entries(profile.data.appearance ?? {})) {
+  if (!(key in APPEARANCE)) report('profile.md', `unbekanntes Feld "appearance.${key}" (erlaubt: ${Object.keys(APPEARANCE).join(', ')})`);
+  else if (typeof value !== 'string') report('profile.md', `"appearance.${key}" muss Text sein`);
+}
+for (const [key, value] of Object.entries(profile.data.palette ?? {})) {
+  if (!(key in PALETTE)) report('profile.md', `unbekannte Gruppe "palette.${key}" (erlaubt: ${Object.keys(PALETTE).join(', ')})`);
+  else if (!Array.isArray(value)) report('profile.md', `"palette.${key}" muss eine Liste von Farben sein`);
+  else for (const c of value) if (!COLORS.some((k) => k.id === c)) report('profile.md', `"palette.${key}": unbekannte Farbe "${c}" (siehe docs/schema.md)`);
 }
 for (const [key, value] of Object.entries(profile.data.sizes ?? {})) {
   if (!(key in SIZES)) report('profile.md', `unbekannte Größe "sizes.${key}" (erlaubt: ${Object.keys(SIZES).join(', ')})`);

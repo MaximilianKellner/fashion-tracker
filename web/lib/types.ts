@@ -57,6 +57,8 @@ export type ProfileData = {
   height_cm?: number;
   weight_kg?: number;
   age?: number;
+  appearance?: Record<string, string>;
+  palette?: Record<string, string[]>;
   measurements?: Record<string, number>;
   sizes?: Record<string, string>;
 };

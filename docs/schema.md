@@ -126,5 +126,7 @@ Das Frontmatter enthält die Zahlen, der Text darunter Stil, Anlässe und Einkau
 | `height_cm`    | Zahl   | `188` |
 | `weight_kg`    | Zahl   | `84` |
 | `age`          | Zahl   | `27` |
+| `appearance`   | Objekt | Aussehen als Text: `skin` (Haut), `hair` (Haare), `contrast` (niedrig/mittel/hoch), `glasses` (Brille) |
+| `palette`      | Objekt | Farb-IDs aus der Farbliste: `best` (steht besonders), `base` (Basis), `sparingly` (sparsam einsetzen) |
 | `measurements` | Objekt | Körpermaße in cm: `chest` (Brust), `waist` (Taille/Bund), `hips` (Hüfte), `inseam` (Innenbein), `shoulder` (Schulterbreite), `sleeve` (Ärmellänge), `neck` (Hals), `foot` (Fußlänge) |
 | `sizes`        | Objekt | Konfektionsgrößen als Text: `tops`, `shirts`, `trousers`, `jackets`, `shoes`, `notes` (Abweichungen je Marke) |

@@ -1,19 +1,39 @@
 ---
 height_cm: 188
 weight_kg: 84
+appearance:
+  skin: hell
+  hair: 'dunkelblond bis hellbraun, wellig'
+  contrast: mittel
+  glasses: 'rund, dünner Metallrahmen'
+palette:
+  best:
+    - bordeaux
+    - oliv
+    - braun
+    - navy
+    - dunkelgruen
+    - cognac
+  base:
+    - creme
+    - beige
+    - sand
+    - grau
+    - weiss
+  sparingly:
+    - schwarz
 measurements: {}
 sizes: {}
 ---
 
 # Mein Style-Profil
 
-> Grundlage für alle Outfit- und Kaufempfehlungen. Größe, Gewicht, Körpermaße und Konfektionsgrößen stehen oben im Frontmatter
+> Grundlage für alle Outfit- und Kaufempfehlungen. Größe, Gewicht, Typ, Farbpalette, Körpermaße und Konfektionsgrößen stehen oben im Frontmatter
 > (auf der Website unter „Profil“ bearbeitbar). Bei Änderungen einfach anpassen oder Claude bitten, nachzufragen.
 
 ## Über mich
 - Herrenmode
 - Statur: athletisch, ca. 15 % Körperfett (leicht sichtbare Bauchmuskulatur)
-- Typ: helle Haut, dunkelblondes bis hellbraunes, welliges Haar, runde Brille mit dünnem Metallrahmen. Mittlerer Kontrast, gedeckte und warme Töne stehen besonders gut (eingeschätzt von Claude anhand von Fotos)
 
 ## Stil
 - **Heute**: gepflegt und eher elegant, mit etwas Streetwear. Gedeckte Farben.

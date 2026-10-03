@@ -37,6 +37,19 @@ export const MEASUREMENTS = {
   neck: { label: 'Hals', hint: 'für Hemden, ein Finger Luft lassen' },
   foot: { label: 'Fußlänge', hint: 'Ferse bis längster Zeh' },
 };
+// Aussehen, relevant für Farb- und Brillenempfehlungen (Felder unter profile.md -> appearance)
+export const APPEARANCE = {
+  skin: { label: 'Haut', hint: 'z. B. hell, leicht warm' },
+  hair: { label: 'Haare', hint: 'z. B. dunkelblond, wellig' },
+  contrast: { label: 'Kontrast', hint: 'niedrig, mittel oder hoch' },
+  glasses: { label: 'Brille', hint: 'z. B. rund, dünner Metallrahmen' },
+};
+// Farbpalette mit Farb-IDs aus scripts/lib/colors.mjs (Felder unter profile.md -> palette)
+export const PALETTE = {
+  best: { label: 'Steht mir besonders', hint: 'Akzente nah am Gesicht' },
+  base: { label: 'Basis', hint: 'neutrale Töne für die meisten Teile' },
+  sparingly: { label: 'Sparsam einsetzen', hint: 'eher für Hosen, Schuhe oder kleine Flächen' },
+};
 // Konfektionsgrößen (Felder unter profile.md -> sizes)
 export const SIZES = {
   tops: { label: 'Oberteile', hint: 'z. B. L' },
@@ -103,6 +116,8 @@ export const PROFILE_FIELDS = {
   height_cm: { type: 'number', min: 100, max: 250 },
   weight_kg: { type: 'number', min: 30, max: 250 },
   age: { type: 'number', min: 10, max: 120 },
+  appearance: { type: 'object' },
+  palette: { type: 'object' },
   measurements: { type: 'object' },
   sizes: { type: 'object' },
 };

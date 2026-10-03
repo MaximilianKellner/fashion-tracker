@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { startTransition, useActionState, useState, type FormEvent } from "react";
 import { saveProfile } from "@/app/actions";
-import { MEASUREMENTS, SIZES } from "@lib/schema.mjs";
+import { APPEARANCE, MEASUREMENTS, PALETTE, SIZES } from "@lib/schema.mjs";
 import type { ProfileData } from "@/lib/types";
 import { BodyChart } from "./body-chart";
+import { ColorPicker } from "./color-picker";
 import { Errors, Field, Section } from "./form-bits";
 
 const toNumber = (v: string) => {
@@ -47,6 +48,26 @@ export function ProfileForm({ data, body }: { data: ProfileData; body: string })
             <input name="age" inputMode="numeric" className="field" defaultValue={data.age ?? ""} />
           </Field>
         </div>
+      </Section>
+
+      <Section title="Typ">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {(Object.entries(APPEARANCE) as [string, { label: string; hint: string }][]).map(([k, { label, hint }]) => (
+            <Field key={k} label={label}>
+              <input name={`a_${k}`} className="field" placeholder={hint} defaultValue={data.appearance?.[k] ?? ""} />
+            </Field>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Farbpalette">
+        {(Object.entries(PALETTE) as [string, { label: string; hint: string }][]).map(([k, { label, hint }]) => (
+          <div key={k}>
+            <span className="mb-1 block text-sm font-medium">{label}</span>
+            <ColorPicker name={`p_${k}`} defaultValue={data.palette?.[k] ?? []} ranked={false} />
+            <span className="mt-1 block text-xs text-muted">{hint}</span>
+          </div>
+        ))}
       </Section>
 
       <Section title="Körpermaße in cm">
