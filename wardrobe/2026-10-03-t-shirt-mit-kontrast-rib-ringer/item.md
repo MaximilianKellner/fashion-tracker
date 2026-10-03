@@ -12,7 +12,7 @@ purchase:
   price: 17.95
   shop: ZARA
 photos:
-  - photo-1.webp
+  - photo-2.webp
 link: >-
   https://www.zara.com/de/de/basic-t-shirt-mit-kontrast-rippstrick-p00761414.html?v1=545425914&v2=2721404
 ---
