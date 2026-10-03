@@ -14,8 +14,6 @@ purchase:
   date: 2026-10
   price: 27.99
   shop: H&M
-photos:
-  - photo-1.webp
 link: 'https://www2.hm.com/de_de/productpage.1311237007.html?imwidth=264'
 ---
 
