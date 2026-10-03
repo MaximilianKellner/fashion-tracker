@@ -2,19 +2,20 @@
 // und lädt Produktbilder herunter. Getestet mit Zara, H&M und About You (schema.org ProductGroup).
 import dns from 'node:dns/promises';
 import net from 'node:net';
+import { normalizePrice } from './schema.mjs';
+import { mapColors, translit } from './colors.mjs';
+
+export { mapColors };
 
 // ---------- Text ----------
 
 /** Entfernt unsichtbare Zeichen (About You hängt z. B. U+200C an Namen) und doppelte Leerzeichen. */
 export function cleanText(text) {
   return String(text ?? '')
-    .replace(/[​-‏⁠﻿]/g, '')
+    .replace(/[\u200B-\u200F\u2060\uFEFF]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
 }
-
-const translit = (s) =>
-  s.toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
 
 /** "STRICKPULLOVER MIT REISSVERSCHLUSS" -> "Strickpullover mit reissverschluss" (Großschreibung kennt man nicht) */
 function fixCaps(text) {
@@ -24,42 +25,6 @@ function fixCaps(text) {
     return lower.charAt(0).toUpperCase() + lower.slice(1);
   }
   return text;
-}
-
-// ---------- Farben ----------
-
-// Shop-Farbnamen -> Farbnamen aus docs/schema.md. Längere Schlüssel werden zuerst geprüft.
-const COLOR_SYNONYMS = {
-  marineblau: 'navy', dunkelblau: 'navy', navy: 'navy', nachtblau: 'navy',
-  hellblau: 'hellblau', himmelblau: 'hellblau', eisblau: 'hellblau', 'light blue': 'hellblau',
-  jeansblau: 'denim', denim: 'denim', blau: 'blau', blue: 'blau', royalblau: 'blau',
-  schwarz: 'schwarz', black: 'schwarz',
-  offwhite: 'creme', 'off-white': 'creme', ecru: 'creme', creme: 'creme', elfenbein: 'creme', naturweiss: 'creme', cream: 'creme',
-  weiss: 'weiss', white: 'weiss',
-  beige: 'beige', sand: 'sand', stone: 'beige', taupe: 'beige', khaki: 'khaki',
-  cognac: 'cognac', camel: 'cognac', karamell: 'cognac', rost: 'cognac',
-  dunkelbraun: 'braun', schoko: 'braun', mokka: 'braun', braun: 'braun', brown: 'braun',
-  anthrazit: 'anthrazit', dunkelgrau: 'anthrazit', hellgrau: 'hellgrau', grau: 'grau', grey: 'grau', gray: 'grau', meliert: 'grau',
-  dunkelgruen: 'dunkelgruen', flaschengruen: 'dunkelgruen', tannengruen: 'dunkelgruen', waldgruen: 'dunkelgruen',
-  hellgruen: 'hellgruen', mint: 'mint', oliv: 'oliv', olive: 'oliv', gruen: 'gruen', green: 'gruen',
-  bordeaux: 'bordeaux', burgunder: 'bordeaux', weinrot: 'bordeaux', burgundy: 'bordeaux', dunkelrot: 'bordeaux',
-  rot: 'rot', red: 'rot', rosa: 'rosa', rose: 'rosa', pink: 'pink',
-  senf: 'senf', ocker: 'senf', gelb: 'gelb', yellow: 'gelb', orange: 'orange',
-  lila: 'lila', violett: 'lila', flieder: 'lila', purple: 'lila',
-  gold: 'gold', silber: 'silber',
-};
-const COLOR_KEYS = Object.keys(COLOR_SYNONYMS).sort((a, b) => b.length - a.length);
-
-/** "Marineblau" -> ["navy"], "Schwarz/Weiß" -> ["schwarz", "weiss"] */
-export function mapColors(raw) {
-  const result = [];
-  for (const part of translit(cleanText(raw)).split(/\s*(?:\/|,|&|\bund\b|\+)\s*/)) {
-    if (!part) continue;
-    const key = COLOR_KEYS.find((k) => part === k) ?? COLOR_KEYS.find((k) => part.includes(k));
-    const color = key ? COLOR_SYNONYMS[key] : part.replace(/[^a-z0-9-]+/g, '-');
-    if (color && !result.includes(color)) result.push(color);
-  }
-  return result;
 }
 
 // ---------- Kategorie, Schnitt, Muster, Material ----------
@@ -159,7 +124,7 @@ export function normalizeProduct(raw) {
   const subcategory = findKeyword(primary, SUBCATEGORIES) ?? findKeyword(secondary, SUBCATEGORIES);
   const fitMatch = translit(`${name} ${description}`).match(/\b(loose|regular|relaxed|slim|oversized|comfort|wide|straight|boxy|baggy)[ -]fit\b/);
   const pattern = findKeyword(translit(`${raw.pattern ?? ''} ${name}`), PATTERN_KEYWORDS);
-  const price = Number(String(raw.price ?? '').replace(',', '.'));
+  const price = normalizePrice(raw.price);
   const site = cleanText(raw.site) || (raw.url ? new URL(raw.url).hostname.replace(/^www\d*\./, '') : undefined);
 
   return {
@@ -172,7 +137,7 @@ export function normalizeProduct(raw) {
     materialRaw: cleanText(raw.material) || undefined,
     fit: fitMatch?.[1],
     pattern,
-    price: Number.isFinite(price) && price > 0 ? price : undefined,
+    price: price && price > 0 ? price : undefined,
     shop: site,
     link: typeof raw.url === 'string' && /^https?:\/\//.test(raw.url) ? raw.url : undefined,
     images: normalizeImages(raw.images ?? []),

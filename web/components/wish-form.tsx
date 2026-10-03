@@ -3,7 +3,7 @@
 import { startTransition, useActionState, type FormEvent } from "react";
 import { saveWish } from "@/app/actions";
 import { CATEGORIES, WISHLIST_STATUS } from "@lib/schema.mjs";
-import { label, PRIORITY } from "@/lib/labels";
+import { formatPriceInput, label, PRIORITY } from "@/lib/labels";
 import type { WishData } from "@/lib/types";
 import { Errors, Field, Section } from "./form-bits";
 
@@ -35,7 +35,7 @@ export function WishForm({ id, data = {}, body = "" }: { id?: string; data?: Par
             </select>
           </Field>
           <Field label="Preis (€)">
-            <input name="price" inputMode="decimal" defaultValue={data.price} className="field" />
+            <input name="price" inputMode="decimal" defaultValue={formatPriceInput(data.price)} placeholder="39,90" className="field" />
           </Field>
         </div>
         <Field label="Link">

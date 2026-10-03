@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { readItems, readOutfits, readWishlist } from './lib/data.mjs';
-import { ITEM_FIELDS, OUTFIT_FIELDS, WISHLIST_FIELDS, validateFields } from './lib/schema.mjs';
+import { ITEM_FIELDS, OUTFIT_FIELDS, WISHLIST_FIELDS, isIsoDate, isPrice, validateFields } from './lib/schema.mjs';
 
 const ID_PATTERN = /^\d{4}-\d{2}-\d{2}-[a-z0-9-]+$/;
 const problems = [];
@@ -20,7 +20,8 @@ for (const item of items) {
     if (!fs.existsSync(path.join(path.dirname(item.file), photo))) report(where, `Foto "${photo}" fehlt`);
   }
   const p = item.data.purchase;
-  if (p && p.price !== undefined && typeof p.price !== 'number') report(where, '"purchase.price" muss eine Zahl sein');
+  if (p && p.price !== undefined && !isPrice(p.price)) report(where, `"purchase.price" muss eine Zahl mit max. 2 Nachkommastellen sein (ist: ${JSON.stringify(p.price)})`);
+  if (p && p.date !== undefined && !isIsoDate(p.date)) report(where, `"purchase.date" muss JJJJ-MM-TT sein (ist: "${p.date}")`);
 }
 
 for (const outfit of await readOutfits()) {
@@ -33,6 +34,7 @@ for (const outfit of await readOutfits()) {
 
 for (const wish of await readWishlist()) {
   for (const e of validateFields(wish.data, WISHLIST_FIELDS)) report(`wishlist/${wish.id}`, e);
+  if (wish.data.price !== undefined && !isPrice(wish.data.price)) report(`wishlist/${wish.id}`, '"price" muss eine Zahl mit max. 2 Nachkommastellen sein');
 }
 
 if (problems.length) {

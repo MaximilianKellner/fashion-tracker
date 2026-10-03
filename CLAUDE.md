@@ -38,15 +38,17 @@ Claude ist der Stilberater: Er liest die Daten, sieht sich die Fotos an und gibt
 
 ## Konventionen beim Anlegen von Daten
 - IDs: `JJJJ-MM-TT-slug` mit dem heutigen Datum, Slug klein und mit Bindestrichen, Umlaute ausgeschrieben.
-- Datumsangaben und Größen in Anführungszeichen (`"2024-03"`, `"M"`).
-- Farben möglichst aus der Farbliste in `docs/schema.md` wählen.
+- Datumsangaben immer `"JJJJ-MM-TT"`, Preise als Zahl mit Punkt ohne € (`39.9`), Größen in Anführungszeichen (`"M"`).
+- Farben immer aus der Farbliste in `docs/schema.md` bzw. `scripts/lib/colors.mjs` wählen (Shop-Namen per `mapColors` übersetzen).
 - Fotos nie direkt kopieren, immer über `npm run photo` verarbeiten (Größe + Datenschutz).
 - Unbekannte Felder weglassen, nicht raten (z. B. Preis, Marke). Beim Nutzer nachfragen.
 - Nicht selbstständig committen, außer der Nutzer bittet darum.
 
 ## Sync mit dem Home-PC
 Die Website läuft dauerhaft auf dem Home-PC (NixOS, `max@192.168.178.151`, Port 3000) und committet und pusht
-jede Änderung automatisch (`GIT_AUTOSYNC=1`, siehe `scripts/lib/git-sync.mjs`). Alle 5 Minuten holt sie neue Commits.
+jede Änderung automatisch (`GIT_AUTOSYNC=1`, siehe `scripts/lib/git-sync.mjs`). Neue Commits holt sie nur, wenn jemand die
+Website benutzt, höchstens alle 15 Minuten (schont die SD-Karte des Home-PCs). Beim Start baut `scripts/prepare-server.mjs`
+nur neu, wenn sich Code oder Abhängigkeiten geändert haben.
 - **Vor jeder Analyse oder Empfehlung `git pull` ausführen**, sonst fehlen Teile, die über die Website erfasst wurden.
 - Nach Änderungen an Daten (`wardrobe/`, `outfits/`, `wishlist/`, `profile.md`) anbieten, sie zu committen und zu pushen.
   Erst dann erscheinen sie auf der Website.

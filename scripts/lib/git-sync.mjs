@@ -1,6 +1,7 @@
 // Automatischer Git-Abgleich für den Server-Betrieb (Home-PC).
-// Aktiv nur mit GIT_AUTOSYNC=1: Änderungen der Website werden committet und gepusht,
-// und regelmäßig werden neue Commits (z. B. von Claude) geholt.
+// Aktiv nur mit GIT_AUTOSYNC=1: Änderungen der Website werden committet und gepusht.
+// Neue Commits (z. B. von Claude) werden nur geholt, wenn die Website benutzt wird, und höchstens alle
+// GIT_SYNC_MINUTES Minuten (Standard 15). Ohne Besucher passiert nichts, das schont die SD-Karte.
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { dataRoot } from './data.mjs';
@@ -9,6 +10,7 @@ const run = promisify(execFile);
 const DATA_PATHS = ['wardrobe', 'outfits', 'wishlist', 'profile.md'];
 
 export const autosyncEnabled = () => process.env.GIT_AUTOSYNC === '1';
+const minIntervalMs = () => (Number(process.env.GIT_SYNC_MINUTES) || 15) * 60_000;
 
 const git = (...args) => run('git', args, { cwd: dataRoot(), timeout: 60_000 });
 
@@ -20,7 +22,10 @@ function enqueue(task) {
   return next;
 }
 
+let lastSync = Date.now(); // Beim Serverstart hat systemd gerade erst `git pull` ausgeführt
+
 async function pullAndPush() {
+  lastSync = Date.now();
   try {
     await git('pull', '--rebase', '--autostash', '--quiet');
   } catch (err) {
@@ -44,12 +49,17 @@ export function commitAndPush(message) {
   }).catch((err) => console.error('[git-sync] commit fehlgeschlagen:', err.stderr || err.message));
 }
 
-/** Holt alle `minutes` Minuten neue Commits und pusht noch ausstehende. */
-export function startPeriodicSync(minutes = 5) {
+/**
+ * Beim Aufruf einer Seite: neue Commits holen (und ausstehende pushen), falls der letzte Abgleich
+ * länger als das Mindestintervall her ist. Blockiert die Seite nicht; Änderungen erscheinen beim nächsten Laden.
+ */
+export function syncIfStale() {
+  if (!autosyncEnabled() || Date.now() - lastSync < minIntervalMs()) return;
+  lastSync = Date.now();
+  enqueue(pullAndPush).catch((err) => console.error('[git-sync] sync fehlgeschlagen:', err.stderr || err.message));
+}
+
+export function logSyncConfig() {
   if (!autosyncEnabled()) return;
-  const tick = () =>
-    enqueue(pullAndPush).catch((err) => console.error('[git-sync] sync fehlgeschlagen:', err.stderr || err.message));
-  tick();
-  setInterval(tick, minutes * 60_000).unref();
-  console.log(`[git-sync] aktiv, Abgleich alle ${minutes} min in ${dataRoot()}`);
+  console.log(`[git-sync] aktiv in ${dataRoot()}: Push nach jeder Änderung, Pull bei Benutzung (max. alle ${minIntervalMs() / 60_000} min)`);
 }

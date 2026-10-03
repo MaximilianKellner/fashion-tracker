@@ -7,7 +7,11 @@ Geprüft wird mit `npm run validate`.
 **IDs** haben das Format `JJJJ-MM-TT-kurzer-slug` (Datum der Erfassung), z. B. `2026-10-02-navy-chino`.
 Slugs bestehen nur aus Kleinbuchstaben, Ziffern und Bindestrichen. Umlaute werden ausgeschrieben (ä → ae).
 
-**Datumsangaben** immer als String in Anführungszeichen: `"2024-03"` oder `"2024-03-15"`.
+**Datumsangaben** immer als ISO 8601 `JJJJ-MM-TT` in Anführungszeichen, z. B. `"2024-03-15"`. Kein Monat allein, keine deutsche Schreibweise.
+Website und Import wandeln Eingaben wie `15.03.2024` automatisch um, `npm run validate` meldet Abweichungen.
+
+**Preise** immer als Zahl in Euro mit Punkt und höchstens 2 Nachkommastellen, ohne Währungszeichen, z. B. `39.9` oder `1299`.
+Eingaben wie `39,90 €` oder `1.299,00` werden beim Speichern umgewandelt.
 
 ---
 
@@ -29,17 +33,16 @@ Fotos liegen im selben Ordner als `photo-1.webp`, `photo-2.webp` … (max. 1024p
 | `seasons`     |         | Liste        | `fruehling`, `sommer`, `herbst`, `winter` |
 | `formality`   |         | Zahl 1–5     | 1 Sport/Lounge · 2 Casual · 3 Smart Casual · 4 Business · 5 Formell |
 | `status`      | ja      | Text         | `aktiv`, `aussortiert`, `reparatur` |
-| `purchase`    |         | Objekt       | `{ date: "2024-03", price: 39.90, shop: Uniqlo }` |
+| `purchase`    |         | Objekt       | `{ date: "2024-03-15", price: 39.9, shop: Uniqlo }` |
 | `photos`      |         | Liste        | `[photo-1.webp]` |
 | `tags`        |         | Liste        | frei: `[lieblingsteil, buero]` |
 | `link`        |         | Text         | Produktseite im Shop (wird beim Import per Lesezeichen gesetzt) |
 
 Der Text unter dem Frontmatter ist für Notizen: Passform, Pflege, Kombinationstipps, Mängel.
 
-**Farbnamen**: Bevorzugt diese verwenden. Die Website zeigt für sie ein passendes Farbmuster
-(definiert in `web/lib/labels.ts`), andere Namen sind erlaubt, werden aber grau dargestellt:
-schwarz, weiss, creme, beige, sand, khaki, braun, cognac, grau, hellgrau, anthrazit, navy, blau, hellblau,
-denim, gruen, hellgruen, dunkelgruen, oliv, mint, rot, bordeaux, rosa, pink, lila, gelb, senf, orange, gold, silber.
+**Farbnamen**: Immer einen dieser Namen verwenden. Sie sind in `scripts/lib/colors.mjs` definiert, inklusive Farbmuster
+für die Website und Synonymen für den Shop-Import (z. B. plum → pflaume, maroon → bordeaux). Andere Namen sind erlaubt, werden aber grau dargestellt:
+schwarz, anthrazit, grau, hellgrau, weiss, creme, ecru, beige, sand, taupe, khaki, camel, cognac, braun, navy, blau, kobalt, hellblau, denim, petrol, tuerkis, dunkelgruen, gruen, smaragd, oliv, salbei, hellgruen, mint, bordeaux, weinrot, rot, rost, terrakotta, koralle, lachs, rosa, pink, aubergine, pflaume, lila, mauve, flieder, gelb, senf, ocker, orange, gold, silber.
 
 ```markdown
 ---
@@ -55,7 +58,7 @@ fit: slim
 seasons: [fruehling, sommer, herbst]
 formality: 3
 status: aktiv
-purchase: { date: "2024-03", price: 39.90, shop: Uniqlo }
+purchase: { date: "2024-03-15", price: 39.9, shop: Uniqlo }
 photos: [photo-1.webp]
 tags: []
 ---

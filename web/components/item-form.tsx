@@ -2,9 +2,10 @@
 
 import { startTransition, useActionState, useEffect, useRef, useState, type FormEvent } from "react";
 import { saveItem } from "@/app/actions";
-import { CATEGORIES, ITEM_STATUS, PATTERNS, SEASONS } from "@lib/schema.mjs";
-import { FORMALITY, label } from "@/lib/labels";
+import { CATEGORIES, ITEM_STATUS, PATTERNS, SEASONS, normalizeDate } from "@lib/schema.mjs";
+import { FORMALITY, formatPriceInput, label } from "@/lib/labels";
 import type { ItemData } from "@/lib/types";
+import { ColorPicker } from "./color-picker";
 import { Errors, Field, Section } from "./form-bits";
 
 type Props = {
@@ -16,6 +17,22 @@ type Props = {
   /** Produktbilder aus dem Shop-Import, werden beim Speichern vom Server heruntergeladen */
   importedPhotos?: string[];
 };
+
+const IMAGE_EXT = /\.(jpe?g|png|webp|gif|heic|heif|avif|bmp|tiff?)$/i;
+const isImageFile = (f: File) => f.type.startsWith("image/") || IMAGE_EXT.test(f.name);
+
+/**
+ * Bild-URL aus einem Drag aus einem anderen Browser-Tab. Firefox liefert die Bildadresse in einem eigenen Typ;
+ * sonst aus dem mitgeschickten HTML (<img src>) oder der URL-Liste. Nur https, der Server prüft den Rest.
+ */
+function droppedImageUrl(dt: DataTransfer): string | null {
+  const candidates = [dt.getData("application/x-moz-file-promise-url")];
+  const html = dt.getData("text/html");
+  const src = html && new DOMParser().parseFromString(html, "text/html").querySelector("img")?.getAttribute("src");
+  if (src) candidates.push(src);
+  candidates.push(...dt.getData("text/uri-list").split(/\r?\n/).filter((l) => l && !l.startsWith("#")));
+  return candidates.find((u) => /^https:\/\//.test(u ?? "")) ?? null;
+}
 
 /** Verkleinert ein Foto im Browser auf max. 2048px (JPEG). Der Server verkleinert danach final auf 1024px WebP. */
 async function downscale(file: File): Promise<Blob> {
@@ -40,17 +57,72 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
   // Neue Fotos samt Vorschau-URL; URLs werden beim Entfernen bzw. Verlassen der Seite freigegeben
   const [files, setFiles] = useState<{ file: File; url: string }[]>([]);
   const [preparing, setPreparing] = useState(false);
+  // Bilder aus dem Web (Shop-Import oder aus einem anderen Tab hereingezogen); der Server lädt sie beim Speichern
+  const [remote, setRemote] = useState(() => importedPhotos.map((url, i) => ({ url, checked: i === 0 })));
+  const [dragging, setDragging] = useState(false);
   const urls = useRef(new Set<string>());
   useEffect(() => {
     const set = urls.current;
     return () => set.forEach((u) => URL.revokeObjectURL(u));
   }, []);
 
-  function addFiles(list: FileList | null) {
-    const picked = Array.from(list ?? []).map((file) => ({ file, url: URL.createObjectURL(file) }));
+  function addFiles(list: FileList | File[] | null) {
+    const images = Array.from(list ?? []).filter(isImageFile);
+    const picked = images.map((file) => ({ file, url: URL.createObjectURL(file) }));
     picked.forEach((p) => urls.current.add(p.url));
     setFiles((f) => [...f, ...picked]);
+    return images.length;
   }
+  const addFilesRef = useRef(addFiles);
+  useEffect(() => {
+    addFilesRef.current = addFiles;
+  });
+
+  // Drag & Drop und Einfügen (Strg+V) auf der ganzen Seite
+  useEffect(() => {
+    let depth = 0;
+    const hasPayload = (e: DragEvent) => !!e.dataTransfer && [...e.dataTransfer.types].some((t) => t === "Files" || t === "text/uri-list" || t === "text/html");
+    const onEnter = (e: DragEvent) => {
+      if (!hasPayload(e)) return;
+      depth++;
+      setDragging(true);
+    };
+    const onLeave = () => {
+      depth = Math.max(0, depth - 1);
+      if (depth === 0) setDragging(false);
+    };
+    const onOver = (e: DragEvent) => {
+      if (hasPayload(e)) e.preventDefault(); // sonst öffnet der Browser die Datei statt sie abzulegen
+    };
+    const onDrop = (e: DragEvent) => {
+      if (!e.dataTransfer || !hasPayload(e)) return;
+      e.preventDefault();
+      depth = 0;
+      setDragging(false);
+      if (addFilesRef.current(e.dataTransfer.files) > 0) return;
+      const url = droppedImageUrl(e.dataTransfer);
+      if (url) setRemote((r) => (r.some((x) => x.url === url) ? r : [...r, { url, checked: true }]));
+    };
+    const onPaste = (e: ClipboardEvent) => {
+      const pasted = Array.from(e.clipboardData?.files ?? []);
+      if (pasted.some(isImageFile)) {
+        e.preventDefault();
+        addFilesRef.current(pasted);
+      }
+    };
+    window.addEventListener("dragenter", onEnter);
+    window.addEventListener("dragleave", onLeave);
+    window.addEventListener("dragover", onOver);
+    window.addEventListener("drop", onDrop);
+    window.addEventListener("paste", onPaste);
+    return () => {
+      window.removeEventListener("dragenter", onEnter);
+      window.removeEventListener("dragleave", onLeave);
+      window.removeEventListener("dragover", onOver);
+      window.removeEventListener("drop", onDrop);
+      window.removeEventListener("paste", onPaste);
+    };
+  }, []);
 
   function removeFile(url: string) {
     URL.revokeObjectURL(url);
@@ -73,6 +145,13 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
+      {dragging && (
+        <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-bg/80 p-6 backdrop-blur-sm">
+          <div className="rounded-2xl border-2 border-dashed border-accent px-10 py-16 text-center text-lg font-medium text-accent">
+            Fotos hier ablegen
+          </div>
+        </div>
+      )}
       {id && <input type="hidden" name="id" value={id} />}
       {fromWish && <input type="hidden" name="fromWish" value={fromWish} />}
 
@@ -90,16 +169,16 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
             ))}
           </div>
         )}
-        {importedPhotos.length > 0 && (
+        {remote.length > 0 && (
           <div>
-            <p className="mb-2 text-sm text-muted">Produktbilder aus dem Shop (angehakte werden übernommen):</p>
+            <p className="mb-2 text-sm text-muted">Bilder aus dem Web (angehakte werden beim Speichern geladen):</p>
             <div className="flex flex-wrap gap-3">
-              {importedPhotos.map((src, i) => (
-                <label key={src} className="block w-24">
+              {remote.map(({ url, checked }) => (
+                <label key={url} className="block w-24">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt="" referrerPolicy="no-referrer" className="aspect-[3/4] w-24 rounded-lg bg-surface-2 object-cover" />
+                  <img src={url} alt="" referrerPolicy="no-referrer" className="aspect-[3/4] w-24 rounded-lg bg-surface-2 object-cover" />
                   <span className="mt-1 flex items-center gap-1 text-xs text-muted">
-                    <input type="checkbox" name="importPhotos" value={src} defaultChecked={i === 0} /> übernehmen
+                    <input type="checkbox" name="importPhotos" value={url} defaultChecked={checked} /> übernehmen
                   </span>
                 </label>
               ))}
@@ -152,6 +231,9 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
             />
           </label>
         </div>
+        <p className="hidden rounded-lg border border-dashed border-line px-3 py-4 text-center text-sm text-muted sm:block">
+          Fotos hierher ziehen, auch Bilder direkt aus einem Shop-Tab, oder mit Strg+V einfügen
+        </p>
         <p className="text-xs text-muted">Tipp: Teil flach vor neutralem Hintergrund bei Tageslicht fotografieren. Ein Foto vom Etikett hilft Claude bei Marke und Material.</p>
       </Section>
 
@@ -176,21 +258,11 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
             <input name="subcategory" defaultValue={data.subcategory} placeholder="chino, hemd, sneaker …" className="field" />
           </Field>
         </div>
-        <Field label="Farben *" hint="Hauptfarbe zuerst, mit Komma getrennt">
-          <input
-            name="colors"
-            required
-            list="color-suggestions"
-            defaultValue={data.colors?.join(", ")}
-            placeholder="navy, weiss"
-            className="field"
-          />
-          <datalist id="color-suggestions">
-            {colorSuggestions.map((c) => (
-              <option key={c} value={c} />
-            ))}
-          </datalist>
-        </Field>
+        <div>
+          <span className="mb-1 block text-sm font-medium">Farben *</span>
+          <ColorPicker name="colors" defaultValue={data.colors} extra={colorSuggestions} />
+          <span className="mt-1 block text-xs text-muted">Die erste Farbe ist die Hauptfarbe. Klick auf eine gewählte Farbe macht sie zur Hauptfarbe.</span>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Muster">
             <select name="pattern" defaultValue={data.pattern ?? ""} className="field">
@@ -260,10 +332,10 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
       <Section title="Kauf">
         <div className="grid grid-cols-3 gap-3">
           <Field label="Datum">
-            <input name="purchaseDate" type="month" defaultValue={data.purchase?.date?.slice(0, 7)} className="field" />
+            <input name="purchaseDate" type="date" defaultValue={normalizeDate(data.purchase?.date) ?? ""} className="field" />
           </Field>
           <Field label="Preis (€)">
-            <input name="purchasePrice" inputMode="decimal" defaultValue={data.purchase?.price} placeholder="39,90" className="field" />
+            <input name="purchasePrice" inputMode="decimal" defaultValue={formatPriceInput(data.purchase?.price)} placeholder="39,90" className="field" />
           </Field>
           <Field label="Shop">
             <input name="purchaseShop" defaultValue={data.purchase?.shop} className="field" />

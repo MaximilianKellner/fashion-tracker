@@ -1,6 +1,6 @@
-// Wird einmal beim Serverstart ausgeführt: startet den Git-Abgleich, falls GIT_AUTOSYNC=1 gesetzt ist
+// Wird einmal beim Serverstart ausgeführt: meldet die Git-Sync-Einstellungen (GIT_AUTOSYNC=1)
 export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
-  const { startPeriodicSync } = await import("@lib/git-sync.mjs");
-  startPeriodicSync(Number(process.env.GIT_SYNC_MINUTES) || 5);
+  const { logSyncConfig } = await import("@lib/git-sync.mjs");
+  logSyncConfig();
 }

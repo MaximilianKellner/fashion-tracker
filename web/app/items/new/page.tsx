@@ -4,8 +4,7 @@ import { importNotes, parseImport } from "@/lib/import";
 import { KNOWN_COLORS } from "@/lib/labels";
 import { ItemForm } from "@/components/item-form";
 import type { ItemData } from "@/lib/types";
-
-const thisMonth = () => new Date().toISOString().slice(0, 7);
+import { today } from "@lib/data.mjs";
 
 export default async function NewItemPage({ searchParams }: PageProps<"/items/new">) {
   const { fromWish, import: importParam } = await searchParams;
@@ -30,7 +29,7 @@ export default async function NewItemPage({ searchParams }: PageProps<"/items/ne
       fit: product.fit,
       pattern: product.pattern,
       link: product.link,
-      purchase: { price: product.price, shop: product.shop, date: thisMonth() },
+      purchase: { price: product.price, shop: product.shop, date: today() },
     };
     body = importNotes(product);
   } else if (wish) {
@@ -38,7 +37,7 @@ export default async function NewItemPage({ searchParams }: PageProps<"/items/ne
       name: wish.data.name,
       category: wish.data.category,
       link: wish.data.link,
-      purchase: { price: wish.data.price, date: thisMonth() },
+      purchase: { price: wish.data.price, date: today() },
     };
   }
 

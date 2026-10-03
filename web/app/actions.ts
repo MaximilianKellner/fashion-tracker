@@ -8,7 +8,7 @@ import * as lib from "@lib/data.mjs";
 import { processPhoto } from "@lib/photo.mjs";
 import { commitAndPush } from "@lib/git-sync.mjs";
 import { downloadImage } from "@lib/product-import.mjs";
-import { ITEM_FIELDS, OUTFIT_FIELDS, WISHLIST_FIELDS, validateFields } from "@lib/schema.mjs";
+import { ITEM_FIELDS, OUTFIT_FIELDS, WISHLIST_FIELDS, isIsoDate, normalizeDate, normalizePrice, validateFields } from "@lib/schema.mjs";
 import { isSafeId } from "@/lib/data";
 import type { FormState, ItemData, OutfitData, WishData } from "@/lib/types";
 
@@ -24,6 +24,12 @@ const num = (fd: FormData, key: string) => {
   if (v === undefined) return undefined;
   const n = Number(v.replace(",", "."));
   return Number.isFinite(n) ? n : NaN;
+};
+
+/** Preis aus dem Formular: "49,95 €", "1.299,00" usw. -> Zahl; NaN bei ungültiger Eingabe */
+const price = (fd: FormData, key: string) => {
+  const v = text(fd, key);
+  return v === undefined ? undefined : (normalizePrice(v) ?? NaN);
 };
 
 const all = (fd: FormData, key: string) =>
@@ -65,7 +71,12 @@ export async function saveItem(_prev: FormState, fd: FormData): Promise<FormStat
   const removePhotos = new Set(all(fd, "removePhotos"));
   const keptPhotos = ((previous?.data.photos as string[] | undefined) ?? []).filter((p) => !removePhotos.has(p));
 
-  const purchase = { date: text(fd, "purchaseDate"), price: num(fd, "purchasePrice"), shop: text(fd, "purchaseShop") };
+  const rawDate = text(fd, "purchaseDate");
+  const purchase = {
+    date: rawDate === undefined ? undefined : (normalizeDate(rawDate) ?? rawDate),
+    price: price(fd, "purchasePrice"),
+    shop: text(fd, "purchaseShop"),
+  };
   const data: ItemData = {
     name: text(fd, "name") ?? "",
     category: text(fd, "category") ?? "",
@@ -86,13 +97,14 @@ export async function saveItem(_prev: FormState, fd: FormData): Promise<FormStat
   };
 
   const errors = validateFields(data, ITEM_FIELDS);
-  if (purchase.price !== undefined && Number.isNaN(purchase.price)) errors.push("Preis muss eine Zahl sein");
+  if (purchase.price !== undefined && Number.isNaN(purchase.price)) errors.push("Preis nicht erkannt (z. B. 39,90 oder 39,90 €)");
+  if (purchase.date !== undefined && !isIsoDate(purchase.date)) errors.push("Kaufdatum ist kein gültiges Datum (JJJJ-MM-TT oder TT.MM.JJJJ)");
   if (data.link && !/^https?:\/\//.test(data.link)) errors.push("Link muss mit http:// oder https:// beginnen");
   if (errors.length) return { errors };
 
   // Produktbilder aus dem Shop-Import vor dem Speichern laden, damit bei einem Fehler nichts halb angelegt wird
   const importedImages: Buffer[] = [];
-  for (const url of all(fd, "importPhotos").slice(0, 4)) {
+  for (const url of all(fd, "importPhotos").slice(0, 8)) {
     try {
       importedImages.push(await downloadImage(url));
     } catch (err) {
@@ -196,7 +208,7 @@ export async function saveWish(_prev: FormState, fd: FormData): Promise<FormStat
     name: text(fd, "name") ?? "",
     category: text(fd, "category"),
     link: text(fd, "link"),
-    price: num(fd, "price"),
+    price: price(fd, "price"),
     priority: num(fd, "priority"),
     reason: text(fd, "reason"),
     status: text(fd, "status") ?? "offen",
