@@ -13,6 +13,6 @@ purchase:
   price: 35
   shop: P&C
 photos:
-  - photo-1.webp
+  - photo-2.webp
 ---
 
