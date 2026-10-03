@@ -68,6 +68,63 @@ async function existingIds(dir: string, flat: boolean) {
   }
 }
 
+const PHOTO_FILE = /^photo-\d+\.webp$/;
+
+/**
+ * Produktbilder aus dem Shop-Import (Feld importPhotos) herunterladen. Passiert vor dem Speichern,
+ * damit bei einem Fehler nichts halb angelegt wird.
+ */
+async function downloadImports(fd: FormData): Promise<Buffer[] | { error: string }> {
+  const images: Buffer[] = [];
+  for (const url of all(fd, "importPhotos").slice(0, 8)) {
+    try {
+      images.push(await downloadImage(url));
+    } catch (err) {
+      return { error: `Produktbild konnte nicht geladen werden (${(err as Error).message}). Haken entfernen und erneut speichern.` };
+    }
+  }
+  return images;
+}
+
+/**
+ * Speichert Fotos in dir als photo-N.webp: heruntergeladene Bilder, hochgeladene Dateien (Feld photos) und
+ * Dateien aus copyFrom (z. B. Fotos eines Wunsches). Entfernt die Fotos aus removePhotos. Gibt die neuen Dateinamen zurück.
+ */
+async function storePhotos(
+  fd: FormData,
+  dir: string,
+  downloaded: Buffer[],
+  copyFrom: string[] = [],
+): Promise<string[] | { error: string }> {
+  const added: string[] = [];
+  for (const file of copyFrom) {
+    try {
+      added.push(await processPhoto(file, dir));
+    } catch {
+      return { error: "Ein Foto vom Wunsch konnte nicht übernommen werden" };
+    }
+  }
+  for (const image of downloaded) {
+    try {
+      added.push(await processPhoto(image, dir));
+    } catch {
+      return { error: "Ein Produktbild hat ein unbekanntes Format. Haken entfernen und erneut speichern." };
+    }
+  }
+  for (const file of fd.getAll("photos")) {
+    if (!(file instanceof File) || file.size === 0) continue;
+    try {
+      added.push(await processPhoto(Buffer.from(await file.arrayBuffer()), dir));
+    } catch {
+      return { error: `Foto "${file.name}" konnte nicht gelesen werden (Format nicht unterstützt?)` };
+    }
+  }
+  for (const photo of all(fd, "removePhotos")) {
+    if (PHOTO_FILE.test(photo)) await fs.rm(path.join(dir, photo), { force: true });
+  }
+  return added;
+}
+
 /** Seiten neu laden lassen und die Änderung (falls GIT_AUTOSYNC=1) committen und pushen */
 function refreshAll(commitMessage: string) {
   revalidatePath("/", "layout");
@@ -117,39 +174,22 @@ export async function saveItem(_prev: FormState, fd: FormData): Promise<FormStat
   if (data.link && !/^https?:\/\//.test(data.link)) errors.push("Link muss mit http:// oder https:// beginnen");
   if (errors.length) return { errors };
 
-  // Produktbilder aus dem Shop-Import vor dem Speichern laden, damit bei einem Fehler nichts halb angelegt wird
-  const importedImages: Buffer[] = [];
-  for (const url of all(fd, "importPhotos").slice(0, 8)) {
-    try {
-      importedImages.push(await downloadImage(url));
-    } catch (err) {
-      return {
-        errors: [`Produktbild konnte nicht geladen werden (${(err as Error).message}). Haken entfernen und erneut speichern.`],
-      };
-    }
-  }
+  const downloaded = await downloadImports(fd);
+  if ("error" in downloaded) return { errors: [downloaded.error] };
+
+  // Aus der Wunschliste gekauft: angehakte Fotos des Wunsches übernehmen
+  const fromWish = text(fd, "fromWish");
+  const wishFiles =
+    fromWish && isSafeId(fromWish)
+      ? all(fd, "wishPhotos")
+          .filter((p) => PHOTO_FILE.test(p))
+          .map((p) => path.join(lib.dirs.wishPhotos(fromWish), p))
+      : [];
 
   const id = existingId ?? lib.makeId(data.name, await existingIds(lib.dirs.wardrobe(), false));
-  const itemDir = path.join(lib.dirs.wardrobe(), id);
-
-  for (const image of importedImages) {
-    try {
-      data.photos!.push(await processPhoto(image, itemDir));
-    } catch {
-      return { errors: ["Ein Produktbild hat ein unbekanntes Format. Haken entfernen und erneut speichern."] };
-    }
-  }
-  for (const file of fd.getAll("photos")) {
-    if (!(file instanceof File) || file.size === 0) continue;
-    try {
-      data.photos!.push(await processPhoto(Buffer.from(await file.arrayBuffer()), itemDir));
-    } catch {
-      return { errors: [`Foto "${file.name}" konnte nicht gelesen werden (Format nicht unterstützt?)`] };
-    }
-  }
-  for (const photo of removePhotos) {
-    if (/^photo-\d+\.webp$/.test(photo)) await fs.rm(path.join(itemDir, photo), { force: true });
-  }
+  const added = await storePhotos(fd, path.join(lib.dirs.wardrobe(), id), downloaded, wishFiles);
+  if ("error" in added) return { errors: [added.error] };
+  data.photos!.push(...added);
 
   // Leere Listen nicht in die Datei schreiben
   if (!data.seasons?.length) delete data.seasons;
@@ -159,7 +199,6 @@ export async function saveItem(_prev: FormState, fd: FormData): Promise<FormStat
   await lib.writeItem(id, data, text(fd, "body") ?? "");
 
   // Item aus der Wunschliste gekauft -> Wunsch abhaken
-  const fromWish = text(fd, "fromWish");
   if (fromWish && isSafeId(fromWish)) {
     const wish = await lib.readWish(fromWish).catch(() => null);
     if (wish) await lib.writeWish(fromWish, { ...wish.data, status: "gekauft" }, wish.body);
@@ -219,6 +258,10 @@ export async function saveWish(_prev: FormState, fd: FormData): Promise<FormStat
   const existingId = text(fd, "id");
   if (existingId !== undefined && !isSafeId(existingId)) return { errors: ["Ungültige ID"] };
 
+  const previous = existingId ? await lib.readWish(existingId).catch(() => null) : null;
+  if (existingId && !previous) return { errors: ["Wunsch nicht gefunden"] };
+  const removePhotos = new Set(all(fd, "removePhotos"));
+
   const data: WishData = {
     name: text(fd, "name") ?? "",
     category: text(fd, "category"),
@@ -228,12 +271,25 @@ export async function saveWish(_prev: FormState, fd: FormData): Promise<FormStat
     reason: text(fd, "reason"),
     status: text(fd, "status") ?? "offen",
     fills_gap: text(fd, "fills_gap"),
+    photos: ((previous?.data.photos as string[] | undefined) ?? []).filter((p) => !removePhotos.has(p)),
   };
   const errors = validateFields(data, WISHLIST_FIELDS);
+  if (data.price !== undefined && Number.isNaN(data.price)) errors.push("Preis nicht erkannt (z. B. 39,90 oder 39,90 €)");
   if (data.link && !/^https?:\/\//.test(data.link)) errors.push("Link muss mit http:// oder https:// beginnen");
   if (errors.length) return { errors };
 
+  const downloaded = await downloadImports(fd);
+  if ("error" in downloaded) return { errors: [downloaded.error] };
+
   const id = existingId ?? lib.makeId(data.name, await existingIds(lib.dirs.wishlist(), true));
+  const added = await storePhotos(fd, lib.dirs.wishPhotos(id), downloaded);
+  if ("error" in added) return { errors: [added.error] };
+  data.photos!.push(...added);
+  if (!data.photos?.length) {
+    delete data.photos;
+    await fs.rm(lib.dirs.wishPhotos(id), { recursive: true, force: true });
+  }
+
   await lib.writeWish(id, data, text(fd, "body") ?? "");
   refreshAll(`Website: Wunsch ${existingId ? "geändert" : "hinzugefügt"}: ${data.name}`);
   redirect("/wishlist");
@@ -249,6 +305,7 @@ export async function setWishStatus(id: string, status: string) {
 export async function deleteWish(id: string) {
   if (!isSafeId(id)) return;
   await fs.rm(path.join(lib.dirs.wishlist(), `${id}.md`), { force: true });
+  await fs.rm(lib.dirs.wishPhotos(id), { recursive: true, force: true });
   refreshAll(`Website: Wunsch gelöscht: ${id}`);
 }
 

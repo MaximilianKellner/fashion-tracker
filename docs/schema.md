@@ -93,8 +93,9 @@ Sitzt an der Hüfte gut, Beinlänge leicht zu lang – wird gekrempelt getragen.
 | `reason`    |         | Text     | Warum dieses Teil? |
 | `status`    | ja      | Text     | `offen`, `gekauft`, `verworfen` |
 | `fills_gap` |         | Text     | Welche Lücke schließt es? z. B. `warme Schicht fürs Büro` |
+| `photos`    |         | Liste    | Bilder in `wishlist/<id>/`, z. B. `[photo-1.webp]` (über `npm run photo` bzw. die Website) |
 
-Wird ein Wunsch gekauft: `status: gekauft` setzen und ein neues Kleidungsstück in `wardrobe/` anlegen.
+Wird ein Wunsch gekauft: `status: gekauft` setzen und ein neues Kleidungsstück in `wardrobe/` anlegen. Die Website bietet dabei an, die Bilder des Wunsches zu übernehmen.
 
 ## Empfehlung: `recommendations/<id>.md`
 

@@ -50,6 +50,9 @@ for (const outfit of outfits) {
 const wishes = await readWishlist();
 for (const wish of wishes) {
   for (const e of validateFields(wish.data, WISHLIST_FIELDS)) report(`wishlist/${wish.id}`, e);
+  for (const photo of wish.data.photos ?? []) {
+    if (!fs.existsSync(path.join(path.dirname(wish.file), wish.id, photo))) report(`wishlist/${wish.id}`, `Foto "${photo}" fehlt`);
+  }
   if (wish.data.price !== undefined && !isPrice(wish.data.price)) report(`wishlist/${wish.id}`, '"price" muss eine Zahl mit max. 2 Nachkommastellen sein');
 }
 

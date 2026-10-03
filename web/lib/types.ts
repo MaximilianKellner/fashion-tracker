@@ -39,6 +39,7 @@ export type WishData = {
   reason?: string;
   status: string;
   fills_gap?: string;
+  photos?: string[];
 };
 
 export type RecommendationData = {

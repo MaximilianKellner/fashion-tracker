@@ -53,7 +53,7 @@ export default async function NewItemPage({ searchParams }: PageProps<"/items/ne
           </Link>
         )}
       </div>
-      <ItemForm data={prefill} body={body} fromWish={wish?.id} colorSuggestions={colors} importedPhotos={product?.images} />
+      <ItemForm data={prefill} body={body} fromWish={wish?.id} colorSuggestions={colors} importedPhotos={product?.images} wishPhotos={wish?.data.photos} />
     </div>
   );
 }

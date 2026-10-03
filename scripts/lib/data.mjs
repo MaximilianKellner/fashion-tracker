@@ -16,6 +16,8 @@ export const dirs = {
   wardrobe: () => path.join(dataRoot(), 'wardrobe'),
   outfits: () => path.join(dataRoot(), 'outfits'),
   wishlist: () => path.join(dataRoot(), 'wishlist'),
+  /** Fotos eines Wunsches liegen in wishlist/<id>/photo-N.webp neben wishlist/<id>.md */
+  wishPhotos: (id) => path.join(dataRoot(), 'wishlist', id),
   inbox: () => path.join(dataRoot(), 'inbox'),
   recommendations: () => path.join(dataRoot(), 'recommendations'),
 };

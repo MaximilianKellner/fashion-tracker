@@ -98,6 +98,7 @@ export const WISHLIST_FIELDS = {
   reason: { type: 'string' },
   status: { type: 'string', required: true, enum: WISHLIST_STATUS },
   fills_gap: { type: 'string' },
+  photos: { type: 'string[]' },
 };
 
 export const RECOMMENDATION_FIELDS = {

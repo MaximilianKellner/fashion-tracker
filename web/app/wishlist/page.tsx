@@ -3,6 +3,7 @@ import { deleteWish, setWishStatus } from "@/app/actions";
 import { getWishlist } from "@/lib/data";
 import { euro, label, PRIORITY } from "@/lib/labels";
 import { ConfirmButton } from "@/components/confirm-button";
+import { Photo } from "@/components/photo";
 import type { Wish } from "@/lib/types";
 
 function WishRow({ wish }: { wish: Wish }) {
@@ -10,16 +11,31 @@ function WishRow({ wish }: { wish: Wish }) {
   const open = data.status === "offen";
   return (
     <li className={`rounded-xl border border-line bg-surface p-4 ${open ? "" : "opacity-70"}`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="font-medium">{data.name}</div>
-          <div className="mt-0.5 text-sm text-muted">
-            {[label(data.category), data.priority ? `Priorität ${PRIORITY[data.priority].toLowerCase()}` : "", !open ? label(data.status) : ""]
-              .filter(Boolean)
-              .join(" · ")}
+      <div className="flex items-start gap-3">
+        {data.photos?.[0] && (
+          <Photo
+            src={`/wish-photos/${wish.id}/${data.photos[0]}`}
+            alt={data.name}
+            className="aspect-[3/4] w-20 shrink-0 rounded-lg sm:w-24"
+          />
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="font-medium">{data.name}</div>
+              <div className="mt-0.5 text-sm text-muted">
+                {[
+                  label(data.category),
+                  data.priority ? `Priorität ${PRIORITY[data.priority].toLowerCase()}` : "",
+                  !open ? label(data.status) : "",
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </div>
+            </div>
+            <div className="shrink-0 text-right font-medium">{euro(data.price)}</div>
           </div>
         </div>
-        <div className="shrink-0 text-right font-medium">{euro(data.price)}</div>
       </div>
       {(data.fills_gap || data.reason) && (
         <p className="mt-2 text-sm">
