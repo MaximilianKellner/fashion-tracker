@@ -2,6 +2,7 @@
 name: T Shirt Textur Gruen
 category: oberteil
 colors:
+  - oliv
   - gruen
 brand: C&A
 status: aktiv
