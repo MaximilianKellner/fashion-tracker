@@ -3,8 +3,6 @@ name: Tunn jacka Bershka
 category: jacke
 colors:
   - rot
-  - moerkroed
-  - burgunder
 pattern: uni
 brand: Bershka
 size: L
