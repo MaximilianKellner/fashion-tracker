@@ -8,7 +8,7 @@ brand: adidas Originals
 size: '46'
 status: aktiv
 purchase:
-  date: 2026-10
+  date: '2026-10-03'
   price: 126
   shop: snipes.com
 photos:

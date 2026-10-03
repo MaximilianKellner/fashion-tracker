@@ -14,7 +14,7 @@ seasons:
   - herbst
 status: aktiv
 purchase:
-  date: 2026-10
+  date: '2026-10-03'
   price: 25.15
   shop: About You
 photos:

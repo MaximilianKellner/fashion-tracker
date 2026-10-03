@@ -8,7 +8,7 @@ brand: Bershka
 size: L
 status: aktiv
 purchase:
-  date: 2026-10
+  date: '2026-10-03'
   price: 56.91
   shop: aboutyou.de
 photos:

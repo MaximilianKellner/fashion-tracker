@@ -11,7 +11,7 @@ size: '50'
 fit: loose
 status: aktiv
 purchase:
-  date: 2026-10
+  date: '2026-10-03'
   price: 49.99
   shop: H&M
 photos:

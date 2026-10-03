@@ -8,7 +8,7 @@ brand: Straight Outta Cotton
 fit: boxy
 status: aktiv
 purchase:
-  date: 2026-10
+  date: '2026-10-03'
   price: 42.9
   shop: Straight Outta Cotton
 photos:

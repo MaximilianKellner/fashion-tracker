@@ -3,7 +3,7 @@ name: Leinenmix Shorts
 category: hose
 subcategory: shorts
 colors:
-  - naturfarben
+  - creme
 pattern: uni
 material: polyester
 brand: UNIQLO
@@ -11,7 +11,7 @@ size: L
 fit: regular
 status: aktiv
 purchase:
-  date: 2026-10
+  date: '2026-10-03'
   price: 19.9
   shop: UNIQLO
 photos:

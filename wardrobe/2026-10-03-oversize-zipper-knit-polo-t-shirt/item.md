@@ -4,12 +4,12 @@ category: oberteil
 subcategory: strickpolohemd
 colors:
   - rot
-  - plum
+  - pflaume
 brand: kleidermafia
 size: M
 status: aktiv
 purchase:
-  date: 2026-10
+  date: '2026-10-03'
   price: 19.9
   shop: Kleidermafia
 photos:

@@ -13,7 +13,7 @@ seasons:
   - winter
 status: aktiv
 purchase:
-  date: 20.03.2025
+  date: '2025-03-20'
   price: 37.9
   shop: aboutyou
 photos:

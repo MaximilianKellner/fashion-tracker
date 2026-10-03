@@ -10,7 +10,7 @@ brand: adidas
 size: '45,3'
 status: aktiv
 purchase:
-  date: 2026-10
+  date: '2026-10-03'
   price: 32
   shop: Modivo.de
 photos:

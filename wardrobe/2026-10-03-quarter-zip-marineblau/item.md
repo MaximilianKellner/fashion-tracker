@@ -12,7 +12,7 @@ seasons:
   - winter
 status: aktiv
 purchase:
-  date: 2026-10
+  date: '2026-10-03'
   price: 49.95
   shop: ZARA
 photos:

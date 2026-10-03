@@ -11,7 +11,7 @@ size: M
 fit: relaxed
 status: aktiv
 purchase:
-  date: 2026-10
+  date: '2026-10-03'
   price: 27.99
   shop: H&M
 photos:
