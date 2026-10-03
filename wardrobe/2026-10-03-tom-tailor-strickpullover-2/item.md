@@ -6,6 +6,7 @@ colors:
   - bordeaux
   - weinrot
 brand: tom tailor
+fit: slim
 status: aktiv
 purchase:
   price: 40
