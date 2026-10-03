@@ -12,7 +12,7 @@ fit: relaxed
 status: aktiv
 purchase:
   date: '2026-10-03'
-  price: 27.99
+  price: 28
   shop: H&M
 photos:
   - photo-1.webp
