@@ -13,7 +13,7 @@ purchase:
   price: 126
   shop: snipes.com
 photos:
-  - photo-1.webp
+  - photo-2.webp
 link: >-
   https://www.snipes.com/de-de/p/adidas-originals-handball-spezial-marooncream-whitegold-handball-spezial-rot-98774
 ---
