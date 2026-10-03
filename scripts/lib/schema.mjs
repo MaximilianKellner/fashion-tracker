@@ -25,7 +25,7 @@ export const SUBCATEGORIES = {
   jacke: {
     blouson: 'Blouson', overshirt: 'Overshirt', fleecejacke: 'Fleecejacke', jeansjacke: 'Jeansjacke',
     lederjacke: 'Lederjacke', bomberjacke: 'Bomberjacke', steppjacke: 'Stepp-/Daunenjacke', parka: 'Parka',
-    regenjacke: 'Regenjacke', mantel: 'Mantel', blazer: 'Blazer/Sakko', weste: 'Weste',
+    regenjacke: 'Regenjacke', softshelljacke: 'Softshelljacke', mantel: 'Mantel', blazer: 'Blazer/Sakko', weste: 'Weste',
   },
   schuhe: {
     sneaker: 'Sneaker', schnuerschuh: 'Schnürschuh', loafer: 'Loafer', 'chelsea-boots': 'Chelsea Boots',

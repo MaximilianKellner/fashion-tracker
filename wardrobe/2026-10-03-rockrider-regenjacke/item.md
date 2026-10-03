@@ -1,7 +1,7 @@
 ---
 name: Rockrider Regenjacke
 category: jacke
-subcategory: Regenjacke
+subcategory: regenjacke
 colors:
   - schwarz
 brand: Rockrider

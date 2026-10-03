@@ -1,6 +1,7 @@
 ---
 name: QUECHUA Softshell
 category: jacke
+subcategory: softshelljacke
 colors:
   - navy
   - anthrazit

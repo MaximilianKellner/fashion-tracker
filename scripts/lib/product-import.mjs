@@ -48,7 +48,7 @@ const SUBCATEGORY_KEYWORDS = [
   ['jogginghose', ['jogger', 'jogginghose']], ['shorts', ['shorts']],
   ['overshirt', ['overshirt', 'hemdjacke']], ['fleecejacke', ['fleece']], ['jeansjacke', ['jeansjacke', 'denim jacket']],
   ['lederjacke', ['lederjacke']], ['bomberjacke', ['bomber']], ['steppjacke', ['stepp', 'daunen', 'puffer']],
-  ['parka', ['parka']], ['regenjacke', ['regenjacke']], ['mantel', ['mantel', 'coat']], ['blazer', ['blazer', 'sakko']],
+  ['parka', ['parka']], ['regenjacke', ['regenjacke']], ['softshelljacke', ['softshell']], ['mantel', ['mantel', 'coat']], ['blazer', ['blazer', 'sakko']],
   ['weste', ['weste']], ['blouson', ['blouson', 'harrington', 'zip-up', 'leichte jacke']],
   ['hoodie', ['hoodie', 'kapuze']], ['sweatshirt', ['sweat']], ['cardigan', ['cardigan', 'strickjacke']],
   ['rollkragenpullover', ['rollkragen']], ['strickpullover', ['strick', 'knit', 'pullover', 'pulli']],

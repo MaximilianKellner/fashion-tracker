@@ -1,7 +1,7 @@
 ---
 name: Tribord Regenjacke
 category: jacke
-subcategory: Regenjacke
+subcategory: regenjacke
 colors:
   - navy
   - weiss
