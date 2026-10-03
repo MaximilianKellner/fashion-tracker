@@ -2,6 +2,7 @@ import Link from "next/link";
 import { parseImport } from "@/lib/import";
 import { euro, label } from "@/lib/labels";
 import { ColorDot } from "@/components/item-card";
+import { Photo } from "@/components/photo";
 
 // Ziel des Lesezeichens "Zum Kleiderschrank": zeigt die erkannten Daten und fragt, wohin damit
 export default async function ImportPage({ searchParams }: PageProps<"/import">) {
@@ -34,8 +35,7 @@ export default async function ImportPage({ searchParams }: PageProps<"/import">)
       <h1 className="mb-4 text-2xl font-semibold tracking-tight">Aus dem Shop übernehmen</h1>
       <div className="grid gap-4 rounded-xl border border-line bg-surface p-4 sm:grid-cols-[10rem_minmax(0,1fr)]">
         {product.images[0] ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={product.images[0]} alt="" referrerPolicy="no-referrer" className="aspect-[3/4] w-40 rounded-lg bg-surface-2 object-cover" />
+          <Photo src={product.images[0]} remote lazy={false} className="aspect-[3/4] w-40 rounded-lg" />
         ) : (
           <div className="aspect-[3/4] w-40 rounded-lg bg-surface-2" />
         )}

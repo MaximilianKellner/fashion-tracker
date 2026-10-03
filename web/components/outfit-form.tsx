@@ -6,6 +6,7 @@ import { CATEGORIES, OUTFIT_SOURCES, SEASONS } from "@lib/schema.mjs";
 import { label } from "@/lib/labels";
 import type { Item, OutfitData } from "@/lib/types";
 import { Errors, Field, Section } from "./form-bits";
+import { Photo } from "./photo";
 
 type Props = { id?: string; data?: Partial<OutfitData>; body?: string; items: Item[] };
 
@@ -71,10 +72,7 @@ export function OutfitForm({ id, data = {}, body = "", items }: Props) {
                 className={`overflow-hidden rounded-lg border-2 text-left ${on ? "border-accent" : "border-transparent"}`}
               >
                 <div className="aspect-[3/4] bg-surface-2">
-                  {photo && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={`/photos/${item.id}/${photo}`} alt="" loading="lazy" className="h-full w-full object-cover" />
-                  )}
+                  {photo && <Photo src={`/photos/${item.id}/${photo}`} className="h-full w-full" />}
                 </div>
                 <div className="truncate px-1 py-1 text-xs">{item.data.name}</div>
               </button>

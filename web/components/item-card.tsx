@@ -2,6 +2,7 @@ import Link from "next/link";
 import { photoUrl } from "@/lib/data";
 import { label, swatch } from "@/lib/labels";
 import type { Item } from "@/lib/types";
+import { Photo } from "./photo";
 
 export function ColorDot({ color, size = "h-3 w-3" }: { color: string; size?: string }) {
   return (
@@ -16,9 +17,7 @@ export function ColorDot({ color, size = "h-3 w-3" }: { color: string; size?: st
 export function ItemThumb({ item, className = "" }: { item: Item; className?: string }) {
   const src = photoUrl(item);
   return src ? (
-    // Fotos sind bereits auf 1024px optimiert, next/image wäre hier unnötiger Aufwand
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt={item.data.name} loading="lazy" className={`h-full w-full object-cover ${className}`} />
+    <Photo src={src} alt={item.data.name} className={`h-full w-full ${className}`} />
   ) : (
     <div className={`flex h-full w-full items-center justify-center bg-surface-2 ${className}`}>
       <ColorDot color={item.data.colors?.[0] ?? ""} size="h-8 w-8" />

@@ -6,6 +6,7 @@ import { CATEGORIES, ITEM_STATUS, PATTERNS, SEASONS, normalizeDate } from "@lib/
 import { FORMALITY, formatPriceInput, label } from "@/lib/labels";
 import type { ItemData } from "@/lib/types";
 import { ColorPicker } from "./color-picker";
+import { Photo } from "./photo";
 import { Errors, Field, Section } from "./form-bits";
 
 type Props = {
@@ -160,8 +161,7 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
           <div className="flex flex-wrap gap-3">
             {data.photos.map((p) => (
               <label key={p} className="relative block w-24">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/photos/${id}/${p}`} alt="" className="aspect-[3/4] w-24 rounded-lg object-cover" />
+                <Photo src={`/photos/${id}/${p}`} className="aspect-[3/4] w-24 rounded-lg" />
                 <span className="mt-1 flex items-center gap-1 text-xs text-muted">
                   <input type="checkbox" name="removePhotos" value={p} /> entfernen
                 </span>
@@ -175,8 +175,7 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
             <div className="flex flex-wrap gap-3">
               {remote.map(({ url, checked }) => (
                 <label key={url} className="block w-24">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt="" referrerPolicy="no-referrer" className="aspect-[3/4] w-24 rounded-lg bg-surface-2 object-cover" />
+                  <Photo src={url} remote className="aspect-[3/4] w-24 rounded-lg" />
                   <span className="mt-1 flex items-center gap-1 text-xs text-muted">
                     <input type="checkbox" name="importPhotos" value={url} defaultChecked={checked} /> übernehmen
                   </span>
@@ -189,8 +188,7 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
           <div className="flex flex-wrap gap-3">
             {files.map(({ url }) => (
               <div key={url} className="relative w-24">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt="" className="aspect-[3/4] w-24 rounded-lg object-cover" />
+                <Photo src={url} lazy={false} className="aspect-[3/4] w-24 rounded-lg" />
                 <button
                   type="button"
                   onClick={() => removeFile(url)}
