@@ -3,6 +3,7 @@ name: tom tailor strickpullover
 category: oberteil
 colors:
   - dunkelgruen
+brand: tom tailor
 status: aktiv
 purchase:
   price: 40
