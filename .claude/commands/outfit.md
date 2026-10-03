@@ -16,3 +16,6 @@ Schlag mir Outfits aus meinem Kleiderschrank vor. Anlass/Wunsch: $ARGUMENTS
    - 1–2 Sätze, warum es funktioniert (Farben, Proportionen, Anlass),
    - optional: welches fehlende Teil es noch besser machen würde.
 6. Frag, ob ich eins davon speichern will. Falls ja: Leg `outfits/<id>.md` mit `source: claude` an (Felder siehe `docs/schema.md`), frag nach einem `rating` und führ `npm run validate` aus.
+
+Biete zum Schluss an, die Vorschläge als Empfehlung unter `recommendations/<id>.md` zu speichern (`kind: empfehlung`, Felder siehe `docs/schema.md`,
+erwähnte Teile in `items`). Dann kann ich sie auf der Website unter „Empfehlungen“ nachlesen.

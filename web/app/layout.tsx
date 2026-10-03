@@ -28,7 +28,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full font-sans">
         <Nav />
         {/* Unten Platz für die mobile Navigationsleiste lassen */}
-        <main className="mx-auto w-full max-w-5xl px-4 pb-28 pt-4 sm:pb-10 sm:pt-6">{children}</main>
+        <main className="mx-auto w-full max-w-5xl px-4 pb-28 pt-2 sm:pb-10 sm:pt-6">{children}</main>
       </body>
     </html>
   );

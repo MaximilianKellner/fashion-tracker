@@ -16,3 +16,6 @@ Gib mir Kaufempfehlungen. Konkreter Wunsch (optional): $ARGUMENTS
    Pro Produkt: Name, Shop, Preis, Link, warum es passt und mit welchen meiner Teile (Namen) es sich kombinieren lässt.
    Gib keine erfundenen Links aus. Nur URLs, die du in der Suche tatsächlich gefunden hast.
 4. Frag, welche Produkte ich auf die Wunschliste setzen will. Leg dafür `wishlist/<id>.md` mit `status: offen` an (Felder siehe `docs/schema.md`) und führ `npm run validate` aus.
+
+Biete zum Schluss an, Lückenanalyse und Produkte (Wünsche in `wishes`) als Empfehlung unter `recommendations/<id>.md` zu speichern (`kind: empfehlung`, Felder siehe `docs/schema.md`,
+erwähnte Teile in `items`). Dann kann ich sie auf der Website unter „Empfehlungen“ nachlesen.

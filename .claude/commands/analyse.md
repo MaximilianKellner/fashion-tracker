@@ -15,4 +15,5 @@ Analysiere meinen Kleiderschrank. $ARGUMENTS
    - Aussortier-Kandidaten mit Begründung
 5. Schließ mit **3 konkreten nächsten Schritten** (z. B. „Profil ergänzen“, „2 Outfits für X speichern“, „/kaufempfehlung für Y ausführen“).
 
-Ändere dabei keine Dateien, es sei denn, ich bitte darum.
+Ändere dabei keine Dateien, es sei denn, ich bitte darum. Biete aber an, die Analyse als Empfehlung unter
+`recommendations/<id>.md` zu speichern (`kind: empfehlung`, `topic: analyse`, Felder siehe `docs/schema.md`), damit ich sie auf der Website nachlesen kann.

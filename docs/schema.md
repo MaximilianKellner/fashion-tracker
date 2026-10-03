@@ -95,3 +95,36 @@ Sitzt an der Hüfte gut, Beinlänge leicht zu lang – wird gekrempelt getragen.
 | `fills_gap` |         | Text     | Welche Lücke schließt es? z. B. `warme Schicht fürs Büro` |
 
 Wird ein Wunsch gekauft: `status: gekauft` setzen und ein neues Kleidungsstück in `wardrobe/` anlegen.
+
+## Empfehlung: `recommendations/<id>.md`
+
+Fragen stellt der Nutzer über die Website (Seite „Empfehlungen“), Antworten und eigene Empfehlungen schreibt Claude.
+Der Text unter dem Frontmatter ist bei einer Frage die Frage selbst, bei einer Empfehlung die Antwort in Markdown
+(Überschriften, Listen, Tabellen und Links werden auf der Website formatiert angezeigt).
+
+| Feld      | Pflicht | Typ        | Werte / Beispiel |
+|-----------|---------|------------|------------------|
+| `title`   | ja      | Text       | `Smart Casual für das Abendessen` |
+| `kind`    | ja      | Text       | `frage` (vom Nutzer), `empfehlung` (von Claude) |
+| `topic`   |         | Text       | `outfit`, `kauf`, `analyse`, `stil` |
+| `date`    | ja      | Datum      | `"2026-10-03"` |
+| `status`  | ja      | Text       | `offen`, `beantwortet` (nur Fragen), `archiviert` |
+| `answers` |         | Text       | ID der beantworteten Frage |
+| `items`   |         | Liste      | IDs erwähnter Kleidungsstücke, werden mit Foto verlinkt |
+| `outfits` |         | Liste      | IDs erwähnter Outfits |
+| `wishes`  |         | Liste      | IDs erwähnter Wunschlisten-Einträge |
+
+Eine Frage ist `offen`, bis Claude sie beantwortet hat. Dann bekommt sie `status: beantwortet`, und die Antwort verweist mit `answers` auf sie.
+Empfehlungen sind `offen` (sichtbar) oder `archiviert`.
+
+## Profil: `profile.md`
+
+Das Frontmatter enthält die Zahlen, der Text darunter Stil, Anlässe und Einkaufsvorlieben (frei in Markdown).
+
+| Feld           | Typ    | Werte / Beispiel |
+|----------------|--------|------------------|
+| `height_cm`    | Zahl   | `188` |
+| `weight_kg`    | Zahl   | `84` |
+| `age`          | Zahl   | `27` |
+| `measurements` | Objekt | Körpermaße in cm: `chest` (Brust), `waist` (Taille/Bund), `hips` (Hüfte), `inseam` (Innenbein), `shoulder` (Schulterbreite), `sleeve` (Ärmellänge), `neck` (Hals), `foot` (Fußlänge) |
+| `sizes`        | Objekt | Konfektionsgrößen als Text: `tops`, `shirts`, `trousers`, `jackets`, `shoes`, `notes` (Abweichungen je Marke) |

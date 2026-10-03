@@ -2,7 +2,7 @@
 import { connection } from "next/server";
 import * as lib from "@lib/data.mjs";
 import { syncIfStale } from "@lib/git-sync.mjs";
-import type { Item, Outfit, Wish } from "./types";
+import type { Item, Outfit, Profile, Recommendation, Wish } from "./types";
 
 /** Immer frisch von der Platte lesen; bei Benutzung ggf. im Hintergrund neue Commits holen (Home-PC) */
 async function fresh() {
@@ -53,6 +53,26 @@ export async function getWish(id: string): Promise<Wish | null> {
   } catch {
     return null;
   }
+}
+
+export async function getRecommendations(): Promise<Recommendation[]> {
+  await fresh();
+  return (await lib.readRecommendations()) as Recommendation[];
+}
+
+export async function getRecommendation(id: string): Promise<Recommendation | null> {
+  await fresh();
+  if (!isSafeId(id)) return null;
+  try {
+    return (await lib.readRecommendation(id)) as Recommendation;
+  } catch {
+    return null;
+  }
+}
+
+export async function getProfile(): Promise<Profile> {
+  await fresh();
+  return (await lib.readProfile()) as Profile;
 }
 
 /** Schützt vor Pfaden wie "../../etc" in IDs aus URLs und Formularen. */

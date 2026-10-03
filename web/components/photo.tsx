@@ -43,11 +43,7 @@ export function Photo({
     <div
       aria-hidden
       className={`absolute overflow-hidden ${wide ? "inset-x-0 h-1/2" : "inset-y-0 w-1/2"} ${
-        side === "start"
-          ? "left-0 top-0"
-          : wide
-            ? "bottom-0 left-0"
-            : "right-0 top-0"
+        side === "start" ? "left-0 top-0" : wide ? "bottom-0 left-0" : "right-0 top-0"
       }`}
     >
       <img

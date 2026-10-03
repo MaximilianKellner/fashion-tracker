@@ -8,7 +8,7 @@ import { promisify } from 'node:util';
 import { dataRoot } from './data.mjs';
 
 const run = promisify(execFile);
-const DATA_PATHS = ['wardrobe', 'outfits', 'wishlist', 'profile.md'];
+const DATA_PATHS = ['wardrobe', 'outfits', 'wishlist', 'recommendations', 'profile.md'];
 // Dieselben Pfade wie in scripts/prepare-server.mjs: Nur Änderungen hier erfordern einen Neubau
 const CODE_PATHS = ['web', 'scripts', 'package.json', 'package-lock.json'];
 // Exit-Code ungleich 0, damit systemd (Restart=on-failure) den Service neu startet

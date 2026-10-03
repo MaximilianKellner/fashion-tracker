@@ -29,6 +29,18 @@ const LABELS: Record<string, string> = {
   ich: "Ich",
   claude: "Claude",
   buero: "Büro",
+  frage: "Frage",
+  empfehlung: "Empfehlung",
+  beantwortet: "Beantwortet",
+  archiviert: "Archiviert",
+};
+
+/** Themen von Fragen und Empfehlungen */
+export const TOPICS: Record<string, string> = {
+  outfit: "Outfit",
+  kauf: "Kaufberatung",
+  analyse: "Analyse",
+  stil: "Stil & Sonstiges",
 };
 
 export function label(value: string | undefined): string {
@@ -61,4 +73,11 @@ export function formatPriceInput(value: number | undefined): string {
 export function euro(value: number | undefined): string {
   if (value === undefined) return "–";
   return value.toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+}
+
+/** "2026-10-03" -> "3. Okt. 2026" */
+export function formatDate(iso: string | undefined): string {
+  if (!iso) return "";
+  const d = new Date(`${iso}T12:00:00`);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString("de-DE", { day: "numeric", month: "short", year: "numeric" });
 }

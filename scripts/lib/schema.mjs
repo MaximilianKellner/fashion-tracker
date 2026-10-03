@@ -21,6 +21,32 @@ export const OUTFIT_SOURCES = ['ich', 'claude'];
 
 export const WISHLIST_STATUS = ['offen', 'gekauft', 'verworfen'];
 
+// Empfehlungen: "frage" stellt der Nutzer (über die Website), "empfehlung" schreibt Claude
+export const RECOMMENDATION_KINDS = ['frage', 'empfehlung'];
+export const RECOMMENDATION_TOPICS = ['outfit', 'kauf', 'analyse', 'stil'];
+export const RECOMMENDATION_STATUS = ['offen', 'beantwortet', 'archiviert'];
+
+// Körpermaße in cm (Felder unter profile.md -> measurements)
+export const MEASUREMENTS = {
+  chest: { label: 'Brust', hint: 'an der breitesten Stelle, unter den Achseln' },
+  waist: { label: 'Taille / Bund', hint: 'dort, wo die Hose sitzt (bei Bundfaltenhosen etwa Höhe Bauchnabel)' },
+  hips: { label: 'Hüfte', hint: 'an der breitesten Stelle über dem Gesäß' },
+  inseam: { label: 'Innenbeinlänge', hint: 'Schritt bis Boden, ohne Schuhe' },
+  shoulder: { label: 'Schulterbreite', hint: 'hinten von Schulternaht zu Schulternaht' },
+  sleeve: { label: 'Ärmellänge', hint: 'Schulternaht bis Handgelenk, Arm leicht angewinkelt' },
+  neck: { label: 'Hals', hint: 'für Hemden, ein Finger Luft lassen' },
+  foot: { label: 'Fußlänge', hint: 'Ferse bis längster Zeh' },
+};
+// Konfektionsgrößen (Felder unter profile.md -> sizes)
+export const SIZES = {
+  tops: { label: 'Oberteile', hint: 'z. B. L' },
+  shirts: { label: 'Hemden', hint: 'z. B. 41/42 oder L' },
+  trousers: { label: 'Hosen', hint: 'z. B. 32/34 oder 50' },
+  jackets: { label: 'Jacken & Mäntel', hint: 'z. B. L oder 52' },
+  shoes: { label: 'Schuhe', hint: 'z. B. 44 2/3' },
+  notes: { label: 'Abweichungen', hint: 'z. B. Zara eine Nummer größer' },
+};
+
 // Feld -> Regel. type: string | number | string[] ; enum: erlaubte Werte ; min/max für Zahlen
 export const ITEM_FIELDS = {
   name: { type: 'string', required: true },
@@ -59,6 +85,26 @@ export const WISHLIST_FIELDS = {
   reason: { type: 'string' },
   status: { type: 'string', required: true, enum: WISHLIST_STATUS },
   fills_gap: { type: 'string' },
+};
+
+export const RECOMMENDATION_FIELDS = {
+  title: { type: 'string', required: true },
+  kind: { type: 'string', required: true, enum: RECOMMENDATION_KINDS },
+  topic: { type: 'string', enum: RECOMMENDATION_TOPICS },
+  date: { type: 'string', required: true },
+  status: { type: 'string', required: true, enum: RECOMMENDATION_STATUS },
+  answers: { type: 'string' },
+  items: { type: 'string[]' },
+  outfits: { type: 'string[]' },
+  wishes: { type: 'string[]' },
+};
+
+export const PROFILE_FIELDS = {
+  height_cm: { type: 'number', min: 100, max: 250 },
+  weight_kg: { type: 'number', min: 30, max: 250 },
+  age: { type: 'number', min: 10, max: 120 },
+  measurements: { type: 'object' },
+  sizes: { type: 'object' },
 };
 
 /**

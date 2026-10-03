@@ -41,10 +41,32 @@ export type WishData = {
   fills_gap?: string;
 };
 
+export type RecommendationData = {
+  title: string;
+  kind: string;
+  topic?: string;
+  date: string;
+  status: string;
+  answers?: string;
+  items?: string[];
+  outfits?: string[];
+  wishes?: string[];
+};
+
+export type ProfileData = {
+  height_cm?: number;
+  weight_kg?: number;
+  age?: number;
+  measurements?: Record<string, number>;
+  sizes?: Record<string, string>;
+};
+
 export type Entry<T> = { id: string; data: T; body: string };
 export type Item = Entry<ItemData>;
 export type Outfit = Entry<OutfitData>;
 export type Wish = Entry<WishData>;
+export type Recommendation = Entry<RecommendationData>;
+export type Profile = { data: ProfileData; body: string };
 
 /** Rückgabe der Server Actions an Formulare */
 export type FormState = { errors?: string[] } | null;

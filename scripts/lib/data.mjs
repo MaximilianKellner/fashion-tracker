@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
-import { ITEM_FIELDS, OUTFIT_FIELDS, WISHLIST_FIELDS } from './schema.mjs';
+import { ITEM_FIELDS, OUTFIT_FIELDS, PROFILE_FIELDS, RECOMMENDATION_FIELDS, WISHLIST_FIELDS } from './schema.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -17,7 +17,9 @@ export const dirs = {
   outfits: () => path.join(dataRoot(), 'outfits'),
   wishlist: () => path.join(dataRoot(), 'wishlist'),
   inbox: () => path.join(dataRoot(), 'inbox'),
+  recommendations: () => path.join(dataRoot(), 'recommendations'),
 };
+export const profileFile = () => path.join(dataRoot(), 'profile.md');
 
 /** "Navy Chino!" -> "navy-chino" (Umlaute werden ausgeschrieben). */
 export function slugify(text) {
@@ -137,3 +139,25 @@ export const readWish = async (id) => {
 
 export const writeOutfit = (id, data, body) => writeMarkdown(path.join(dirs.outfits(), `${id}.md`), data, body, OUTFIT_FIELDS);
 export const writeWish = (id, data, body) => writeMarkdown(path.join(dirs.wishlist(), `${id}.md`), data, body, WISHLIST_FIELDS);
+
+// ---------- Empfehlungen: recommendations/<id>.md ----------
+
+export const readRecommendations = () => readFlat(dirs.recommendations());
+export const readRecommendation = async (id) => {
+  const file = path.join(dirs.recommendations(), `${id}.md`);
+  return { id, file, ...(await readMarkdown(file)) };
+};
+export const writeRecommendation = (id, data, body) =>
+  writeMarkdown(path.join(dirs.recommendations(), `${id}.md`), data, body, RECOMMENDATION_FIELDS);
+
+// ---------- Profil: profile.md (Frontmatter mit Maßen und Größen, Text für Stil, Anlässe, Einkauf) ----------
+
+export async function readProfile() {
+  try {
+    return { file: profileFile(), ...(await readMarkdown(profileFile())) };
+  } catch (err) {
+    if (err.code === 'ENOENT') return { file: profileFile(), data: {}, body: '' };
+    throw err;
+  }
+}
+export const writeProfile = (data, body) => writeMarkdown(profileFile(), data, body, PROFILE_FIELDS);

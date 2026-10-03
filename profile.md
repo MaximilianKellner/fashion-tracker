@@ -1,34 +1,19 @@
+---
+height_cm: 188
+weight_kg: 84
+measurements: {}
+sizes: {}
+---
+
 # Mein Style-Profil
 
-> Grundlage für alle Outfit- und Kaufempfehlungen. Bei Änderungen einfach anpassen oder Claude bitten, nachzufragen.
+> Grundlage für alle Outfit- und Kaufempfehlungen. Größe, Gewicht, Körpermaße und Konfektionsgrößen stehen oben im Frontmatter
+> (auf der Website unter „Profil“ bearbeitbar). Bei Änderungen einfach anpassen oder Claude bitten, nachzufragen.
 
 ## Über mich
 - Herrenmode
-- 188 cm, 84 kg, ca. 15 % Körperfett, athletisch (leicht sichtbare Bauchmuskulatur)
-- Alter:
+- Statur: athletisch, ca. 15 % Körperfett (leicht sichtbare Bauchmuskulatur)
 - Haut-/Haarfarbe (hilft bei Farbempfehlungen):
-
-## Größen
-> Noch offen, ich messe nach (siehe Anleitung unten).
-
-- Oberteile:
-- Hosen (W/L bzw. Bundweite):
-- Schuhe:
-- Marken, bei denen die Größe abweicht:
-
-<details>
-<summary>Messanleitung</summary>
-
-Mit einem Maßband, über dünner Kleidung, entspannt stehen:
-- **Brust**: an der breitesten Stelle, unter den Achseln
-- **Taille / Bund**: dort, wo die Hose sitzt (bei Bundfaltenhosen eher etwas höher, Höhe Bauchnabel)
-- **Innenbeinlänge**: Schritt bis Boden, ohne Schuhe
-- **Schulterbreite**: von Schulternaht zu Schulternaht hinten
-- **Ärmellänge**: Schulternaht bis Handgelenk, Arm leicht angewinkelt
-- **Fuß**: Ferse bis längster Zeh, in cm
-
-Am genauesten: Lieblingshose und Lieblingspulli flach hinlegen und ausmessen (Bundweite, Leibhöhe, Oberschenkel- und Saumweite, Breite von Achsel zu Achsel, Länge). Diese Maße lassen sich direkt mit den Größentabellen der Shops vergleichen.
-</details>
 
 ## Stil
 - **Heute**: gepflegt und eher elegant, mit etwas Streetwear. Gedeckte Farben.

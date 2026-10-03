@@ -5,10 +5,12 @@ Claude ist der Stilberater: Er liest die Daten, sieht sich die Fotos an und gibt
 **Antworte immer auf Deutsch.**
 
 ## Struktur
-- `profile.md`: Stil, Größen, Budget, Anlässe des Nutzers. **Vor jeder Empfehlung lesen.**
+- `profile.md`: Stil, Größen, Budget, Anlässe des Nutzers. **Vor jeder Empfehlung lesen.** Größe, Gewicht, Körpermaße (cm) und
+  Konfektionsgrößen stehen im Frontmatter, der Rest als Text. Auf der Website unter „Profil“ bearbeitbar.
 - `wardrobe/<id>/item.md` + `photo-N.webp`: ein Ordner pro Kleidungsstück
 - `outfits/<id>.md`: gespeicherte Kombinationen (verweisen auf Item-IDs)
 - `wishlist/<id>.md`: Kaufwünsche und -empfehlungen
+- `recommendations/<id>.md`: Fragen von der Website und Claudes Antworten bzw. Empfehlungen (auf der Website unter „Empfehlungen“)
 - `inbox/`: neue Rohfotos, die noch erfasst werden müssen (siehe `/neues-teil`)
 - `docs/schema.md`: alle Felder und erlaubten Werte. Die maschinenlesbare Version steht in `scripts/lib/schema.mjs`.
 - `scripts/`: Node-Hilfsskripte. `scripts/lib/` (Schema, Lesen/Schreiben, Fotos, Statistik) wird auch von der Website genutzt.
@@ -26,6 +28,7 @@ Claude ist der Stilberater: Er liest die Daten, sieht sich die Fotos an und gibt
 - `/outfit [Anlass]`: Outfit-Vorschläge aus dem vorhandenen Kleiderschrank
 - `/kaufempfehlung [Wunsch]`: Lückenanalyse und konkrete Produkte für die Wunschliste
 - `/analyse`: Statistiken, Stil-Feedback und Aussortier-Kandidaten
+- `/empfehlungen`: offene Fragen von der Website beantworten
 
 ## Regeln für Empfehlungen
 - Nur Teile mit `status: aktiv` für Outfits verwenden.
@@ -50,7 +53,7 @@ jede Änderung automatisch (`GIT_AUTOSYNC=1`, siehe `scripts/lib/git-sync.mjs`).
 Website benutzt, höchstens alle 15 Minuten (schont die SD-Karte des Home-PCs). Beim Start baut `scripts/prepare-server.mjs`
 nur neu, wenn sich Code oder Abhängigkeiten geändert haben.
 - **Vor jeder Analyse oder Empfehlung `git pull` ausführen**, sonst fehlen Teile, die über die Website erfasst wurden.
-- Nach Änderungen an Daten (`wardrobe/`, `outfits/`, `wishlist/`, `profile.md`) anbieten, sie zu committen und zu pushen.
+- Nach Änderungen an Daten (`wardrobe/`, `outfits/`, `wishlist/`, `recommendations/`, `profile.md`) anbieten, sie zu committen und zu pushen.
   Erst dann erscheinen sie auf der Website.
 - Code-Änderungen (`web/`, `scripts/`, `package*.json`) kommen automatisch an: Holt die Website beim nächsten Abgleich neuen
   Code, beendet sie sich, systemd startet sie neu und sie baut einige Minuten lang neu. Schlägt der Build fehl, versucht sie es

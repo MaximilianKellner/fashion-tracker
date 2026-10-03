@@ -2,8 +2,19 @@
 // Prüft alle Kleidungsstücke, Outfits und Wunschlisten-Einträge gegen das Schema.
 import fs from 'node:fs';
 import path from 'node:path';
-import { readItems, readOutfits, readWishlist } from './lib/data.mjs';
-import { ITEM_FIELDS, OUTFIT_FIELDS, WISHLIST_FIELDS, isIsoDate, isPrice, validateFields } from './lib/schema.mjs';
+import { readItems, readOutfits, readProfile, readRecommendations, readWishlist } from './lib/data.mjs';
+import {
+  ITEM_FIELDS,
+  MEASUREMENTS,
+  OUTFIT_FIELDS,
+  PROFILE_FIELDS,
+  RECOMMENDATION_FIELDS,
+  SIZES,
+  WISHLIST_FIELDS,
+  isIsoDate,
+  isPrice,
+  validateFields,
+} from './lib/schema.mjs';
 
 const ID_PATTERN = /^\d{4}-\d{2}-\d{2}-[a-z0-9-]+$/;
 const problems = [];
@@ -24,7 +35,8 @@ for (const item of items) {
   if (p && p.date !== undefined && !isIsoDate(p.date)) report(where, `"purchase.date" muss JJJJ-MM-TT sein (ist: "${p.date}")`);
 }
 
-for (const outfit of await readOutfits()) {
+const outfits = await readOutfits();
+for (const outfit of outfits) {
   const where = `outfits/${outfit.id}`;
   for (const e of validateFields(outfit.data, OUTFIT_FIELDS)) report(where, e);
   for (const ref of outfit.data.items ?? []) {
@@ -32,9 +44,35 @@ for (const outfit of await readOutfits()) {
   }
 }
 
-for (const wish of await readWishlist()) {
+const wishes = await readWishlist();
+for (const wish of wishes) {
   for (const e of validateFields(wish.data, WISHLIST_FIELDS)) report(`wishlist/${wish.id}`, e);
   if (wish.data.price !== undefined && !isPrice(wish.data.price)) report(`wishlist/${wish.id}`, '"price" muss eine Zahl mit max. 2 Nachkommastellen sein');
+}
+
+const recommendations = await readRecommendations();
+const recIds = new Set(recommendations.map((r) => r.id));
+const known = { items: itemIds, outfits: new Set(outfits.map((o) => o.id)), wishes: new Set(wishes.map((w) => w.id)) };
+for (const rec of recommendations) {
+  const where = `recommendations/${rec.id}`;
+  if (!ID_PATTERN.test(rec.id)) report(where, 'Dateiname entspricht nicht JJJJ-MM-TT-slug');
+  for (const e of validateFields(rec.data, RECOMMENDATION_FIELDS)) report(where, e);
+  if (rec.data.date !== undefined && !isIsoDate(rec.data.date)) report(where, `"date" muss JJJJ-MM-TT sein (ist: "${rec.data.date}")`);
+  if (rec.data.answers && !recIds.has(rec.data.answers)) report(where, `beantwortet unbekannte Frage "${rec.data.answers}"`);
+  for (const [key, ids] of Object.entries(known)) {
+    for (const ref of rec.data[key] ?? []) if (!ids.has(ref)) report(where, `"${key}" verweist auf Unbekanntes "${ref}"`);
+  }
+}
+
+const profile = await readProfile();
+for (const e of validateFields(profile.data, PROFILE_FIELDS)) report('profile.md', e);
+for (const [key, value] of Object.entries(profile.data.measurements ?? {})) {
+  if (!(key in MEASUREMENTS)) report('profile.md', `unbekanntes Maß "measurements.${key}" (erlaubt: ${Object.keys(MEASUREMENTS).join(', ')})`);
+  else if (typeof value !== 'number' || value <= 0) report('profile.md', `"measurements.${key}" muss eine Zahl in cm sein`);
+}
+for (const [key, value] of Object.entries(profile.data.sizes ?? {})) {
+  if (!(key in SIZES)) report('profile.md', `unbekannte Größe "sizes.${key}" (erlaubt: ${Object.keys(SIZES).join(', ')})`);
+  else if (typeof value !== 'string') report('profile.md', `"sizes.${key}" muss Text in Anführungszeichen sein`);
 }
 
 if (problems.length) {

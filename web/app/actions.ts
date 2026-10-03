@@ -8,9 +8,22 @@ import * as lib from "@lib/data.mjs";
 import { processPhoto } from "@lib/photo.mjs";
 import { commitAndPush } from "@lib/git-sync.mjs";
 import { downloadImage } from "@lib/product-import.mjs";
-import { ITEM_FIELDS, OUTFIT_FIELDS, WISHLIST_FIELDS, isIsoDate, normalizeDate, normalizePrice, validateFields } from "@lib/schema.mjs";
+import {
+  ITEM_FIELDS,
+  MEASUREMENTS,
+  OUTFIT_FIELDS,
+  PROFILE_FIELDS,
+  RECOMMENDATION_FIELDS,
+  RECOMMENDATION_STATUS,
+  SIZES,
+  WISHLIST_FIELDS,
+  isIsoDate,
+  normalizeDate,
+  normalizePrice,
+  validateFields,
+} from "@lib/schema.mjs";
 import { isSafeId } from "@/lib/data";
-import type { FormState, ItemData, OutfitData, WishData } from "@/lib/types";
+import type { FormState, ItemData, OutfitData, ProfileData, RecommendationData, WishData } from "@/lib/types";
 
 // ---------- Hilfsfunktionen zum Auslesen der Formulare ----------
 
@@ -235,4 +248,90 @@ export async function deleteWish(id: string) {
   if (!isSafeId(id)) return;
   await fs.rm(path.join(lib.dirs.wishlist(), `${id}.md`), { force: true });
   refreshAll(`Website: Wunsch gelöscht: ${id}`);
+}
+
+// ---------- Empfehlungen ----------
+
+/** Frage an den Stilberater. Claude beantwortet offene Fragen im Repo mit /empfehlungen. */
+export async function askQuestion(_prev: FormState, fd: FormData): Promise<FormState> {
+  const question = text(fd, "question");
+  if (!question) return { errors: ["Bitte eine Frage eingeben"] };
+  // Titel: erster Satz bzw. die ersten Wörter der Frage
+  const firstLine = question.split(/\n|(?<=[.?!])\s/)[0];
+  const title = firstLine.length > 80 ? `${firstLine.slice(0, 77).trimEnd()}…` : firstLine;
+  const data: RecommendationData = {
+    title,
+    kind: "frage",
+    topic: text(fd, "topic"),
+    date: lib.today(),
+    status: "offen",
+  };
+  const errors = validateFields(data, RECOMMENDATION_FIELDS);
+  if (errors.length) return { errors };
+
+  const id = lib.makeId(title, await existingIds(lib.dirs.recommendations(), true));
+  await lib.writeRecommendation(id, data, question);
+  refreshAll(`Website: Frage an Claude: ${title}`);
+  redirect("/empfehlungen");
+}
+
+export async function setRecommendationStatus(id: string, status: string) {
+  if (!isSafeId(id) || !RECOMMENDATION_STATUS.includes(status)) return;
+  const rec = await lib.readRecommendation(id);
+  await lib.writeRecommendation(id, { ...rec.data, status }, rec.body);
+  refreshAll(`Website: Empfehlung ${status}: ${rec.data.title}`);
+}
+
+export async function deleteRecommendation(id: string) {
+  if (!isSafeId(id)) return;
+  await fs.rm(path.join(lib.dirs.recommendations(), `${id}.md`), { force: true });
+  // Antworten auf eine gelöschte Frage verlieren nur den Verweis
+  for (const rec of await lib.readRecommendations()) {
+    if (rec.data.answers === id) {
+      await lib.writeRecommendation(rec.id, { ...rec.data, answers: undefined }, rec.body);
+    }
+  }
+  refreshAll(`Website: Empfehlung gelöscht: ${id}`);
+  redirect("/empfehlungen");
+}
+
+// ---------- Profil ----------
+
+export async function saveProfile(_prev: FormState, fd: FormData): Promise<FormState> {
+  const previous = await lib.readProfile();
+  const errors: string[] = [];
+
+  // Zahlen in cm/kg; leere Felder werden weggelassen
+  const measure = (key: string, what: string) => {
+    const n = num(fd, key);
+    if (Number.isNaN(n) || (n !== undefined && n <= 0)) errors.push(`${what}: bitte eine Zahl eingeben`);
+    return n !== undefined && !Number.isNaN(n) ? Math.round(n * 10) / 10 : undefined;
+  };
+
+  const measurements: Record<string, number> = {};
+  for (const [key, { label }] of Object.entries(MEASUREMENTS) as [string, { label: string }][]) {
+    const n = measure(`m_${key}`, label);
+    if (n !== undefined) measurements[key] = n;
+  }
+  const sizes: Record<string, string> = {};
+  for (const key of Object.keys(SIZES)) {
+    const v = text(fd, `s_${key}`);
+    if (v) sizes[key] = v;
+  }
+
+  const data: ProfileData = {
+    ...previous.data,
+    height_cm: measure("height_cm", "Größe"),
+    weight_kg: measure("weight_kg", "Gewicht"),
+    age: measure("age", "Alter"),
+    measurements,
+    sizes,
+  };
+  errors.push(...validateFields(data, PROFILE_FIELDS));
+  if (errors.length) return { errors };
+
+  const body = fd.has("body") ? (text(fd, "body") ?? "") : previous.body;
+  await lib.writeProfile(data, body);
+  refreshAll("Website: Profil geändert");
+  redirect("/profile");
 }
