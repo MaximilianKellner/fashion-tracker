@@ -12,7 +12,7 @@ purchase:
   price: 42.9
   shop: Straight Outta Cotton
 photos:
-  - photo-1.webp
+  - photo-2.webp
 link: >-
   https://straight-outta-cotton.com/products/half-zip-black?variant=44610204827915
 ---
