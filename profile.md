@@ -32,6 +32,7 @@ measurements: {}
 sizes: {}
 hidden_gaps:
   - jacke/blouson/hellblau
+  - jacke/overshirt/hellblau
 ---
 
 # Mein Style-Profil
