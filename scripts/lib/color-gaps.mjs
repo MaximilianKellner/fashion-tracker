@@ -4,7 +4,7 @@
 // Rein, ohne Node-Abhängigkeiten. Genutzt von der Website unter „Empfehlungen“.
 
 import { COLORS, colorInfo } from './colors.mjs';
-import { colorDistance, formalityOf, scoreOutfit, slotsFor } from './outfit-match.mjs';
+import { colorDistance, formalityOf, sameColorRole, scoreOutfit, slotsFor } from './outfit-match.mjs';
 import { SUBCATEGORIES } from './schema.mjs';
 
 export const GAP_GROUPS = [
@@ -58,10 +58,12 @@ const METALLIC = new Set(['gold', 'silber']);
 // Ab hier gilt eine Kombination als stimmig bzw. sehr stimmig (wie das Urteil im Builder)
 const OK = 68;
 const GREAT = 80;
-// Farbabstand (colorDistance): darunter praktisch gleich (Beige/Sand), ähnlich (Creme/Weiß), ab DISTINCT klar neu
+// Farbabstand (colorDistance): darunter praktisch gleich (Beige/Sand), ab DISTINCT klar neu.
+// Dazwischen entscheidet sameColorRole: Beige und Creme sind für eine Hose dieselbe Rolle, Braun und Oliv nicht.
 const SAME = 0.05;
-const SIMILAR = 0.08;
 const DISTINCT = 0.12;
+// So neu wirkt eine Farbe, die dieselbe Rolle spielt wie ein vorhandenes Teil (0 = hast du schon, 1 = ganz neu)
+const SIMILAR_NOVELTY = 0.2;
 
 const colorLabel = (id) => colorInfo(id)?.label ?? id;
 const subLabel = (category, sub) => SUBCATEGORIES[category]?.[sub] ?? sub;
@@ -70,23 +72,56 @@ const median = (values) => {
   return s.length ? s[Math.floor((s.length - 1) / 2)] : undefined;
 };
 
+/** Schlüssel einer Empfehlung, z. B. „schuhe/loafer/braun“ (so steht sie in `hidden_gaps` im Profil) */
+export const gapKey = (slot, subcategory, color) => `${slot}/${subcategory}/${color}`;
+
 /**
  * Farbempfehlungen je Kategorie.
- * items: alle Teile (nur aktive zählen), palette: Profilpalette { best, base, sparingly }.
- * Ergebnis: [{ slot, label, owned: Anzahl vergleichbarer Teile, counted: was gezählt wurde, suggestions: [{ color, colorLabel, subcategory, name, share, great, fresh, reasons, partners: Item-IDs }] }]
+ * items: alle Teile (nur aktive zählen), palette: Profilpalette { best, base, sparingly }, hidden: ausgeblendete Schlüssel (gapKey).
+ * Ergebnis: [{ slot, label, owned: Anzahl vergleichbarer Teile, counted, hidden: Anzahl ausgeblendeter,
+ *   suggestions: [{ key, color, colorLabel, subcategory, name, share, great, fresh, reasons, partners: Item-IDs }] }]
+ * suggestions ist in Seiten zu je `page` sortiert (die Website blättert mit „Andere Vorschläge“), höchstens `pages` Seiten.
+ * @param {any[]} items
+ * @param {{ palette?: { best?: string[], base?: string[], sparingly?: string[] }, hidden?: string[], page?: number, pages?: number }} [options]
  */
-export function colorGaps(items, { palette = {}, limit = 3 } = {}) {
-  // Rechnet ca. 0,5 s; bei unverändertem Schrank das letzte Ergebnis wiederverwenden
-  const key = JSON.stringify([items.map((i) => [i.id, i.data]), palette, limit]);
-  if (cached?.key === key) return cached.result;
-  const result = compute(items, palette, limit);
-  cached = { key, result };
-  return result;
+export function colorGaps(items, { palette = {}, hidden = [], page = 3, pages = 5 } = {}) {
+  // Die Rechnung dauert ca. 0,5 s; bei unverändertem Schrank das letzte Ergebnis wiederverwenden
+  const key = JSON.stringify([items.map((i) => [i.id, i.data]), palette]);
+  if (cached?.key !== key) cached = { key, result: compute(items, palette) };
+  const skip = new Set(hidden);
+  return cached.result.map(({ candidates, ...group }) => {
+    const visible = candidates.filter((c) => !skip.has(c.key));
+    return { ...group, hidden: candidates.length - visible.length, suggestions: paginate(visible, page, pages) };
+  });
 }
 /** @type {{ key: string, result: ReturnType<typeof compute> } | null} */
 let cached = null;
 
-function compute(items, palette, limit) {
+/**
+ * Seitenweise auswählen: auf jeder Seite jede Farbe nur einmal und höchstens zwei Vorschläge derselben Art.
+ * Über alle Seiten kommt jede Farbrolle je Familie nur einmal vor (nach „Chino in Weiß“ keine weiße Stoffhose,
+ * nach Bordeaux kein Weinrot).
+ */
+function paginate(sorted, size, pages) {
+  const pool = sorted.filter(
+    (c, i) => !sorted.slice(0, i).some((prev) => prev.family === c.family && (prev.color === c.color || sameColorRole(prev.color, c.color))),
+  );
+  const out = [];
+  for (let p = 0; p < pages && pool.length; p++) {
+    const chosen = [];
+    for (const c of pool) {
+      if (chosen.length >= size) break;
+      if (chosen.some((s) => s.color === c.color)) continue;
+      if (chosen.filter((s) => s.subcategory === c.subcategory).length >= 2) continue;
+      chosen.push(c);
+    }
+    for (const c of chosen) pool.splice(pool.indexOf(c), 1);
+    out.push(...chosen);
+  }
+  return out;
+}
+
+function compute(items, palette) {
   const active = items.filter((i) => i.data.status === 'aktiv' && !SPECIAL.has(i.data.subcategory));
   const inSlot = (slot) => active.filter((i) => slotsFor(i)[0] === slot);
   // Kandidaten: die Farben aus der Profilpalette, ohne Palette alle außer Metallic
@@ -97,7 +132,7 @@ function compute(items, palette, limit) {
     const owned = inSlot(slot);
     const [first, second] = partners.map(inSlot);
     const combos = first.flatMap((a) => second.map((b) => [a, b]));
-    if (!combos.length) return { slot, label, owned: owned.length, counted, suggestions: [] };
+    if (!combos.length) return { slot, label, owned: owned.length, counted, candidates: [] };
 
     const category = owned[0]?.data.category ?? slot;
     // Bestes vorhandenes Teil je Kombination: woran sich ein neues Teil messen muss
@@ -120,10 +155,15 @@ function compute(items, palette, limit) {
         const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
 
         // Neu ist eine Farbe, die es in dieser Familie (z. B. Stoffhosen, Lederschuhe) noch nicht gibt
-        const nearest = family
-          .map((o) => ({ item: o, distance: colorDistance(id, o.data.colors?.[0]) }))
-          .sort((a, b) => a.distance - b.distance)[0];
-        const distinct = nearest ? Math.max(0, Math.min(1, (nearest.distance - SAME) / (DISTINCT - SAME))) : 1;
+        const compare = (o) => {
+          const other = o.data.colors?.[0];
+          const distance = colorDistance(id, other);
+          const novelty =
+            distance < SAME ? 0 : sameColorRole(id, other) ? SIMILAR_NOVELTY : Math.max(0.5, Math.min(1, (distance - SAME) / (DISTINCT - SAME)));
+          return { item: o, novelty, distance };
+        };
+        const nearest = family.map(compare).sort((a, b) => a.novelty - b.novelty || a.distance - b.distance)[0];
+        const distinct = nearest?.novelty ?? 1;
 
         const tier = palette.best?.includes(id) ? 'best' : palette.base?.includes(id) ? 'base' : palette.sparingly?.includes(id) ? 'sparingly' : null;
         const rank =
@@ -145,16 +185,18 @@ function compute(items, palette, limit) {
         const reasons = [`sehr stimmig mit ${Math.round((great / scores.length) * 100)} % deiner Kombinationen aus ${withText}`];
         if (fresh) reasons.push(`${fresh} neue sehr stimmige Kombination${fresh === 1 ? '' : 'en'}`);
         if (!nearest) reasons.push(`${PLURAL[type.sub] ?? typeLabel} hast du noch nicht`);
-        else if (nearest.distance < SIMILAR) reasons.push(`ähnlich wie ${describe(nearest)}`);
+        else if (nearest.novelty <= SIMILAR_NOVELTY) reasons.push(`ähnlich wie ${describe(nearest)}`);
         else reasons.push(`neue Farbe (am nächsten: ${describe(nearest)})`);
         if (tier === 'best') reasons.push('steht dir besonders');
         if (tier === 'base') reasons.push('Basisfarbe aus deiner Palette');
         if (tier === 'sparingly') reasons.push('laut Profil sparsam einsetzen');
 
         return {
+          key: gapKey(slot, type.sub, id),
           color: id,
           colorLabel: colorLabel(id),
           subcategory: type.sub,
+          family: familyOf(type.sub).join(),
           name: `${typeLabel} in ${colorLabel(id)}`,
           share,
           great,
@@ -167,15 +209,8 @@ function compute(items, palette, limit) {
       });
     });
 
-    // Abwechslung: jede Farbe nur einmal (in der besten Art), höchstens zwei Vorschläge derselben Art
-    /** @type {typeof candidates} */
-    const suggestions = [];
-    for (const c of candidates.filter((c) => c.distinct > 0).sort((a, b) => b.rank - a.rank)) {
-      if (suggestions.length >= limit) break;
-      if (suggestions.some((s) => s.color === c.color)) continue;
-      if (suggestions.filter((s) => s.subcategory === c.subcategory).length >= 2) continue;
-      suggestions.push(c);
-    }
-    return { slot, label, owned: owned.length, counted, combos: combos.length, suggestions };
+    // Praktisch gleiche Teile hast du schon
+    const sorted = candidates.filter((c) => c.distinct > 0).sort((a, b) => b.rank - a.rank);
+    return { slot, label, owned: owned.length, counted, combos: combos.length, candidates: sorted };
   });
 }

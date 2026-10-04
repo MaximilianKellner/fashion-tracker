@@ -112,8 +112,13 @@ Wie die Bewertung rechnet: [outfit-builder.md](outfit-builder.md)
   vorhandenen plus übliche weitere, z. B. bei Schuhen Sneaker, Loafer, Schnürschuh und Chelsea Boots, bei Jacken Blouson,
   Overshirt, Mantel und Lederjacke; Lederschuhe und Lederjacken nur in üblichen Lederfarben. Vorne stehen die bis zu drei
   Vorschläge, die am häufigsten sehr stimmig sind, sich am deutlichsten von ähnlichen vorhandenen Teilen unterscheiden
-  (Chino und Stoffhose zählen als ähnlich, ebenso Loafer und Schnürschuh) und „Steht mir besonders“ sind. Jede Farbe kommt
-  nur einmal vor, jede Art höchstens zweimal. Praktisch gleiche Teile, die man schon hat, fallen raus. Shorts und Funktionsjacken zählen nicht
+  (Chino und Stoffhose zählen als ähnlich, ebenso Loafer und Schnürschuh) und „Steht mir besonders“ sind. Als ähnlich gelten
+  auch Farben mit derselben Rolle: ähnlicher Farbton und Helligkeit nah beieinander, z. B. Beige und Creme, Bordeaux und
+  Weinrot (`sameColorRole` in `outfit-match.mjs`). Praktisch gleiche Teile, die man schon hat, fallen raus.
+  **Andere Vorschläge** blättert weiter (bis zu fünf Seiten; je Seite jede Farbe einmal, jede Art höchstens zweimal, über alle
+  Seiten jede Farbrolle je Familie nur einmal). **✕** blendet einen Vorschlag dauerhaft aus, der nächste rückt nach; gespeichert
+  im Profil unter `hidden_gaps` (z. B. `schuhe/loafer/braun`), also auf allen Geräten. „… ausgeblendet · zurückholen“ holt die
+  ausgeblendeten einer Kategorie zurück. Shorts und Funktionsjacken zählen nicht
   mit, weil sie eine eigene Rolle haben. Jede Karte zeigt die Teile, zu denen die Farbe besonders passt, und
   „Auf die Wunschliste“ legt einen vorausgefüllten Wunsch an. Rechnung: `scripts/lib/color-gaps.mjs`.
 

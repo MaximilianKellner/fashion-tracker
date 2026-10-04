@@ -357,6 +357,28 @@ export async function deleteRecommendation(id: string) {
   redirect("/empfehlungen");
 }
 
+// ---------- Farb-Lücken (Empfehlungen → „Welche Farbe fehlt?“) ----------
+
+const GAP_KEY = /^[a-z]+\/[a-z-]+\/[a-z]+$/;
+
+/** Blendet einen Vorschlag dauerhaft aus (Schlüssel wie „schuhe/loafer/braun“, gespeichert im Profil) */
+export async function hideGap(key: string) {
+  if (!GAP_KEY.test(key)) return;
+  const profile = await lib.readProfile();
+  const hidden = new Set(profile.data.hidden_gaps ?? []).add(key);
+  await lib.writeProfile({ ...profile.data, hidden_gaps: [...hidden].sort() }, profile.body);
+  refreshAll(`Website: Farbempfehlung ausgeblendet: ${key}`);
+}
+
+/** Holt die ausgeblendeten Vorschläge einer Kategorie (z. B. „schuhe“) zurück */
+export async function restoreGaps(slot: string) {
+  if (!/^[a-z]+$/.test(slot)) return;
+  const profile = await lib.readProfile();
+  const hidden = (profile.data.hidden_gaps ?? []).filter((k: string) => !k.startsWith(`${slot}/`));
+  await lib.writeProfile({ ...profile.data, hidden_gaps: hidden.length ? hidden : undefined }, profile.body);
+  refreshAll(`Website: Farbempfehlungen zurückgeholt: ${slot}`);
+}
+
 // ---------- Profil ----------
 
 export async function saveProfile(_prev: FormState, fd: FormData): Promise<FormState> {

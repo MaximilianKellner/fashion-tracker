@@ -144,6 +144,26 @@ export function colorDistance(aId, bId) {
   return Math.hypot(a.l - b.l, aa - ab_, ba - bb);
 }
 
+/**
+ * Spielen zwei Farben im Schrank dieselbe Rolle? Ähnlicher Farbton und höchstens 0,15 Helligkeit auseinander:
+ * Beige/Creme, Braun/Cognac, Bordeaux/Weinrot ja; Braun/Oliv (anderer Ton) und Grau/Hellgrau (zu weit) nein.
+ * Fast farblose Töne (Grau, Weiß, Creme) gelten als ein Farbton; zu einer deutlichen Farbe wie Navy passen sie nicht.
+ */
+export function sameColorRole(aId, bId) {
+  const a = color(aId), b = color(bId);
+  if (!a || !b) return false;
+  if (Math.abs(a.l - b.l) > 0.15) return false;
+  const GREYISH = 0.035;
+  if (a.c < GREYISH && b.c < GREYISH) return true;
+  if (a.c < GREYISH || b.c < GREYISH) {
+    const [grey, other] = a.c < b.c ? [a, b] : [b, a];
+    // Reines Grau/Schwarz/Weiß hat keinen Farbton: nur zu fast farblosen Tönen (Taupe), nicht zu Navy
+    if (grey.c < 0.01) return other.c < 0.04;
+    return other.c < 0.07 && hueDistance(grey.h, other.h) < 30; // Creme zu Beige
+  }
+  return hueDistance(a.h, b.h) < 25;
+}
+
 /** Wie gut passen zwei Farben zusammen? score 0..1 und die Art der Beziehung */
 export function colorPair(aId, bId) {
   const a = color(aId), b = color(bId);
