@@ -326,7 +326,8 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
                   aria-pressed={on}
                   // Alle Gründe beim Darüberfahren, auf der Karte ist nur Platz für den wichtigsten
                   title={[`${item.data.name} · ${score}`, ...reasons.map((r) => `${r.good ? "✓" : "✗"} ${r.text}`)].join("\n")}
-                  className={`overflow-hidden rounded-xl border-2 bg-surface text-left ${on ? "border-accent" : "border-transparent"}`}
+                  // flex-col: Buttons zentrieren ihren Inhalt sonst vertikal, kürzere Karten einer Zeile rutschen nach unten
+                  className={`flex flex-col overflow-hidden rounded-xl border-2 bg-surface text-left ${on ? "border-accent" : "border-transparent"}`}
                 >
                   <div className="relative aspect-[3/4] bg-surface-2">
                     {src ? (
