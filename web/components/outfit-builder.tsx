@@ -14,7 +14,8 @@ type Props = {
   outfits: { items: string[]; rating?: number }[];
   palette?: { best?: string[]; base?: string[]; sparingly?: string[] };
   initialItems: string[];
-  initialSeason: string;
+  /** Saisons, für die das Outfit gedacht ist: beim Bearbeiten die gespeicherten, sonst die aktuelle Jahreszeit */
+  initialSeasons: string[];
   /** Gespeichertes Outfit, das im Builder bearbeitet wird */
   outfit?: { id: string; data: OutfitData; body: string };
 };
@@ -49,13 +50,15 @@ function orderLayers(chosen: Chosen): Chosen {
   return chosen;
 }
 
-export function OutfitBuilder({ items, outfits, palette, initialItems, initialSeason, outfit }: Props) {
+export function OutfitBuilder({ items, outfits, palette, initialItems, initialSeasons, outfit }: Props) {
   const [chosen, setChosen] = useState<Chosen>(() => assign(initialItems, items));
   const [active, setActive] = useState<SlotId>(() => SLOTS.find((s) => !assign(initialItems, items)[s.id])?.id ?? "oberteil");
-  const [season, setSeason] = useState<string | null>(initialSeason);
+  // Eine Auswahl für Filter und Speicherformular: danach werden Teile bewertet und das Outfit gespeichert (leer = egal)
+  const [seasons, setSeasons] = useState<string[]>(initialSeasons);
+  const toggleSeason = (s: string) => setSeasons((cur) => SEASONS.filter((x) => (x === s ? !cur.includes(s) : cur.includes(x))));
   const [state, formAction, pending] = useActionState(saveOutfit, null);
 
-  const context = useMemo(() => ({ palette, outfits, season: season ?? undefined }), [palette, outfits, season]);
+  const context = useMemo(() => ({ palette, outfits, seasons }), [palette, outfits, seasons]);
   const selected = Object.values(chosen).filter((i): i is Item => !!i);
 
   // Ohne Auswahl: wie vielseitig ein Teil ist (Schnitt gegen alle Teile anderer Plätze)
@@ -118,7 +121,7 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
   }
 
   function fill(random: boolean) {
-    const cold = season === "herbst" || season === "winter";
+    const cold = seasons.includes("herbst") || seasons.includes("winter");
     const slots = ["oberteil", "hose", "schuhe", ...(cold ? ["jacke"] : [])];
     const pool = items.filter((i) => i.data.status === "aktiv");
     setChosen(completeOutfit(chosen, pool, context, { slots, random: random ? 1 : 0 }) as Chosen);
@@ -130,6 +133,8 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
     .filter(Boolean)
     .join(" & ");
   const commonSeasons = SEASONS.filter((s) => selected.every((i) => !i.data.seasons?.length || i.data.seasons.includes(s)));
+  // Angebot, die gemeinsamen Saisons der Teile zu übernehmen, wenn sie etwas aussagen und von der Auswahl abweichen
+  const sharedSeasons = commonSeasons.length > 0 && commonSeasons.length < 4 && commonSeasons.join() !== seasons.join();
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -239,19 +244,34 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
                 </select>
               </Field>
             </div>
-            <div key={commonSeasons.join()} className="flex flex-wrap gap-2">
-              {SEASONS.map((s) => (
-                <label key={s} className="chip cursor-pointer has-[:checked]:border-accent has-[:checked]:bg-accent has-[:checked]:text-accent-ink">
-                  <input
-                    type="checkbox"
-                    name="seasons"
-                    value={s}
-                    defaultChecked={outfit ? outfit.data.seasons?.includes(s) : commonSeasons.length < 4 && commonSeasons.includes(s)}
-                    className="sr-only"
-                  />
-                  {label(s)}
-                </label>
-              ))}
+            <div>
+              <span className="mb-1 block text-sm font-medium">Saisons</span>
+              <div className="flex flex-wrap gap-2">
+                {SEASONS.map((s) => (
+                  <label key={s} className="chip cursor-pointer has-[:checked]:border-accent has-[:checked]:bg-accent has-[:checked]:text-accent-ink">
+                    <input
+                      type="checkbox"
+                      name="seasons"
+                      value={s}
+                      checked={seasons.includes(s)}
+                      onChange={() => toggleSeason(s)}
+                      className="sr-only"
+                    />
+                    {label(s)}
+                  </label>
+                ))}
+              </div>
+              <span className="mt-1 block text-xs text-muted">
+                Gleiche Auswahl wie der Saison-Filter: Teile, die nicht dazu passen, werden markiert.
+                {sharedSeasons && (
+                  <>
+                    {" "}
+                    <button type="button" onClick={() => setSeasons(commonSeasons)} className="underline underline-offset-2">
+                      Saisons der Teile übernehmen ({commonSeasons.map(label).join(", ")})
+                    </button>
+                  </>
+                )}
+              </span>
             </div>
             <Errors errors={state?.errors} />
             <button type="submit" disabled={pending} className="btn-primary w-full py-2.5">
@@ -278,9 +298,12 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
           <span className="text-muted">Saison:</span>
-          {[null, ...SEASONS].map((s) => (
-            <button key={s ?? "alle"} type="button" onClick={() => setSeason(s)} className={`chip py-0.5 ${season === s ? "chip-active" : ""}`}>
-              {s ? label(s) : "Egal"}
+          <button type="button" onClick={() => setSeasons([])} className={`chip py-0.5 ${seasons.length === 0 ? "chip-active" : ""}`}>
+            Egal
+          </button>
+          {SEASONS.map((s) => (
+            <button key={s} type="button" onClick={() => toggleSeason(s)} className={`chip py-0.5 ${seasons.includes(s) ? "chip-active" : ""}`}>
+              {label(s)}
             </button>
           ))}
         </div>

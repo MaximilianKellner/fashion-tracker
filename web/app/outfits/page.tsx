@@ -9,9 +9,9 @@ export default async function OutfitsPage() {
   const [outfits, items, profile] = await Promise.all([getOutfits(), getItems(), getProfile()]);
   const byId = new Map(items.map((i) => [i.id, i]));
   const saved = outfits.map((o) => ({ id: o.id, items: o.data.items, rating: o.data.rating }));
-  // Bewertung wie im Builder; das Outfit selbst zählt nicht als „schon zusammen getragen“
-  const scoreOf = (id: string, parts: Item[]) =>
-    scoreOutfit(parts, { palette: profile.data.palette, outfits: saved.filter((o) => o.id !== id) });
+  // Bewertung wie im Builder (mit den Saisons des Outfits); das Outfit selbst zählt nicht als „schon zusammen getragen“
+  const scoreOf = (id: string, parts: Item[], seasons?: string[]) =>
+    scoreOutfit(parts, { palette: profile.data.palette, outfits: saved.filter((o) => o.id !== id), seasons });
 
   return (
     <div>
@@ -38,7 +38,7 @@ export default async function OutfitsPage() {
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {outfits.map((o) => {
             const parts = o.data.items.map((id) => byId.get(id)).filter((i): i is Item => !!i);
-            const score = scoreOf(o.id, parts);
+            const score = scoreOf(o.id, parts, o.data.seasons);
             return (
               <Link key={o.id} href={`/outfits/${o.id}`} className="block overflow-hidden rounded-xl border border-line bg-surface">
                 <div className="relative">
