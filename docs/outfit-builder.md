@@ -107,7 +107,8 @@ Softshell Frühling bis Winter; Blouson, Jeansjacke und Overshirt Frühling bis 
 
 - **Gesamturteil** (`scoreOutfit`): Jedes Teil wird gegen die übrigen bewertet. Der nach Sichtbarkeit gewichtete
   Durchschnitt zählt 70 %, das schwächste Teil 30 %, damit ein Fehlgriff auffällt. Ab 80 *Sehr stimmig*, ab 68 *Stimmig*,
-  ab 55 *Mutig*, darunter *Unruhig*. Zurück kommen auch alle erkannten Probleme (`problems`).
+  ab 55 *Mutig*, darunter *Unruhig*. Zurück kommen auch alle erkannten Probleme (`problems`) und je Problem die
+  betroffenen Teile (`issues: [{ text, items }]`), die der Builder markiert.
 - **Leeres Outfit**: Statt gegen nichts zu bewerten, sortiert der Builder nach **Vielseitigkeit**, also der durchschnittlichen
   Punktzahl gegen alle Teile anderer Plätze.
 - **Auffüllen** (`completeOutfit`): füllt Oberteil, Hose, Schuhe (ab Herbst auch Jacke). Statt Platz für Platz das gerade

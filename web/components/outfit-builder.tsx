@@ -93,7 +93,21 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
 
   // Gesamturteil und Probleme im Outfit (jedes Teil gegen den Rest)
   const overall = useMemo(() => scoreOutfit(selected, context), [selected, context]);
-  const problems = overall?.problems ?? [];
+  const issues: { text: string; items: string[] }[] = useMemo(() => overall?.issues ?? [], [overall]);
+  // Probleme je Teil, damit die Bühne das betroffene Teil markieren kann
+  const problemsBy = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const { text, items: ids } of issues) for (const id of ids) map.set(id, [...(map.get(id) ?? []), text]);
+    return map;
+  }, [issues]);
+  // Problem, über dem gerade die Maus steht (oder angetippt): seine Teile werden hervorgehoben
+  const [hovered, setHovered] = useState<string | null>(null);
+  const highlighted = new Set(issues.find((i) => i.text === hovered)?.items ?? []);
+  const shortName = (id: string) => {
+    const item = selected.find((s) => s.id === id);
+    return item ? label(item.data.subcategory) || item.data.name : id;
+  };
+  const slotProps = { chosen, active, setActive, setChosen, problemsBy, highlighted };
 
   function pick(item: Item) {
     const next = orderLayers({ ...chosen, [active]: chosen[active]?.id === item.id ? undefined : item });
@@ -133,17 +147,17 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
         <div className="rounded-2xl border border-line bg-surface p-3">
           <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)_minmax(0,1fr)] gap-2">
             <div className="space-y-2">
-              <Slot id="kopf" shape="aspect-square" {...{ chosen, active, setActive, setChosen }} />
-              <Slot id="darunter" shape="aspect-[3/4]" {...{ chosen, active, setActive, setChosen }} />
-              <Slot id="accessoire" shape="aspect-square" {...{ chosen, active, setActive, setChosen }} />
+              <Slot id="kopf" shape="aspect-square" {...slotProps} />
+              <Slot id="darunter" shape="aspect-[3/4]" {...slotProps} />
+              <Slot id="accessoire" shape="aspect-square" {...slotProps} />
             </div>
             <div className="space-y-2">
-              <Slot id="oberteil" shape="aspect-[4/5]" {...{ chosen, active, setActive, setChosen }} />
-              <Slot id="hose" shape="aspect-[3/4]" {...{ chosen, active, setActive, setChosen }} />
-              <Slot id="schuhe" shape="aspect-[4/3]" {...{ chosen, active, setActive, setChosen }} />
+              <Slot id="oberteil" shape="aspect-[4/5]" {...slotProps} />
+              <Slot id="hose" shape="aspect-[3/4]" {...slotProps} />
+              <Slot id="schuhe" shape="aspect-[4/3]" {...slotProps} />
             </div>
             <div className="space-y-2">
-              <Slot id="jacke" shape="aspect-[3/4]" {...{ chosen, active, setActive, setChosen }} />
+              <Slot id="jacke" shape="aspect-[3/4]" {...slotProps} />
             </div>
           </div>
 
@@ -161,7 +175,24 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
               </div>
             )}
           </div>
-          {problems.length > 0 && <p className="mt-2 text-xs text-danger">{problems.join(" · ")}</p>}
+          {issues.length > 0 && (
+            <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-danger">
+              {issues.map(({ text, items: ids }) => (
+                <li key={text}>
+                  <button
+                    type="button"
+                    onMouseEnter={() => setHovered(text)}
+                    onMouseLeave={() => setHovered(null)}
+                    // Am Handy gibt es kein Hover: Antippen hebt hervor (Tippen woanders löst mouseleave aus)
+                    onClick={() => setHovered(text)}
+                    className={`text-left underline decoration-dotted underline-offset-2 ${hovered === text ? "font-medium" : ""}`}
+                  >
+                    {text} <span className="text-muted">({[...new Set(ids.map(shortName))].join(", ")})</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
 
           <div className="mt-3 flex flex-wrap gap-2">
             <button type="button" onClick={() => fill(false)} className="btn-primary py-1.5 text-sm">
@@ -307,6 +338,8 @@ function Slot({
   active,
   setActive,
   setChosen,
+  problemsBy,
+  highlighted,
 }: {
   id: SlotId;
   shape: string;
@@ -314,11 +347,25 @@ function Slot({
   active: SlotId;
   setActive: (s: SlotId) => void;
   setChosen: (c: Chosen) => void;
+  /** Probleme je Teil-ID aus scoreOutfit */
+  problemsBy: Map<string, string[]>;
+  /** Teile des Problems, auf das gerade gezeigt wird */
+  highlighted: Set<string>;
 }) {
   const item = chosen[id];
   const src = item && photoSrc(item);
   const isActive = active === id;
   const name = SLOTS.find((s) => s.id === id)!.label;
+  const problems = (item && problemsBy.get(item.id)) || [];
+  const marked = item && highlighted.has(item.id);
+  // Aktiver Platz: Akzent-Ring; Teil mit Problem: roter Rahmen, beim Zeigen auf das Problem kräftiger
+  const frame = isActive
+    ? "ring-2 ring-accent ring-offset-2 ring-offset-surface"
+    : marked
+      ? "ring-[3px] ring-danger ring-offset-2 ring-offset-surface"
+      : problems.length
+        ? "ring-2 ring-danger/60"
+        : "";
   return (
     <div className="relative">
       <button
@@ -331,7 +378,7 @@ function Slot({
         aria-label={item ? `${name}: ${item.data.name}` : `${name} wählen`}
         className={`block w-full overflow-hidden rounded-xl ${shape} ${
           item ? "bg-surface-2" : "border-2 border-dashed border-line"
-        } ${isActive ? "ring-2 ring-accent ring-offset-2 ring-offset-surface" : ""}`}
+        } ${frame}`}
       >
         {item ? (
           src ? (
@@ -352,6 +399,15 @@ function Slot({
         >
           ×
         </button>
+      )}
+      {problems.length > 0 && (
+        <span
+          title={problems.join("\n")}
+          aria-label={`Problem: ${problems.join(", ")}`}
+          className="absolute bottom-1 left-1 flex h-5 w-5 items-center justify-center rounded-full bg-danger text-xs font-bold text-white"
+        >
+          !
+        </span>
       )}
     </div>
   );
