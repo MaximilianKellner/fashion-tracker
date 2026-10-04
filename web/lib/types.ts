@@ -62,6 +62,8 @@ export type ProfileData = {
   palette?: Record<string, string[]>;
   measurements?: Record<string, number>;
   sizes?: Record<string, string>;
+  /** Ausgeblendete Farbempfehlungen, z. B. „schuhe/loafer/braun“ */
+  hidden_gaps?: string[];
 };
 
 export type Entry<T> = { id: string; data: T; body: string };

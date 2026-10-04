@@ -160,6 +160,7 @@ export const PROFILE_FIELDS = {
   palette: { type: 'object' },
   measurements: { type: 'object' },
   sizes: { type: 'object' },
+  hidden_gaps: { type: 'string[]' },
 };
 
 /**
