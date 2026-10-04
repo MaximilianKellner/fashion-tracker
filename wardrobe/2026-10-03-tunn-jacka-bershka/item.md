@@ -3,10 +3,16 @@ name: Tunn jacka Bershka
 category: jacke
 subcategory: blouson
 colors:
+  - bordeaux
   - rot
 pattern: uni
 brand: Bershka
 size: L
+seasons:
+  - fruehling
+  - sommer
+  - herbst
+formality: 3
 status: aktiv
 purchase:
   date: '2026-10-03'
