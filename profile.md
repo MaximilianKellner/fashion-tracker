@@ -31,6 +31,8 @@ palette:
 measurements: {}
 sizes: {}
 hidden_gaps:
+  - hose/anzughose/grau
+  - hose/anzughose/weiss
   - hose/chino/grau
   - hose/chino/weiss
   - hose/jeans/grau
