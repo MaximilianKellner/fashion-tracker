@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { whitenBackground, type BgProgress } from "@/lib/bg-removal";
 import { Photo } from "./photo";
 
 const IMAGE_EXT = /\.(jpe?g|png|webp|gif|heic|heif|avif|bmp|tiff?)$/i;
@@ -41,9 +42,21 @@ async function downscale(file: File): Promise<Blob> {
  * Zustand der Fotoauswahl: neue Dateien (Kamera, Galerie, Drag & Drop, Einfügen) und Bilder aus dem Web
  * (Shop-Import oder aus einem anderen Tab gezogen; der Server lädt sie beim Speichern).
  */
+type NewPhoto = {
+  /** bleibt gleich, auch wenn das Foto freigestellt wird */
+  key: string;
+  file: File;
+  url: string;
+  /** vor dem Weißmachen, für „Original“ */
+  original?: { file: File; url: string };
+  /** Fortschritt bzw. Fehler beim Weißmachen */
+  whitening?: BgProgress;
+  error?: string;
+};
+
 export function usePhotoPicker(importedPhotos: string[] = []) {
   // Neue Fotos samt Vorschau-URL; URLs werden beim Entfernen bzw. Verlassen der Seite freigegeben
-  const [files, setFiles] = useState<{ file: File; url: string }[]>([]);
+  const [files, setFiles] = useState<NewPhoto[]>([]);
   const [preparing, setPreparing] = useState(false);
   const [remote, setRemote] = useState(() => importedPhotos.map((url, i) => ({ url, checked: i === 0 })));
   const [dragging, setDragging] = useState(false);
@@ -55,7 +68,10 @@ export function usePhotoPicker(importedPhotos: string[] = []) {
 
   function addFiles(list: FileList | File[] | null) {
     const images = Array.from(list ?? []).filter(isImageFile);
-    const picked = images.map((file) => ({ file, url: URL.createObjectURL(file) }));
+    const picked = images.map((file) => {
+      const url = URL.createObjectURL(file);
+      return { key: url, file, url };
+    });
     picked.forEach((p) => urls.current.add(p.url));
     setFiles((f) => [...f, ...picked]);
     return images.length;
@@ -112,21 +128,67 @@ export function usePhotoPicker(importedPhotos: string[] = []) {
     };
   }, []);
 
-  function removeFile(url: string) {
-    URL.revokeObjectURL(url);
-    urls.current.delete(url);
-    setFiles((f) => f.filter((x) => x.url !== url));
+  function release(...list: (string | undefined)[]) {
+    for (const url of list) {
+      if (!url) continue;
+      URL.revokeObjectURL(url);
+      urls.current.delete(url);
+    }
+  }
+
+  const update = (key: string, change: (p: NewPhoto) => NewPhoto) =>
+    setFiles((f) => f.map((p) => (p.key === key ? change(p) : p)));
+
+  function removeFile(key: string) {
+    const photo = files.find((p) => p.key === key);
+    release(photo?.url, photo?.original?.url);
+    setFiles((f) => f.filter((x) => x.key !== key));
+  }
+
+  /** Stellt das Teil per KI frei und legt es auf weißen Hintergrund (lokal im Browser) */
+  async function whiten(key: string) {
+    const photo = files.find((p) => p.key === key);
+    if (!photo || photo.original || photo.whitening) return;
+    update(key, (p) => ({ ...p, whitening: { stage: "compute" }, error: undefined }));
+    try {
+      const blob = await whitenBackground(photo.file, (whitening) => update(key, (p) => ({ ...p, whitening })));
+      const file = new File([blob], photo.file.name.replace(/\.[^.]*$/, "") + "-weiss.jpg", { type: "image/jpeg" });
+      const url = URL.createObjectURL(file);
+      urls.current.add(url);
+      update(key, (p) => ({ ...p, file, url, original: { file: p.file, url: p.url }, whitening: undefined }));
+    } catch (e) {
+      update(key, (p) => ({ ...p, whitening: undefined, error: (e as Error).message }));
+    }
+  }
+
+  function restore(key: string) {
+    const photo = files.find((p) => p.key === key);
+    if (!photo?.original) return;
+    release(photo.url);
+    update(key, (p) => ({ ...p, ...p.original!, original: undefined }));
   }
 
   /** Hängt die neuen Fotos (verkleinert) als Feld "photos" an die Formulardaten */
   async function appendTo(fd: FormData) {
     fd.delete("photos");
     setPreparing(true);
-    for (const { file } of files) fd.append("photos", await downscale(file), file.name);
+    // Freigestellte Fotos sind schon verkleinert
+    for (const { file, original } of files) fd.append("photos", original ? file : await downscale(file), file.name);
     setPreparing(false);
   }
 
-  return { files, remote, dragging, preparing, addFiles, removeFile, appendTo };
+  return {
+    files,
+    remote,
+    dragging,
+    // Solange ein Foto freigestellt wird, kann das Formular nicht gespeichert werden
+    preparing: preparing || files.some((p) => p.whitening),
+    addFiles,
+    removeFile,
+    whiten,
+    restore,
+    appendTo,
+  };
 }
 
 export type PhotoPickerState = ReturnType<typeof usePhotoPicker>;
@@ -148,7 +210,7 @@ export function PhotoPicker({
   camera?: boolean;
   tip?: string;
 }) {
-  const { files, remote, dragging, addFiles, removeFile } = picker;
+  const { files, remote, dragging, addFiles, removeFile, whiten, restore } = picker;
   return (
     <>
       {dragging && (
@@ -201,20 +263,60 @@ export function PhotoPicker({
         </div>
       )}
       {files.length > 0 && (
-        <div className="flex flex-wrap gap-3">
-          {files.map(({ url }) => (
-            <div key={url} className="relative w-24">
-              <Photo src={url} lazy={false} className="aspect-[3/4] w-24 rounded-lg" />
-              <button
-                type="button"
-                onClick={() => removeFile(url)}
-                className="absolute right-1 top-1 rounded-full bg-surface/90 px-2 text-sm"
-                aria-label="Foto entfernen"
-              >
-                ×
-              </button>
-            </div>
-          ))}
+        <div className="space-y-2">
+          <div className="flex flex-wrap gap-3">
+            {files.map(({ key, url, original, whitening, error }) => (
+              <div key={key} className="w-24">
+                <div className="relative">
+                  <Photo src={url} lazy={false} className="aspect-[3/4] w-24 rounded-lg" />
+                  {whitening && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-lg bg-bg/75 px-1 text-center text-xs font-medium">
+                      <span className="size-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+                      {whitening.stage === "download"
+                        ? `KI-Modell lädt${whitening.percent !== undefined ? ` ${whitening.percent} %` : " …"}`
+                        : "Wird freigestellt …"}
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => removeFile(key)}
+                    className="absolute right-1 top-1 rounded-full bg-surface/90 px-2 text-sm"
+                    aria-label="Foto entfernen"
+                  >
+                    ×
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  disabled={!!whitening}
+                  onClick={() => (original ? restore(key) : whiten(key))}
+                  title={original ? "Wieder das unveränderte Foto verwenden" : "Hintergrund per KI entfernen und weiß machen"}
+                  className="mt-1 w-full rounded-md border border-line px-1 py-0.5 text-xs text-muted hover:bg-surface-2 disabled:opacity-50"
+                >
+                  {original ? "Original" : "Hintergrund weiß"}
+                </button>
+                {error && (
+                  <p className="mt-1 text-xs text-danger" title={error}>
+                    Fehlgeschlagen
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+          {files.filter((p) => !p.original).length > 1 && (
+            <button
+              type="button"
+              disabled={files.some((p) => p.whitening)}
+              onClick={() => files.forEach((p) => whiten(p.key))}
+              className="btn-ghost text-sm"
+            >
+              Alle Hintergründe weiß
+            </button>
+          )}
+          <p className="text-xs text-muted">
+            „Hintergrund weiß“ stellt das Teil per KI direkt im Browser frei, ohne fremde Dienste. Das dauert je nach Gerät
+            10–60 Sekunden; beim ersten Mal wird dafür einmalig ein Modell geladen (88 MB).
+          </p>
         </div>
       )}
       <div className="flex flex-wrap gap-2">

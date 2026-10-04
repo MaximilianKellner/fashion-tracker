@@ -7,3 +7,6 @@ out/
 # Rohfotos werden nach dem Verarbeiten gelöscht
 inbox/*
 !inbox/.gitkeep
+
+# KI-Modell fürs Freistellen (lädt die Website bei Bedarf herunter)
+.cache/
