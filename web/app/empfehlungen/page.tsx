@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { getRecommendations } from "@/lib/data";
 import { formatDate, label, TOPICS } from "@/lib/labels";
 import { QuestionForm } from "@/components/question-form";
+import { ColorGaps } from "@/components/color-gaps";
 import type { Recommendation } from "@/lib/types";
 
 /** Erste Zeile Fließtext als Vorschau (ohne Markdown-Zeichen) */
@@ -52,7 +54,9 @@ export default async function RecommendationsPage({ searchParams }: PageProps<"/
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Empfehlungen</h1>
-        <p className="mt-1 text-sm text-muted">Outfit-Ideen, Kaufberatung und Analysen von Claude, deinem Stilberater.</p>
+        <p className="mt-1 text-sm text-muted">
+          Outfit-Ideen, Kaufberatung und Analysen von Claude, deinem Stilberater, und unten die Farben, die deinem Schrank fehlen.
+        </p>
       </div>
 
       <QuestionForm />
@@ -112,6 +116,13 @@ export default async function RecommendationsPage({ searchParams }: PageProps<"/
               </p>
             ))}
       </section>
+
+      {/* Rechnet alle Kombinationen durch; die übrige Seite erscheint schon vorher */}
+      {!showArchived && (
+        <Suspense fallback={<p className="text-sm text-muted">Farb-Lücken werden berechnet …</p>}>
+          <ColorGaps />
+        </Suspense>
+      )}
     </div>
   );
 }

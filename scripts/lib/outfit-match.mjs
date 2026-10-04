@@ -135,6 +135,15 @@ const hueDistance = (a, b) => {
   return d > 180 ? 360 - d : d;
 };
 
+/** Wie verschieden sehen zwei Farben aus? Abstand in OKLab, 0 = gleich, ab ca. 0.15 deutlich verschieden */
+export function colorDistance(aId, bId) {
+  const a = color(aId), b = color(bId);
+  if (!a || !b) return 1;
+  const ab = (c) => [c.c * Math.cos((c.h * Math.PI) / 180), c.c * Math.sin((c.h * Math.PI) / 180)];
+  const [aa, ba] = ab(a), [ab_, bb] = ab(b);
+  return Math.hypot(a.l - b.l, aa - ab_, ba - bb);
+}
+
 /** Wie gut passen zwei Farben zusammen? score 0..1 und die Art der Beziehung */
 export function colorPair(aId, bId) {
   const a = color(aId), b = color(bId);
