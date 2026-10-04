@@ -9,6 +9,7 @@
 // Saison, die Farbpalette aus dem Profil und gespeicherte Outfits (was schon zusammen getragen wurde).
 
 import { colorInfo } from './colors.mjs';
+import { DEFAULT_FORMALITY, DEFAULT_SEASONS } from './item-guess.mjs';
 import { SUBCATEGORIES } from './schema.mjs';
 
 // ---------- Plätze im Outfit ----------
@@ -165,29 +166,11 @@ export function colorPair(aId, bId) {
   return { score: Math.max(0, Math.min(1, score)), kind };
 }
 
-// ---------- Formalität ----------
+// ---------- Formalität und Saison ----------
 
-// Fallback, wenn ein Teil keine formality hat (1 Sport/Lounge ... 5 formell)
-const DEFAULT_FORMALITY = {
-  't-shirt': 2, longsleeve: 2, tanktop: 1, polo: 3, hemd: 4, strickpullover: 3, rollkragenpullover: 3, cardigan: 3,
-  sweatshirt: 2, hoodie: 2, 'quarter-zip': 3, jeans: 2, chino: 3, anzughose: 4, cordhose: 3, cargohose: 2,
-  jogginghose: 1, shorts: 2, blouson: 3, overshirt: 2, fleecejacke: 1, jeansjacke: 2, lederjacke: 3,
-  bomberjacke: 2, steppjacke: 2, parka: 2, regenjacke: 1, softshelljacke: 1, mantel: 4, blazer: 4, weste: 3,
-  sneaker: 2, schnuerschuh: 4, loafer: 4, 'chelsea-boots': 3, stiefel: 3, sandale: 1, hausschuh: 1,
-};
-// Fallback, wenn ein Teil keine seasons hat
-const DEFAULT_SEASONS = {
-  shorts: ['fruehling', 'sommer'], tanktop: ['fruehling', 'sommer'], sandale: ['sommer'], badehose: ['sommer'],
-  steppjacke: ['herbst', 'winter'], parka: ['herbst', 'winter'], mantel: ['herbst', 'winter'], muetze: ['herbst', 'winter'],
-  rollkragenpullover: ['herbst', 'winter'], handschuhe: ['herbst', 'winter'], schal: ['herbst', 'winter'],
-  strickpullover: ['fruehling', 'herbst', 'winter'], cardigan: ['fruehling', 'herbst', 'winter'],
-  sweatshirt: ['fruehling', 'herbst', 'winter'], hoodie: ['fruehling', 'herbst', 'winter'],
-  'quarter-zip': ['fruehling', 'herbst', 'winter'], fleecejacke: ['fruehling', 'herbst', 'winter'],
-  softshelljacke: ['fruehling', 'herbst', 'winter'],
-  blouson: ['fruehling', 'sommer', 'herbst'], jeansjacke: ['fruehling', 'sommer', 'herbst'], overshirt: ['fruehling', 'sommer', 'herbst'],
-};
 // Funktionsjacken: praktisch bei Wetter, wirken zu gepflegten Outfits aber sportlich
 const FUNCTIONAL = new Set(['regenjacke', 'softshelljacke', 'fleecejacke', 'trainingsjacke']);
+// Fallback für Teile ohne seasons bzw. formality: Standardwerte nach Unterkategorie (item-guess.mjs)
 export const seasonsOf = (item) => (item.data.seasons?.length ? item.data.seasons : DEFAULT_SEASONS[item.data.subcategory]);
 
 export const formalityOf = (item) => item.data.formality ?? DEFAULT_FORMALITY[item.data.subcategory] ?? (item.data.category === 'sport' ? 1 : undefined);

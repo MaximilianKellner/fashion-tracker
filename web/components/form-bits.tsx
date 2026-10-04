@@ -1,12 +1,24 @@
 import type { ReactNode } from "react";
 
-export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
+export function Field({ label, children, hint, auto }: { label: string; children: ReactNode; hint?: string; auto?: boolean }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium">{label}</span>
+      <span className="mb-1 flex items-center gap-1.5 text-sm font-medium">
+        {label}
+        {auto && <AutoBadge />}
+      </span>
       {children}
       {hint && <span className="mt-1 block text-xs text-muted">{hint}</span>}
     </label>
+  );
+}
+
+/** Markiert ein automatisch vorgeschlagenes Feld (aus Name, Shop-Daten oder Unterkategorie) */
+export function AutoBadge() {
+  return (
+    <span title="Automatisch vorgeschlagen, bitte prüfen" className="rounded-full bg-surface-2 px-1.5 py-px text-[10px] font-normal text-muted">
+      Vorschlag
+    </span>
   );
 }
 

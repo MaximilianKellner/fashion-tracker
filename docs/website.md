@@ -38,12 +38,19 @@ das Teil vorkommt. „Outfit mit diesem Teil“ öffnet den Outfit-Builder mit d
   `scripts/lib/schema.mjs`).
 - **Farben** aus einer festen Palette, die erste ist die Hauptfarbe.
 - Muster, Material, Marke, Größe, Schnitt, Saisons, Formalität (1 Sport bis 5 formell), Status, Kaufdaten.
+- **Vorschläge beim Tippen**: Aus dem Namen erkennt das Formular Kategorie, Unterkategorie, Farben, Muster, Material und
+  Schnitt („Dunkelgrünes Leinenhemd kurzarm Relaxed Fit“ → Oberteil · Hemd, Dunkelgrün, Leinen, relaxed). Daraus leitet es
+  **Formalität**, **Saisons** und Muster ab (Hemd 4, mit „Leinen“ 3; Leinen → Frühling/Sommer; ohne Muster-Hinweis uni),
+  damit der Outfit-Builder für jedes Teil alles hat. Vorgeschlagene Felder tragen das Etikett „Vorschlag“.
+  Was man selbst ändert, bleibt; beim Bearbeiten werden nur leere Felder vorgeschlagen. Die Regeln stehen in
+  `scripts/lib/item-guess.mjs`.
 
 ### Aus einem Online-Shop übernehmen
 
 Unter **Neues Teil → „Aus Online-Shop übernehmen“** (`/bookmarklet`) das Lesezeichen „Zum Kleiderschrank“ einmalig in die
 Firefox-Symbolleiste ziehen. Auf einer Produktseite angeklickt, übernimmt es Name, Marke, Preis, Farbe, Material, Kategorie
-und Produktbilder. Auf der Zwischenseite (`/import`) wählt man, ob daraus ein **Kleidungsstück** oder ein **Wunsch** wird.
+und Produktbilder; Formalität, Saisons und Muster werden wie oben vorgeschlagen (Farbe notfalls aus dem Namen, z. B.
+„… - Beige“). Auf der Zwischenseite (`/import`) wählt man, ob daraus ein **Kleidungsstück** oder ein **Wunsch** wird.
 Läuft komplett lokal, ohne KI. Getestet mit Zara, H&M und About You; Zalando blockiert das Auslesen teilweise.
 
 ## Outfits (`/outfits`)

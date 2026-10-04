@@ -1,13 +1,14 @@
 "use client";
 
-import { startTransition, useActionState, useState, type FormEvent } from "react";
+import { startTransition, useActionState, useMemo, useState, type FormEvent } from "react";
 import { saveItem } from "@/app/actions";
 import { CATEGORIES, ITEM_STATUS, PATTERNS, SEASONS, SUBCATEGORIES, normalizeDate } from "@lib/schema.mjs";
+import { guessDefaults, guessFromText } from "@lib/item-guess.mjs";
 import { FORMALITY, formatPriceInput, label } from "@/lib/labels";
 import type { ItemData } from "@/lib/types";
 import { ColorPicker } from "./color-picker";
 import { PhotoPicker, usePhotoPicker } from "./photo-picker";
-import { Errors, Field, Section } from "./form-bits";
+import { AutoBadge, Errors, Field, Section } from "./form-bits";
 
 type Props = {
   id?: string;
@@ -21,12 +22,85 @@ type Props = {
   wishPhotos?: string[];
 };
 
+// Felder, die das Formular aus Name, Unterkategorie und Material vorschlagen kann
+type Values = {
+  category: string;
+  subcategory: string;
+  colors: string[];
+  pattern: string;
+  material: string;
+  fit: string;
+  formality: string;
+  seasons: string[];
+};
+type Key = keyof Values;
+// Aus den übrigen Feldern abgeleitet: bleiben Vorschlag, bis man sie selbst ändert, auch wenn der Shop-Import sie schon setzt
+const DERIVED: Key[] = ["pattern", "formality", "seasons"];
+
+const isEmpty = (v: string | string[]) => v.length === 0;
+const subcategoriesOf = (category: string): Record<string, string> =>
+  (SUBCATEGORIES as Record<string, Record<string, string>>)[category] ?? {};
+
+/**
+ * Was das Formular anzeigt: eigene Werte bleiben, leere bzw. noch nicht angefasste Felder bekommen einen Vorschlag
+ * aus dem Namen (Kategorie, Farben, Material …) und daraus abgeleitet Formalität, Saisons und Muster.
+ */
+function withSuggestions(name: string, values: Values, own: Set<Key>) {
+  const shown = { ...values };
+  const auto = new Set<Key>();
+  const take = <K extends Key>(key: K, value: Values[K] | undefined) => {
+    if (own.has(key) || value === undefined || isEmpty(value)) return;
+    shown[key] = value;
+    auto.add(key);
+  };
+
+  const found = guessFromText(name);
+  take("category", found.category);
+  if (found.subcategory && subcategoriesOf(shown.category)[found.subcategory]) take("subcategory", found.subcategory);
+  take("colors", found.colors);
+  take("material", found.material);
+  take("fit", found.fit);
+  take("pattern", found.pattern);
+
+  const defaults = guessDefaults({ ...shown, name });
+  if (!shown.pattern) take("pattern", defaults.pattern);
+  take("formality", defaults.formality ? String(defaults.formality) : undefined);
+  take("seasons", defaults.seasons);
+  return { shown, auto };
+}
+
 export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions, importedPhotos = [], wishPhotos = [] }: Props) {
   const [state, formAction, pending] = useActionState(saveItem, null);
   const picker = usePhotoPicker(importedPhotos);
-  const [category, setCategory] = useState(data.category ?? "");
-  const [subcategory, setSubcategory] = useState(data.subcategory ?? "");
-  const subOptions: Record<string, string> = (SUBCATEGORIES as Record<string, Record<string, string>>)[category] ?? {};
+
+  const [name, setName] = useState(data.name ?? "");
+  const [values, setValues] = useState<Values>(() => ({
+    category: data.category ?? "",
+    subcategory: data.subcategory ?? "",
+    colors: data.colors ?? [],
+    pattern: data.pattern ?? "",
+    material: data.material ?? "",
+    fit: data.fit ?? "",
+    formality: data.formality ? String(data.formality) : "",
+    seasons: data.seasons ?? [],
+  }));
+  // Felder mit eigenem Wert werden nie automatisch überschrieben: beim Bearbeiten alles Gespeicherte,
+  // bei neuen Teilen, was Shop oder Wunschliste geliefert haben (außer den abgeleiteten Feldern), und alles von Hand Geänderte
+  const [own, setOwn] = useState<Set<Key>>(
+    () => new Set((Object.keys(values) as Key[]).filter((k) => !isEmpty(values[k]) && (id || !DERIVED.includes(k)))),
+  );
+  const { shown, auto } = useMemo(() => withSuggestions(name, values, own), [name, values, own]);
+
+  function set<K extends Key>(key: K, value: Values[K], extra: Partial<Values> = {}) {
+    setValues((v) => ({ ...v, ...extra, [key]: value }));
+    setOwn((o) => {
+      const next = new Set(o).add(key);
+      for (const k of Object.keys(extra) as Key[]) next.delete(k); // zurückgesetzte Felder dürfen wieder vorgeschlagen werden
+      return next;
+    });
+  }
+
+  const subOptions = subcategoriesOf(shown.category);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     // Eigenes Submit statt <form action>, damit das Formular bei Validierungsfehlern nicht geleert wird
@@ -54,19 +128,19 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
       </Section>
 
       <Section title="Grunddaten">
-        <Field label="Name *">
-          <input name="name" required defaultValue={data.name} placeholder="z. B. Navy Chino" className="field" />
+        <Field
+          label="Name *"
+          hint={id ? undefined : "Aus dem Namen werden Kategorie, Farben, Material, Formalität und Saisons vorgeschlagen (markiert mit „Vorschlag“)."}
+        >
+          <input name="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="z. B. Navy Leinenhemd" className="field" />
         </Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Kategorie *">
+          <Field label="Kategorie *" auto={auto.has("category")}>
             <select
               name="category"
               required
-              value={category}
-              onChange={(e) => {
-                setCategory(e.target.value);
-                setSubcategory("");
-              }}
+              value={shown.category}
+              onChange={(e) => set("category", e.target.value, { subcategory: "" })}
               className="field"
             >
               <option value="" disabled>
@@ -79,33 +153,35 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
               ))}
             </select>
           </Field>
-          <Field label="Unterkategorie">
+          <Field label="Unterkategorie" auto={auto.has("subcategory")}>
             <select
               name="subcategory"
-              value={subcategory}
-              onChange={(e) => setSubcategory(e.target.value)}
-              disabled={!category}
+              value={shown.subcategory}
+              onChange={(e) => set("subcategory", e.target.value)}
+              disabled={!shown.category}
               className="field"
             >
-              <option value="">{category ? "keine" : "erst Kategorie wählen"}</option>
+              <option value="">{shown.category ? "keine" : "erst Kategorie wählen"}</option>
               {Object.entries(subOptions).map(([value, text]) => (
                 <option key={value} value={value}>
                   {text}
                 </option>
               ))}
               {/* Alter Freitext-Wert, der nicht in der Liste steht: anzeigen, damit er beim Speichern nicht verloren geht */}
-              {subcategory && !subOptions[subcategory] && <option value={subcategory}>{subcategory}</option>}
+              {shown.subcategory && !subOptions[shown.subcategory] && <option value={shown.subcategory}>{shown.subcategory}</option>}
             </select>
           </Field>
         </div>
         <div>
-          <span className="mb-1 block text-sm font-medium">Farben *</span>
-          <ColorPicker name="colors" defaultValue={data.colors} extra={colorSuggestions} />
+          <span className="mb-1 flex items-center gap-1.5 text-sm font-medium">
+            Farben *{auto.has("colors") && <AutoBadge />}
+          </span>
+          <ColorPicker name="colors" value={shown.colors} onChange={(c) => set("colors", c)} extra={colorSuggestions} />
           <span className="mt-1 block text-xs text-muted">Die erste Farbe ist die Hauptfarbe. Klick auf eine gewählte Farbe macht sie zur Hauptfarbe.</span>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Muster">
-            <select name="pattern" defaultValue={data.pattern ?? ""} className="field">
+          <Field label="Muster" auto={auto.has("pattern")}>
+            <select name="pattern" value={shown.pattern} onChange={(e) => set("pattern", e.target.value)} className="field">
               <option value="">–</option>
               {PATTERNS.map((p) => (
                 <option key={p} value={p}>
@@ -114,8 +190,8 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
               ))}
             </select>
           </Field>
-          <Field label="Material">
-            <input name="material" defaultValue={data.material} placeholder="baumwolle" className="field" />
+          <Field label="Material" auto={auto.has("material")}>
+            <input name="material" value={shown.material} onChange={(e) => set("material", e.target.value)} placeholder="baumwolle" className="field" />
           </Field>
         </div>
       </Section>
@@ -128,24 +204,35 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
           <Field label="Größe">
             <input name="size" defaultValue={data.size} placeholder="M, 32/32" className="field" />
           </Field>
-          <Field label="Schnitt">
-            <input name="fit" defaultValue={data.fit} placeholder="slim" className="field" />
+          <Field label="Schnitt" auto={auto.has("fit")}>
+            <input name="fit" value={shown.fit} onChange={(e) => set("fit", e.target.value)} placeholder="relaxed" className="field" />
           </Field>
         </div>
         <div>
-          <span className="mb-1 block text-sm font-medium">Saisons</span>
+          <span className="mb-1 flex items-center gap-1.5 text-sm font-medium">
+            Saisons{auto.has("seasons") && <AutoBadge />}
+          </span>
           <div className="flex flex-wrap gap-2">
             {SEASONS.map((s) => (
               <label key={s} className="chip cursor-pointer has-[:checked]:border-accent has-[:checked]:bg-accent has-[:checked]:text-accent-ink">
-                <input type="checkbox" name="seasons" value={s} defaultChecked={data.seasons?.includes(s)} className="sr-only" />
+                <input
+                  type="checkbox"
+                  name="seasons"
+                  value={s}
+                  checked={shown.seasons.includes(s)}
+                  onChange={(e) =>
+                    set("seasons", e.target.checked ? SEASONS.filter((x) => x === s || shown.seasons.includes(x)) : shown.seasons.filter((x) => x !== s))
+                  }
+                  className="sr-only"
+                />
                 {label(s)}
               </label>
             ))}
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Formalität">
-            <select name="formality" defaultValue={data.formality ?? ""} className="field">
+          <Field label="Formalität" auto={auto.has("formality")}>
+            <select name="formality" value={shown.formality} onChange={(e) => set("formality", e.target.value)} className="field">
               <option value="">–</option>
               {Object.entries(FORMALITY).map(([n, l]) => (
                 <option key={n} value={n}>

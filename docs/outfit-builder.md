@@ -137,4 +137,6 @@ import('./scripts/lib/data.mjs').then(async ({ readItems, readProfile }) => {
 - Heikle Kombination: in `NEUTRAL_CLASHES` (Schlüssel alphabetisch sortiert, mit `|` getrennt); gilt sie auf kleinen
   Flächen nicht, zusätzlich in `SMALL_AREA_OK`.
 - Neue Ober- oder Jackenart: Schicht in `LAYERS` eintragen; Funktionsjacken zusätzlich in `FUNCTIONAL`.
-- Neue Unterkategorie: in `SUBCATEGORIES` (`schema.mjs`) und, falls eindeutig, in `DEFAULT_FORMALITY` bzw. `DEFAULT_SEASONS`.
+- Neue Unterkategorie: in `SUBCATEGORIES` (`schema.mjs`) und, falls eindeutig, in `DEFAULT_FORMALITY` bzw. `DEFAULT_SEASONS`
+  (`scripts/lib/item-guess.mjs`; dieselben Werte schlägt das Formular beim Erfassen vor) und in `SUBCATEGORY_KEYWORDS`,
+  damit sie aus Namen erkannt wird.
