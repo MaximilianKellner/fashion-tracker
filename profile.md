@@ -30,6 +30,8 @@ palette:
     - lachs
 measurements: {}
 sizes: {}
+hidden_gaps:
+  - jacke/blouson/hellblau
 ---
 
 # Mein Style-Profil
