@@ -15,14 +15,19 @@ palette:
     - dunkelgruen
     - cognac
     - hellblau
+    - weinrot
+    - creme
   base:
     - creme
     - beige
     - sand
     - grau
     - weiss
-  sparingly:
     - schwarz
+    - navy
+  sparingly:
+    - koralle
+    - lachs
 measurements: {}
 sizes: {}
 ---
