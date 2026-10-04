@@ -2,15 +2,16 @@
 // Aktiv nur mit GIT_AUTOSYNC=1: Änderungen der Website werden committet und gepusht.
 // Neue Commits (z. B. von Claude) werden nur geholt, wenn die Website benutzt wird, und höchstens alle
 // GIT_SYNC_MINUTES Minuten (Standard 15). Ohne Besucher passiert nichts, das schont die SD-Karte.
-// Bringt ein Pull neuen Code mit, beendet sich der Server; systemd startet ihn neu und prepare-server.mjs baut.
-import { execFile } from 'node:child_process';
+// Bringt ein Pull neuen Code mit, baut prepare-server.mjs ihn im Hintergrund, während die alte Version weiterläuft.
+// Erst nach erfolgreichem Build beendet sich der Server, systemd startet ihn mit dem neuen Build neu.
+import { execFile, spawn } from 'node:child_process';
+import path from 'node:path';
 import { promisify } from 'node:util';
+import { codeFingerprint } from './code-version.mjs';
 import { dataRoot } from './data.mjs';
 
 const run = promisify(execFile);
 const DATA_PATHS = ['wardrobe', 'outfits', 'wishlist', 'recommendations', 'profile.md'];
-// Dieselben Pfade wie in scripts/prepare-server.mjs: Nur Änderungen hier erfordern einen Neubau
-const CODE_PATHS = ['web', 'scripts', 'package.json', 'package-lock.json'];
 // Exit-Code ungleich 0, damit systemd (Restart=on-failure) den Service neu startet
 const RESTART_EXIT_CODE = 75;
 
@@ -29,10 +30,41 @@ function enqueue(task) {
 
 let lastSync = Date.now(); // Beim Serverstart hat systemd gerade erst `git pull` ausgeführt
 
-/** Git-Tree-Hashes des Codes (rein lokal, kein Netzwerk) */
-async function codeVersion() {
-  const { stdout } = await git('rev-parse', ...CODE_PATHS.map((p) => `HEAD:${p}`));
-  return stdout.trim();
+/** Fingerabdruck des Website-Codes (rein lokal, kein Netzwerk) */
+const codeVersion = async () => (await codeFingerprint(dataRoot())).codeHash;
+
+/** Startet scripts/prepare-server.mjs im Hintergrund-Modus mit niedriger Priorität; Ergebnis ist der Exit-Code */
+function prepareInBackground() {
+  const script = path.join(dataRoot(), 'scripts', 'prepare-server.mjs');
+  const [cmd, args] =
+    process.platform === 'win32' ? [process.execPath, [script, '--background']] : ['nice', ['-n', '10', process.execPath, script, '--background']];
+  return new Promise((resolve) => {
+    const child = spawn(cmd, args, { cwd: dataRoot(), stdio: 'inherit' });
+    child.on('error', (err) => {
+      console.error('[git-sync] Build konnte nicht starten:', err.message);
+      resolve(1);
+    });
+    child.on('close', (code) => resolve(code ?? 1));
+  });
+}
+
+/** Server beenden, sobald die Git-Warteschlange leer ist (noch ausstehende Commits gehen vorher raus) */
+function restartWhenIdle(reason) {
+  console.log(`[git-sync] ${reason}, Server startet neu`);
+  // Kurz warten, damit laufende Anfragen noch fertig werden
+  enqueue(() => new Promise((resolve) => setTimeout(resolve, 3000))).finally(() => process.exit(RESTART_EXIT_CODE));
+}
+
+/**
+ * Neuer Code ist da: im Hintergrund in den freien Build-Ordner bauen, die Website läuft solange weiter.
+ * Läuft innerhalb der Git-Warteschlange, damit kein Pull die Dateien während des Builds ändert.
+ */
+async function rebuild() {
+  console.log('[git-sync] neuer Code geholt, baue im Hintergrund (die Website läuft weiter)');
+  const code = await prepareInBackground();
+  if (code === 0) restartWhenIdle('neuer Build fertig');
+  else if (code === 2) restartWhenIdle('Abhängigkeiten geändert, Installation und Build beim Start');
+  else if (code === 1) console.error('[git-sync] Build fehlgeschlagen, die bisherige Version läuft weiter');
 }
 
 async function pullAndPush() {
@@ -49,11 +81,7 @@ async function pullAndPush() {
   const { stdout } = await git('rev-list', '--count', '@{u}..HEAD');
   if (Number(stdout.trim()) > 0) await git('push', '--quiet');
 
-  if (codeBefore && codeBefore !== (await codeVersion())) {
-    console.log('[git-sync] neuer Code geholt, Server startet neu und baut die Website');
-    // Kurz warten, damit laufende Anfragen noch fertig werden
-    setTimeout(() => process.exit(RESTART_EXIT_CODE), 3000);
-  }
+  if (codeBefore && codeBefore !== (await codeVersion().catch(() => codeBefore))) await rebuild();
 }
 
 /** Committet Datenänderungen mit der Nachricht und pusht sie. Wartet nicht auf GitHub (läuft im Hintergrund). */

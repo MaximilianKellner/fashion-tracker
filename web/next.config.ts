@@ -1,6 +1,8 @@
+import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { NextConfig } from "next";
+import { PHASE_PRODUCTION_SERVER } from "next/constants";
 
 const repoRoot = path.join(__dirname, "..");
 
@@ -25,4 +27,17 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+/** Build-Ordner, aus dem `next start` läuft. Der Home-PC baut abwechselnd in .next und .next-alt (scripts/prepare-server.mjs). */
+function activeDistDir(): string | undefined {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(__dirname, ".build-state.json"), "utf8")).active;
+  } catch {
+    return undefined;
+  }
+}
+
+export default function config(phase: string): NextConfig {
+  // Beim Bauen gibt prepare-server.mjs den Ordner vor, beim Start gilt der zuletzt erfolgreich gebaute
+  const distDir = process.env.NEXT_DIST_DIR || (phase === PHASE_PRODUCTION_SERVER ? activeDistDir() : undefined) || ".next";
+  return { ...nextConfig, distDir };
+}
