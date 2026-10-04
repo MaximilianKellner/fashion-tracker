@@ -4,7 +4,7 @@ import { startTransition, useActionState, useMemo, useState, type FormEvent } fr
 import { saveOutfit } from "@/app/actions";
 import { SEASONS } from "@lib/schema.mjs";
 import { SLOTS, completeOutfit, layerOf, scoreCandidate, scoreOutfit, slotsFor } from "@lib/outfit-match.mjs";
-import { label, swatch } from "@/lib/labels";
+import { label, scoreTone, swatch } from "@/lib/labels";
 import type { Item, OutfitData } from "@/lib/types";
 import { Errors, Field } from "./form-bits";
 import { Photo } from "./photo";
@@ -47,12 +47,6 @@ function orderLayers(chosen: Chosen): Chosen {
     return { ...chosen, oberteil: darunter, darunter: oberteil };
   }
   return chosen;
-}
-
-function scoreTone(score: number) {
-  if (score >= 80) return "bg-accent text-accent-ink";
-  if (score >= 65) return "bg-surface-2 text-ink";
-  return "bg-danger/15 text-danger";
 }
 
 export function OutfitBuilder({ items, outfits, palette, initialItems, initialSeason, outfit }: Props) {

@@ -51,6 +51,8 @@ Läuft komplett lokal, ohne KI. Getestet mit Zara, H&M und About You; Zalando bl
 ![Outfits](screenshots/outfits.webp)
 
 - Übersicht als Collage mit Anlass, Bewertung und Hinweis, ob Claude das Outfit vorgeschlagen hat.
+- Oben rechts auf jeder Karte die Punktzahl des Outfit-Builders (0–100, gleiche Farben wie im Builder); beim Darüberfahren
+  Urteil und erkannte Probleme.
 - **Outfit bauen** öffnet den Builder (siehe unten), **Aus Liste** die schlichte Auswahl per Raster.
 - Auf der Outfit-Seite: **Im Builder** (visuell bearbeiten) oder **Bearbeiten** (Formular).
 

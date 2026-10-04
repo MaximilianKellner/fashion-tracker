@@ -83,3 +83,10 @@ export function formatDate(iso: string | undefined): string {
   const d = new Date(`${iso}T12:00:00`);
   return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString("de-DE", { day: "numeric", month: "short", year: "numeric" });
 }
+
+/** Farbe für eine Outfit-Punktzahl (0–100): ab 80 Akzent, ab 65 neutral, darunter Warnung */
+export function scoreTone(score: number) {
+  if (score >= 80) return "bg-accent text-accent-ink";
+  if (score >= 65) return "bg-surface-2 text-ink";
+  return "bg-danger/15 text-danger";
+}
