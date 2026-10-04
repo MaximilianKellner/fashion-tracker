@@ -15,6 +15,9 @@
 
 # next.js
 /.next/
+# zweiter Build-Ordner und aktiver Ordner auf dem Home-PC (scripts/prepare-server.mjs)
+/.next-alt/
+/.build-state.json
 /out/
 
 # production

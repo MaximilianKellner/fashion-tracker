@@ -59,6 +59,7 @@ nur neu, wenn sich Code oder Abhängigkeiten geändert haben.
 - **Vor jeder Analyse oder Empfehlung `git pull` ausführen**, sonst fehlen Teile, die über die Website erfasst wurden.
 - Nach Änderungen an Daten (`wardrobe/`, `outfits/`, `wishlist/`, `recommendations/`, `profile.md`) anbieten, sie zu committen und zu pushen.
   Erst dann erscheinen sie auf der Website.
-- Code-Änderungen (`web/`, `scripts/`, `package*.json`) kommen automatisch an: Holt die Website beim nächsten Abgleich neuen
-  Code, beendet sie sich, systemd startet sie neu und sie baut einige Minuten lang neu. Schlägt der Build fehl, versucht sie es
-  erst beim nächsten Commit wieder. Sofort geht es mit `ssh -t max@192.168.178.151 sudo systemctl restart fashion-tracker`.
+- Code-Änderungen (`web/`, `scripts/lib/`, `package*.json`, ohne `.md`) kommen automatisch an: Holt die Website beim nächsten
+  Abgleich neuen Code, baut sie ihn im Hintergrund, während die alte Version weiterläuft, und startet danach kurz neu.
+  Schlägt der Build fehl, läuft die alte Version weiter, bis ein neuer Commit kommt. Sofort geht es mit
+  `ssh -t max@192.168.178.151 sudo systemctl restart fashion-tracker` (dann ohne Weiterlaufen der alten Version).
