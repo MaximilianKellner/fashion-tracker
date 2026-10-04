@@ -2,8 +2,9 @@
 // und lädt Produktbilder herunter. Getestet mit Zara, H&M und About You (schema.org ProductGroup).
 import dns from 'node:dns/promises';
 import net from 'node:net';
-import { SUBCATEGORIES, normalizePrice } from './schema.mjs';
+import { normalizePrice } from './schema.mjs';
 import { mapColors, translit } from './colors.mjs';
+import { guessDefaults, guessFromText } from './item-guess.mjs';
 
 export { mapColors };
 
@@ -27,47 +28,7 @@ function fixCaps(text) {
   return text;
 }
 
-// ---------- Kategorie, Schnitt, Muster, Material ----------
-
-// Reihenfolge ist wichtig: "Hemdjacke" ist eine Jacke, "Jogginghose" eine Hose
-const CATEGORY_KEYWORDS = [
-  ['schuhe', ['schuh', 'schnuerer', 'sneaker', 'stiefel', 'boots', 'loafer', 'sandale', 'slipper', 'mokassin']],
-  ['unterwaesche', ['unterhose', 'boxershort', 'socke', 'unterwaesche', 'unterhemd']],
-  ['jacke', ['jacke', 'mantel', 'blazer', 'sakko', 'parka', 'overshirt', 'weste', 'coat', 'jacket', 'bomber']],
-  ['hose', ['hose', 'jeans', 'chino', 'shorts', 'jogger', 'trousers', 'pants', 'cargo']],
-  ['kleid', ['kleid', 'dress']],
-  ['accessoire', ['guertel', 'muetze', 'schal', 'cap', 'tasche', 'krawatte', 'handschuh', 'beanie', 'sonnenbrille', 'rucksack', 'kette', 'uhr']],
-  ['oberteil', ['hemd', 'shirt', 'pullover', 'pulli', 'strick', 'hoodie', 'sweat', 'polo', 'top', 'cardigan', 'rollkragen', 'troyer', 'longsleeve']],
-];
-
-// Spezifische Unterkategorien (Werte aus SUBCATEGORIES in schema.mjs), die erste Übereinstimmung gewinnt
-const SUBCATEGORY_KEYWORDS = [
-  ['quarter-zip', ['quarter zip', 'quarter-zip', 'half zip', 'half-zip', 'troyer']],
-  ['anzughose', ['anzughose', 'suit pants', 'elegante hose', 'stoffhose', 'bundfalte']],
-  ['chino', ['chino']], ['jeans', ['jeans']], ['cordhose', ['cordhose']], ['cargohose', ['cargo']],
-  ['jogginghose', ['jogger', 'jogginghose']], ['shorts', ['shorts']],
-  ['overshirt', ['overshirt', 'hemdjacke']], ['fleecejacke', ['fleece']], ['jeansjacke', ['jeansjacke', 'denim jacket']],
-  ['lederjacke', ['lederjacke']], ['bomberjacke', ['bomber']], ['steppjacke', ['stepp', 'daunen', 'puffer']],
-  ['parka', ['parka']], ['regenjacke', ['regenjacke']], ['softshelljacke', ['softshell']], ['mantel', ['mantel', 'coat']], ['blazer', ['blazer', 'sakko']],
-  ['weste', ['weste']], ['blouson', ['blouson', 'harrington', 'zip-up', 'leichte jacke']],
-  ['hoodie', ['hoodie', 'kapuze']], ['sweatshirt', ['sweat']], ['cardigan', ['cardigan', 'strickjacke']],
-  ['rollkragenpullover', ['rollkragen']], ['strickpullover', ['strick', 'knit', 'pullover', 'pulli']],
-  ['polo', ['polo']], ['tanktop', ['tanktop', 'tank top']], ['longsleeve', ['longsleeve', 'langarmshirt']],
-  ['t-shirt', ['t-shirt', 'tshirt', 'tee']], ['hemd', ['hemd']],
-  ['sneaker', ['sneaker']], ['chelsea-boots', ['chelsea']], ['stiefel', ['stiefel', 'boots']], ['loafer', ['loafer']],
-  ['schnuerschuh', ['schnuerer', 'schnuerschuh', 'derby', 'oxford']], ['sandale', ['sandale']],
-  ['guertel', ['guertel']], ['cap', ['cap']], ['muetze', ['muetze', 'beanie']], ['schal', ['schal']],
-];
-
-const findKeyword = (text, list) => list.find(([, words]) => words.some((w) => text.includes(w)))?.[0];
-
-const PATTERN_KEYWORDS = [
-  ['uni', ['einfarbig', 'uni', 'solid']],
-  ['gestreift', ['streif', 'stripe', 'nadelstreifen']],
-  ['kariert', ['karo', 'kariert', 'check', 'hahnentritt']],
-  ['print', ['print', 'bedruckt', 'grafik']],
-  ['gemustert', ['muster', 'jacquard', 'pattern', 'zopf']],
-];
+// ---------- Material ----------
 
 /** "100% baumwolle" -> "baumwolle", "Polyester/Elasthan" -> "polyester", "70% Wolle, 30% Polyamid" -> "wolle" */
 export function mainMaterial(raw) {
@@ -122,14 +83,16 @@ export function normalizeProduct(raw) {
   const breadcrumbs = (raw.breadcrumbs ?? []).map(cleanText).filter(Boolean);
   const description = cleanText(raw.description).slice(0, 400);
   // Name und Shop-Kategorie zuerst, Brotkrumen und Beschreibung als Fallback
-  const primary = translit([name, raw.category, ...breadcrumbs.slice(-2)].join(' '));
-  const secondary = translit(description);
-
-  const category = findKeyword(primary, CATEGORY_KEYWORDS) ?? findKeyword(secondary, CATEGORY_KEYWORDS);
-  const foundSub = findKeyword(primary, SUBCATEGORY_KEYWORDS) ?? findKeyword(secondary, SUBCATEGORY_KEYWORDS);
-  const subcategory = category && SUBCATEGORIES[category]?.[foundSub] ? foundSub : undefined;
-  const fitMatch = translit(`${name} ${description}`).match(/\b(loose|regular|relaxed|slim|oversized|comfort|wide|straight|boxy|baggy)[ -]fit\b/);
-  const pattern = findKeyword(translit(`${raw.pattern ?? ''} ${name}`), PATTERN_KEYWORDS);
+  // Der ungekürzte Name, damit eine angehängte Farbe ("… - Beige") mitzählt
+  const guess = guessFromText([cleanText(raw.name), raw.category, ...breadcrumbs.slice(-2)].join(' '), description);
+  const { category, subcategory } = guess;
+  const pattern = guessFromText(raw.pattern ?? '').pattern ?? guess.pattern;
+  // Hauptmaterial in die üblichen Werte übersetzen ("merinowolle" -> "merino")
+  const shopMaterial = mainMaterial(raw.material);
+  const material = (shopMaterial && (guessFromText(shopMaterial).material ?? shopMaterial)) ?? guess.material;
+  const colors = mapColors(raw.color ?? '');
+  // Formalität und Saisons aus Unterkategorie, Material und Name, damit der Outfit-Builder alles hat
+  const { formality, seasons } = guessDefaults({ category, subcategory, material, name, pattern });
   const price = normalizePrice(raw.price);
   const site = cleanText(raw.site) || (raw.url ? new URL(raw.url).hostname.replace(/^www\d*\./, '') : undefined);
 
@@ -138,11 +101,13 @@ export function normalizeProduct(raw) {
     brand,
     category,
     subcategory,
-    colors: mapColors(raw.color ?? ''),
-    material: mainMaterial(raw.material),
+    colors: colors.length ? colors : guess.colors,
+    material,
     materialRaw: cleanText(raw.material) || undefined,
-    fit: fitMatch?.[1],
-    pattern,
+    fit: guess.fit,
+    pattern: pattern ?? 'uni',
+    formality,
+    seasons,
     price: price && price > 0 ? price : undefined,
     shop: site,
     link: typeof raw.url === 'string' && /^https?:\/\//.test(raw.url) ? raw.url : undefined,

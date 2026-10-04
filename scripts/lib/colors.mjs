@@ -170,6 +170,34 @@ export function mapColors(raw) {
 }
 
 /**
+ * Farben, die als eigene Wörter in einem Text stehen, z. B. in einem Produktnamen. Anders als mapColors nur bekannte
+ * Farben und nur ganze Wörter (mit deutscher Endung): "Hellblaue Baggy Jeans" -> ["hellblau"], "Hemd mit Brusttasche" -> [].
+ */
+export function colorsInText(raw) {
+  let text = translit(raw);
+  const found = [];
+  for (const key of KEYS) {
+    const m = new RegExp(`(?<![a-z])${key.replace(/[.*+?^${}()|[\]\\-]/g, '\\$&')}(?:e|en|er|es|em)?(?![a-z])`).exec(text);
+    if (!m) continue;
+    found.push({ idx: m.index, id: SYNONYMS[key] });
+    text = text.slice(0, m.index) + ' '.repeat(m[0].length) + text.slice(m.index + m[0].length);
+  }
+  const ids = [...new Set(found.sort((a, b) => a.idx - b.idx).map((f) => f.id))];
+  // Grundton neben einem genaueren Ton derselben Familie ist nur die Übersetzung ("Bordeaux Red", "Olive Green")
+  return ids.filter((id) => !GENERIC_TONES[id]?.some((specific) => ids.includes(specific)));
+}
+
+const GENERIC_TONES = {
+  rot: ['bordeaux', 'weinrot', 'rost', 'terrakotta', 'koralle'],
+  blau: ['navy', 'kobalt', 'hellblau', 'denim', 'petrol'],
+  gruen: ['dunkelgruen', 'smaragd', 'oliv', 'salbei', 'hellgruen', 'mint'],
+  grau: ['anthrazit', 'hellgrau'],
+  braun: ['camel', 'cognac'],
+  gelb: ['senf', 'ocker'],
+  lila: ['aubergine', 'pflaume', 'flieder', 'mauve'],
+};
+
+/**
  * Vorschläge beim Tippen in der Farbauswahl: passende Anzeigenamen zuerst, dann Synonyme
  * ("plu" -> Pflaume, "maro" -> Bordeaux, "dunkelg" -> Dunkelgrün).
  */

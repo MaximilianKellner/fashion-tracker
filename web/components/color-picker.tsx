@@ -13,17 +13,28 @@ export function ColorPicker({
   defaultValue = [],
   extra = [],
   ranked = true,
+  value,
+  onChange,
 }: {
   name: string;
   defaultValue?: string[];
   extra?: string[];
   /** false: alle Farben gleichrangig, ohne Hauptfarbe (z. B. Farbpalette im Profil) */
   ranked?: boolean;
+  /** Gesteuert von außen (z. B. Farben, die das Formular aus dem Namen erkennt); sonst intern mit defaultValue */
+  value?: string[];
+  onChange?: (colors: string[]) => void;
 }) {
-  const [selected, setSelected] = useState<string[]>(defaultValue);
+  const [inner, setInner] = useState<string[]>(defaultValue);
+  const selected = value ?? inner;
+  const setSelected = (update: (s: string[]) => string[]) => {
+    const next = update(selected);
+    if (onChange) onChange(next);
+    if (value === undefined) setInner(next);
+  };
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
-  const [paletteOpen, setPaletteOpen] = useState(defaultValue.length === 0);
+  const [paletteOpen, setPaletteOpen] = useState((value ?? defaultValue).length === 0);
 
   // Vorschläge: bekannte Farben und Synonyme, dazu eigene Farben aus dem Kleiderschrank, die nicht in der Palette sind
   const suggestions = useMemo(() => {

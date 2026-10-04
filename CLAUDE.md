@@ -17,6 +17,8 @@ Claude ist der Stilberater: Er liest die Daten, sieht sich die Fotos an und gibt
 - `docs/schema.md`: alle Felder und erlaubten Werte. Die maschinenlesbare Version steht in `scripts/lib/schema.mjs`.
 - `scripts/lib/outfit-match.mjs`: Farb- und Outfit-Bewertung des Outfit-Builders (Website unter Outfits → „Outfit bauen“). Für Outfit-Vorschläge
   kann sie per `node -e` genutzt werden (`scoreCandidate`, `scoreOutfit`, `completeOutfit`), statt alle Farben selbst abzuwägen.
+- `scripts/lib/item-guess.mjs`: errät aus Name, Shop-Daten, Unterkategorie und Material Kategorie, Farben, Material,
+  Formalität und Saisons (Formular und Shop-Import der Website, Fallbacks im Outfit-Builder).
 - `scripts/`: Node-Hilfsskripte. `scripts/lib/` (Schema, Lesen/Schreiben, Fotos, Statistik) wird auch von der Website genutzt.
 - `web/`: Next.js-16-App (npm-Workspace) zum Erfassen und Ansehen. Sie liest und schreibt dieselben Dateien und hat keine eigene Datenbank.
   Vor Änderungen an `web/` die Hinweise in `web/AGENTS.md` beachten (Next.js 16, Doku in `node_modules/next/dist/docs/`).

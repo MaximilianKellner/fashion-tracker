@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { parseImport } from "@/lib/import";
-import { euro, label } from "@/lib/labels";
+import { FORMALITY, euro, label } from "@/lib/labels";
 import { ColorDot } from "@/components/item-card";
 import { Photo } from "@/components/photo";
 
@@ -27,6 +27,8 @@ export default async function ImportPage({ searchParams }: PageProps<"/import">)
     ["Material", product.materialRaw],
     ["Schnitt", product.fit],
     ["Muster", label(product.pattern)],
+    ["Formalität", product.formality && `${product.formality} · ${FORMALITY[product.formality]}`],
+    ["Saisons", product.seasons.length === 4 ? "ganzjährig" : product.seasons.map(label).join(", ")],
     ["Shop", product.shop],
   ].filter(([, v]) => v);
 
