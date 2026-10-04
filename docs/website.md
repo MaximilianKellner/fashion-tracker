@@ -106,11 +106,14 @@ Wie die Bewertung rechnet: [outfit-builder.md](outfit-builder.md)
   verlinkten Teilen, Outfits und Wünschen.
 - `/outfit`, `/kaufempfehlung` und `/analyse` bieten an, ihre Ergebnisse ebenfalls hier abzulegen.
 - Erledigtes lässt sich archivieren oder löschen.
-- **Welche Farbe fehlt?** (unten, wird bei jedem Aufruf neu berechnet, ohne KI): Für Hosen, Oberteile, Schuhe und Jacken
-  wird jede Farbe der Profilpalette als gedachtes neues Teil gegen alle Kombinationen der übrigen Plätze bewertet
-  (z. B. neue Hose × jedes Oberteil × jedes Paar Schuhe, mit der Bewertung des Outfit-Builders). Vorne stehen die bis zu drei
-  Farben, die am häufigsten sehr stimmig sind, sich am deutlichsten von den vorhandenen Teilen der Kategorie unterscheiden und
-  „Steht mir besonders“ sind. Praktisch gleiche Farben, die man schon hat, fallen raus. Shorts und Funktionsjacken zählen nicht
+- **Welche Farbe fehlt?** (unten, wird nach jeder Änderung am Schrank neu berechnet, ohne KI): Für Hosen, Oberteile, Schuhe und
+  Jacken wird jede Farbe der Profilpalette in verschiedenen Arten als gedachtes neues Teil gegen alle Kombinationen der übrigen
+  Plätze bewertet (z. B. neue Hose × jedes Oberteil × jedes Paar Schuhe, mit der Bewertung des Outfit-Builders). Arten sind die
+  vorhandenen plus übliche weitere, z. B. bei Schuhen Sneaker, Loafer, Schnürschuh und Chelsea Boots, bei Jacken Blouson,
+  Overshirt, Mantel und Lederjacke; Lederschuhe und Lederjacken nur in üblichen Lederfarben. Vorne stehen die bis zu drei
+  Vorschläge, die am häufigsten sehr stimmig sind, sich am deutlichsten von ähnlichen vorhandenen Teilen unterscheiden
+  (Chino und Stoffhose zählen als ähnlich, ebenso Loafer und Schnürschuh) und „Steht mir besonders“ sind. Jede Farbe kommt
+  nur einmal vor, jede Art höchstens zweimal. Praktisch gleiche Teile, die man schon hat, fallen raus. Shorts und Funktionsjacken zählen nicht
   mit, weil sie eine eigene Rolle haben. Jede Karte zeigt die Teile, zu denen die Farbe besonders passt, und
   „Auf die Wunschliste“ legt einen vorausgefüllten Wunsch an. Rechnung: `scripts/lib/color-gaps.mjs`.
 

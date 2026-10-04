@@ -17,7 +17,7 @@ Claude ist der Stilberater: Er liest die Daten, sieht sich die Fotos an und gibt
 - `docs/schema.md`: alle Felder und erlaubten Werte. Die maschinenlesbare Version steht in `scripts/lib/schema.mjs`.
 - `scripts/lib/outfit-match.mjs`: Farb- und Outfit-Bewertung des Outfit-Builders (Website unter Outfits → „Outfit bauen“). Für Outfit-Vorschläge
   kann sie per `node -e` genutzt werden (`scoreCandidate`, `scoreOutfit`, `completeOutfit`), statt alle Farben selbst abzuwägen.
-- `scripts/lib/color-gaps.mjs`: welche Farbe je Kategorie (Hosen, Oberteile, Schuhe, Jacken) den Schrank am meisten ergänzt
+- `scripts/lib/color-gaps.mjs`: welche Farbe und Art je Kategorie (Hosen, Oberteile, Schuhe, Jacken) den Schrank am meisten ergänzt
   (`colorGaps(items, { palette })`, Website unter „Empfehlungen“). Guter Ausgangspunkt für `/kaufempfehlung`.
 - `scripts/lib/item-guess.mjs`: errät aus Name, Shop-Daten, Unterkategorie und Material Kategorie, Farben, Material,
   Formalität und Saisons (Formular und Shop-Import der Website, Fallbacks im Outfit-Builder).
