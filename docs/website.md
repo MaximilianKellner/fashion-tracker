@@ -29,6 +29,11 @@ das Teil vorkommt. „Outfit mit diesem Teil“ öffnet den Outfit-Builder mit d
 - Fotos per **Kamera**, aus der **Galerie**, per **Drag & Drop** (auch Bilder direkt aus einem Shop-Tab) oder mit **Strg+V**.
   Der Browser verkleinert sie vor dem Hochladen, der Server speichert sie als WebP mit max. 1024 px und **ohne EXIF-Daten**
   (die den GPS-Standort enthalten können).
+- **Hintergrund weiß**: Unter jedem neuen Foto stellt der Knopf das Teil per KI frei und legt es auf Weiß, bei mehreren
+  Fotos auch alle auf einmal („Alle Hintergründe weiß“). „Original“ macht es rückgängig. Das läuft komplett im Browser
+  (Modell [RMBG-1.4](https://huggingface.co/briaai/RMBG-1.4) über onnxruntime-web, ohne API-Kosten) und dauert je nach Gerät
+  10–60 Sekunden. Das Modell (88 MB) lädt der Server beim ersten Gebrauch einmalig nach `.cache/` und liefert es unter
+  `/bg-model` aus; der Browser speichert es danach in IndexedDB. Lizenz von RMBG-1.4: nur nicht-kommerzielle Nutzung.
 - **Kategorie** und **Unterkategorie** als Auswahl; die Unterkategorien hängen von der Kategorie ab (Liste in
   `scripts/lib/schema.mjs`).
 - **Farben** aus einer festen Palette, die erste ist die Hauptfarbe.
