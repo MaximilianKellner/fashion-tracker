@@ -4,6 +4,7 @@ category: oberteil
 subcategory: hemd
 colors:
   - gruen
+  - weiss
 pattern: gestreift
 brand: Burocs
 size: L
