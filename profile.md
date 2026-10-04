@@ -33,6 +33,7 @@ sizes: {}
 hidden_gaps:
   - hose/chino/grau
   - hose/chino/weiss
+  - hose/jeans/grau
   - hose/jeans/weiss
   - jacke/blouson/hellblau
   - jacke/overshirt/hellblau
