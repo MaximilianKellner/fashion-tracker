@@ -14,6 +14,7 @@ palette:
     - navy
     - dunkelgruen
     - cognac
+    - hellblau
   base:
     - creme
     - beige
@@ -43,9 +44,8 @@ sizes: {}
   - Im Sommer lockere Hemden, sonst einfarbige Shirts
   - Schuhe: Adidas Campus (schwarz), Adidas Spezial (bordeaux)
 - **Ziel**: hochwertige, minimalistische Outfits mit gezielten Farbakzenten, insgesamt etwas weitere Hosen
+- **Farben**: siehe Farbpalette oben (Typ & Farben). Neugierig auf einen sonnengelben Pulli.
 - **Will mehr von**: Pullovern, Mänteln, Hosen
-- **Basis**: neutrale, gedeckte Töne
-- **Farbakzente**: Bordeaux/Burgunder, Dunkelgrün/Oliv, Braun/Cognac/Schoko, Navy/Blau/Hellblau. Ein sonnengelber Pulli wäre interessant.
 - **No-Gos**: große Logos und Prints, Skinny/Slim Fits, knallige Neonfarben
 
 ## Alltag & Anlässe
@@ -69,5 +69,4 @@ sizes: {}
   - Stärkster Look: Strickpolo in Bordeaux zur braunen Bundfaltenhose. Ton-in-Ton in warmen, gedeckten Farben ist genau die Richtung des Ziels.
   - Wiederkehrendes Muster: dunkles Oberteil (Navy, Schwarz) zur hellen Jeans und Adidas Campus. Funktioniert, ist aber fast immer dieselbe Formel.
   - Schuhe: fast immer schwarze Campus. Für Büro und Abend fehlt ein Lederschuh (z. B. brauner Loafer oder Derby), für Abwechslung die bordeauxfarbenen Spezial öfter einsetzen.
-  - Navy, Bordeaux, Oliv und Braun schmeicheln mehr als hartes Schwarz-Weiß; Schwarz eher unten oder bei Schuhen einsetzen.
   - Im Sommer funktioniert das offene, gestreifte Hemd über weißem Shirt mit Leinenshorts gut, ebenso Ringer-Tees in Oliv.
