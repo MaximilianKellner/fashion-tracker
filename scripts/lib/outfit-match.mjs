@@ -360,23 +360,24 @@ export function scoreCandidate(candidate, selected, context = {}) {
 /**
  * Gesamturteil über ein Outfit: jedes Teil gegen die übrigen, gewichtet nach Sichtbarkeit.
  * Das schwächste Teil zählt extra, damit ein einzelner Fehlgriff auffällt.
- * Ergebnis: { score, verdict, problems: string[] } oder null bei weniger als zwei Teilen.
+ * Ergebnis: { score, verdict, problems: string[], issues: [{ text, items: Item-IDs }] } oder null bei weniger als zwei Teilen.
  */
 export function scoreOutfit(selected, context = {}) {
   if (selected.length < 2) return null;
   const vis = visibility(selected);
   let sum = 0, weight = 0, min = 100;
-  const problems = new Set();
+  // Problem -> IDs der Teile, bei denen es auftritt (z. B. „zu schick dafür“ beim Hemd)
+  const problems = new Map();
   for (const item of selected) {
     const { score, reasons } = scoreCandidate(item, selected.filter((s) => s !== item), context);
     sum += score * vis.get(item);
     weight += vis.get(item);
     min = Math.min(min, score);
-    for (const r of reasons) if (!r.good) problems.add(r.text);
+    for (const r of reasons) if (!r.good) problems.set(r.text, [...(problems.get(r.text) ?? []), item.id]);
   }
   const score = Math.round(0.7 * (sum / weight) + 0.3 * min);
   const verdict = score >= 80 ? 'Sehr stimmig' : score >= 68 ? 'Stimmig' : score >= 55 ? 'Mutig' : 'Unruhig';
-  return { score, verdict, problems: [...problems] };
+  return { score, verdict, problems: [...problems.keys()], issues: [...problems].map(([text, items]) => ({ text, items })) };
 }
 
 /**

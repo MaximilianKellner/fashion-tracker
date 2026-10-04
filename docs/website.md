@@ -73,7 +73,9 @@ Läuft komplett lokal, ohne KI. Getestet mit Zara, H&M und About You; Zalando bl
   tauschen die beiden die Plätze.
 - Die Vorschläge für den gewählten Platz sind **live nach Passung sortiert** (0–100) und begründet, z. B. „Ton in Ton mit
   Bordeaux“, „neutral, erdet Bordeaux“, „zu lässig dafür“, „zu viele Farben“, „Fleecejacke über Hoodie“.
-- Unter dem Outfit: Farbpunkte, Gesamturteil (*Sehr stimmig*, *Stimmig*, *Mutig*, *Unruhig*) und erkannte Probleme.
+- Unter dem Outfit: Farbpunkte, Gesamturteil (*Sehr stimmig*, *Stimmig*, *Mutig*, *Unruhig*) und erkannte Probleme mit dem
+  betroffenen Teil, z. B. „zu schick dafür (Hemd)“. Teile mit Problem haben auf der Bühne einen roten Rahmen und ein „!“
+  (Tooltip mit dem Grund); Zeigen auf ein Problem oder Antippen hebt seine Teile hervor.
 - **Auffüllen** ergänzt leere Plätze so, dass das ganze Outfit am stimmigsten ist (ab Herbst auch eine Jacke), **Würfeln**
   wählt zufällig eines der stimmigsten, **Leeren** fängt neu an.
 - **Saison**-Filter: Teile, die nicht zur gewählten Saison passen, rutschen nach unten. Vorausgewählt ist die aktuelle Jahreszeit.
