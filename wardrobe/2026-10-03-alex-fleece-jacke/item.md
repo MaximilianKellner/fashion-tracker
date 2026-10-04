@@ -6,6 +6,11 @@ colors:
   - blau
   - gelb
 brand: Alex
+seasons:
+  - fruehling
+  - herbst
+  - winter
+formality: 1
 status: aktiv
 purchase:
   price: 35

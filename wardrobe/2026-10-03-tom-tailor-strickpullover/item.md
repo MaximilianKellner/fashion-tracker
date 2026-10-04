@@ -5,6 +5,11 @@ subcategory: strickpullover
 colors:
   - dunkelgruen
 brand: tom tailor
+seasons:
+  - fruehling
+  - herbst
+  - winter
+formality: 3
 status: aktiv
 purchase:
   price: 40

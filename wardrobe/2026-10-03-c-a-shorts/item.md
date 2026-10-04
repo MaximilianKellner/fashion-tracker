@@ -6,6 +6,10 @@ colors:
   - navy
 brand: C&A
 size: W34
+seasons:
+  - fruehling
+  - sommer
+formality: 2
 status: aktiv
 purchase:
   price: 20

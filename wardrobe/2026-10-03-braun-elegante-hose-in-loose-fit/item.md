@@ -9,6 +9,12 @@ material: polyester
 brand: H&M
 size: '50'
 fit: loose
+seasons:
+  - fruehling
+  - sommer
+  - herbst
+  - winter
+formality: 4
 status: aktiv
 purchase:
   date: '2026-10-03'

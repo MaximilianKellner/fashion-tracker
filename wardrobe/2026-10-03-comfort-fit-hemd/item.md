@@ -12,6 +12,7 @@ seasons:
   - fruehling
   - sommer
   - herbst
+formality: 3
 status: aktiv
 purchase:
   date: '2026-10-03'

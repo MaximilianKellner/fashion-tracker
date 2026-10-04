@@ -12,6 +12,7 @@ seasons:
   - sommer
   - herbst
   - winter
+formality: 3
 status: aktiv
 purchase:
   date: '2025-03-20'

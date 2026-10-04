@@ -11,6 +11,7 @@ seasons:
   - sommer
   - herbst
   - winter
+formality: 2
 status: aktiv
 purchase:
   date: '2026-10-03'

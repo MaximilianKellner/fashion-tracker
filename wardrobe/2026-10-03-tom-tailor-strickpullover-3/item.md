@@ -5,6 +5,11 @@ subcategory: strickpullover
 colors:
   - navy
 brand: tom tailor
+seasons:
+  - fruehling
+  - herbst
+  - winter
+formality: 3
 status: aktiv
 purchase:
   price: 40

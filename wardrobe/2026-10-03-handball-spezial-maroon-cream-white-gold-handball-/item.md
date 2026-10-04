@@ -7,6 +7,12 @@ colors:
   - creme
 brand: adidas Originals
 size: '46'
+seasons:
+  - fruehling
+  - sommer
+  - herbst
+  - winter
+formality: 2
 status: aktiv
 purchase:
   date: '2026-10-03'

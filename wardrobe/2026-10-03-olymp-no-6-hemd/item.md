@@ -5,6 +5,12 @@ subcategory: hemd
 colors:
   - weiss
 brand: olymp no 6
+seasons:
+  - fruehling
+  - sommer
+  - herbst
+  - winter
+formality: 4
 status: aktiv
 purchase:
   price: 60

@@ -6,6 +6,11 @@ colors:
   - creme
 brand: Bershka
 size: L
+seasons:
+  - fruehling
+  - sommer
+  - herbst
+formality: 3
 status: aktiv
 purchase:
   price: 30

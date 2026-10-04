@@ -9,6 +9,10 @@ material: polyester
 brand: UNIQLO
 size: L
 fit: regular
+seasons:
+  - fruehling
+  - sommer
+formality: 2
 status: aktiv
 purchase:
   date: '2026-10-03'

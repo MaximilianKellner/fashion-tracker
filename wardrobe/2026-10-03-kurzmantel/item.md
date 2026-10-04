@@ -8,6 +8,10 @@ colors:
 brand: TOM TAILOR DENIM
 size: M
 fit: slim
+seasons:
+  - herbst
+  - winter
+formality: 4
 status: aktiv
 purchase:
   date: '2026-10-03'

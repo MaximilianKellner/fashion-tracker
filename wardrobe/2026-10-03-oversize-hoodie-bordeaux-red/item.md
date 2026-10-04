@@ -7,6 +7,10 @@ colors:
 brand: Straight Outta Cotton
 size: XL
 fit: boxy
+seasons:
+  - fruehling
+  - herbst
+  - winter
 formality: 2
 status: aktiv
 purchase:

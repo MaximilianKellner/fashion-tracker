@@ -6,6 +6,11 @@ colors:
   - beige
   - sand
 brand: only and sons
+seasons:
+  - fruehling
+  - herbst
+  - winter
+formality: 3
 status: aktiv
 purchase:
   price: 40

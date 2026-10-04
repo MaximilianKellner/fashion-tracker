@@ -5,6 +5,12 @@ subcategory: hemd
 colors:
   - dunkelgruen
 brand: seidensticker
+seasons:
+  - fruehling
+  - sommer
+  - herbst
+  - winter
+formality: 3
 status: aktiv
 purchase:
   price: 20

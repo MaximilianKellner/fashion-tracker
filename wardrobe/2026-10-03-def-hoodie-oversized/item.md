@@ -5,6 +5,11 @@ subcategory: hoodie
 colors:
   - dunkelgruen
 brand: DEF
+seasons:
+  - fruehling
+  - herbst
+  - winter
+formality: 2
 status: aktiv
 purchase:
   price: 40

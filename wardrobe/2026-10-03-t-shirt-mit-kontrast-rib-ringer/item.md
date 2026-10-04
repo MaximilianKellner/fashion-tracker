@@ -6,6 +6,10 @@ colors:
   - gruen
 material: baumwolle
 brand: ZARA
+seasons:
+  - fruehling
+  - sommer
+formality: 2
 status: aktiv
 purchase:
   date: '2026-10-03'

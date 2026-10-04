@@ -9,6 +9,10 @@ material: baumwolle
 brand: H&M
 size: M
 fit: slim
+seasons:
+  - fruehling
+  - sommer
+formality: 1
 status: aktiv
 purchase:
   date: '2026-10-03'

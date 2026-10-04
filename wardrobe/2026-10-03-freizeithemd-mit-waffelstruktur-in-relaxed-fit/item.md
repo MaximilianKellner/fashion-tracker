@@ -9,6 +9,10 @@ material: polyester
 brand: H&M
 size: L
 fit: relaxed
+seasons:
+  - fruehling
+  - sommer
+formality: 3
 status: aktiv
 purchase:
   date: '2026-10-03'

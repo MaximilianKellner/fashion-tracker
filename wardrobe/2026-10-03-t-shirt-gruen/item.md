@@ -6,6 +6,12 @@ colors:
   - dunkelgruen
 brand: C&A
 size: M
+seasons:
+  - fruehling
+  - sommer
+  - herbst
+  - winter
+formality: 2
 status: aktiv
 purchase:
   price: 9.99

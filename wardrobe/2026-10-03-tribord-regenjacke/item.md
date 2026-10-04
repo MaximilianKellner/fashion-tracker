@@ -6,6 +6,11 @@ colors:
   - navy
   - weiss
 brand: Tribord
+seasons:
+  - fruehling
+  - sommer
+  - herbst
+formality: 1
 status: aktiv
 purchase:
   price: 30

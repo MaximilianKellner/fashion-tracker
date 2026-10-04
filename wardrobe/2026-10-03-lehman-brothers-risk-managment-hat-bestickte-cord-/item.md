@@ -8,6 +8,12 @@ colors:
   - dunkelgruen
 material: Kort
 brand: ShopImpressiveThings
+seasons:
+  - fruehling
+  - sommer
+  - herbst
+  - winter
+formality: 2
 status: aktiv
 purchase:
   date: '2026-10-03'

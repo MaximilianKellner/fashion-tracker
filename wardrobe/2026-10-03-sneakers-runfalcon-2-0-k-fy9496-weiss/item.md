@@ -8,6 +8,12 @@ pattern: uni
 material: textilmaterial
 brand: adidas
 size: '45,3'
+seasons:
+  - fruehling
+  - sommer
+  - herbst
+  - winter
+formality: 1
 status: aktiv
 purchase:
   date: '2026-10-03'

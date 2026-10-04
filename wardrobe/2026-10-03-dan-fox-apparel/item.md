@@ -11,6 +11,7 @@ seasons:
   - fruehling
   - herbst
   - winter
+formality: 4
 status: aktiv
 purchase:
   price: 48.93

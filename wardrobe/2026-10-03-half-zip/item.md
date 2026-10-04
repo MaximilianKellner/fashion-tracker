@@ -6,6 +6,11 @@ colors:
   - schwarz
 brand: Straight Outta Cotton
 fit: boxy
+seasons:
+  - fruehling
+  - herbst
+  - winter
+formality: 2
 status: aktiv
 purchase:
   date: '2026-10-03'

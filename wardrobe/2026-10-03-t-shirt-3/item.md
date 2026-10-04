@@ -5,6 +5,12 @@ subcategory: t-shirt
 colors:
   - schwarz
 brand: C&A Online Shop
+seasons:
+  - fruehling
+  - sommer
+  - herbst
+  - winter
+formality: 2
 status: aktiv
 purchase:
   date: '2026-10-03'

@@ -6,6 +6,11 @@ colors:
   - navy
   - anthrazit
 brand: QUECHUA
+seasons:
+  - fruehling
+  - herbst
+  - winter
+formality: 1
 status: aktiv
 purchase:
   price: 40

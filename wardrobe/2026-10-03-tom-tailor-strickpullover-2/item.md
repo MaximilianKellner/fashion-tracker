@@ -7,6 +7,11 @@ colors:
   - weinrot
 brand: tom tailor
 fit: slim
+seasons:
+  - fruehling
+  - herbst
+  - winter
+formality: 3
 status: aktiv
 purchase:
   price: 40
