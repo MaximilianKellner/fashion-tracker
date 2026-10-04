@@ -270,6 +270,8 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
                   type="button"
                   onClick={() => pick(item)}
                   aria-pressed={on}
+                  // Alle Gründe beim Darüberfahren, auf der Karte ist nur Platz für den wichtigsten
+                  title={[`${item.data.name} · ${score}`, ...reasons.map((r) => `${r.good ? "✓" : "✗"} ${r.text}`)].join("\n")}
                   className={`overflow-hidden rounded-xl border-2 bg-surface text-left ${on ? "border-accent" : "border-transparent"}`}
                 >
                   <div className="relative aspect-[3/4] bg-surface-2">
@@ -285,7 +287,7 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
                   <div className="p-1.5">
                     <div className="truncate text-xs font-medium">{item.data.name}</div>
                     {reasons[0] && (
-                      <div className={`truncate text-[11px] ${reasons[0].good ? "text-muted" : "text-danger"}`}>{reasons[0].text}</div>
+                      <div className={`line-clamp-2 text-[11px] leading-tight ${reasons[0].good ? "text-muted" : "text-danger"}`}>{reasons[0].text}</div>
                     )}
                   </div>
                 </button>
