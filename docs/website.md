@@ -76,10 +76,13 @@ Läuft komplett lokal, ohne KI. Getestet mit Zara, H&M und About You; Zalando bl
 - Unter dem Outfit: Farbpunkte, Gesamturteil (*Sehr stimmig*, *Stimmig*, *Mutig*, *Unruhig*) und erkannte Probleme mit dem
   betroffenen Teil, z. B. „zu schick dafür (Hemd)“. Teile mit Problem haben auf der Bühne einen roten Rahmen und ein „!“
   (Tooltip mit dem Grund); Zeigen auf ein Problem oder Antippen hebt seine Teile hervor.
-- **Auffüllen** ergänzt leere Plätze so, dass das ganze Outfit am stimmigsten ist (ab Herbst auch eine Jacke), **Würfeln**
+- **Auffüllen** ergänzt leere Plätze so, dass das ganze Outfit am stimmigsten ist (mit Herbst oder Winter auch eine Jacke), **Würfeln**
   wählt zufällig eines der stimmigsten, **Leeren** fängt neu an.
-- **Saison**-Filter: Teile, die nicht zur gewählten Saison passen, rutschen nach unten. Vorausgewählt ist die aktuelle Jahreszeit.
-- Ab zwei Teilen erscheint das Speicherformular. Name (aus den Farben vorgeschlagen) und gemeinsame Saisons sind vorausgefüllt.
+- **Saisons des Outfits**: Der Saison-Filter über den Vorschlägen und die Saisons im Speicherformular sind dieselbe Auswahl
+  (mehrere möglich, „Egal“ leert sie). Teile, die eine davon nicht abdecken, rutschen nach unten und werden markiert, z. B.
+  „nicht für Sommer“ bei einer Herbstjacke im Sommer-Outfit. Vorausgewählt sind beim Bearbeiten die gespeicherten Saisons
+  des Outfits, sonst die aktuelle Jahreszeit; „Saisons der Teile übernehmen“ setzt die Saisons, die alle Teile gemeinsam haben.
+- Ab zwei Teilen erscheint das Speicherformular. Der Name ist aus den Farben vorgeschlagen.
 - Aufruf mit Startteilen: `/outfits/builder?items=<id>,<id>`, ein gespeichertes Outfit bearbeiten: `?outfit=<id>`.
 
 Wie die Bewertung rechnet: [outfit-builder.md](outfit-builder.md)

@@ -23,7 +23,7 @@ export default async function OutfitBuilderPage({ searchParams }: PageProps<"/ou
         outfits={outfits.map((o) => ({ items: o.data.items, rating: o.data.rating }))}
         palette={profile.data.palette}
         initialItems={start}
-        initialSeason={SEASON_BY_MONTH[new Date().getMonth()]}
+        initialSeasons={outfit?.data.seasons?.length ? outfit.data.seasons : [SEASON_BY_MONTH[new Date().getMonth()]]}
         outfit={outfit ? { id: outfit.id, data: outfit.data, body: outfit.body } : undefined}
       />
     </div>

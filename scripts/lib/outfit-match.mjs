@@ -172,6 +172,7 @@ export function colorPair(aId, bId) {
 const FUNCTIONAL = new Set(['regenjacke', 'softshelljacke', 'fleecejacke', 'trainingsjacke']);
 // Fallback für Teile ohne seasons bzw. formality: Standardwerte nach Unterkategorie (item-guess.mjs)
 export const seasonsOf = (item) => (item.data.seasons?.length ? item.data.seasons : DEFAULT_SEASONS[item.data.subcategory]);
+const SEASON_LABELS = { fruehling: 'Frühling', sommer: 'Sommer', herbst: 'Herbst', winter: 'Winter' };
 
 export const formalityOf = (item) => item.data.formality ?? DEFAULT_FORMALITY[item.data.subcategory] ?? (item.data.category === 'sport' ? 1 : undefined);
 
@@ -217,7 +218,8 @@ function colorFamilies(items, vis) {
 
 /**
  * Wie gut passt `candidate` zu den schon gewählten Teilen?
- * context: { palette?: { best?: string[], sparingly?: string[] }, outfits?: [{ items: string[], rating?: number }], season?: string }
+ * context: { palette?: { best?: string[], sparingly?: string[] }, outfits?: [{ items: string[], rating?: number }],
+ *   seasons?: string[] } – Saisons, für die das Outfit gedacht ist (`season` als einzelner Wert geht auch)
  * Ergebnis: { score 0..100, reasons: [{ text, good }] } – reasons nach Wichtigkeit sortiert.
  */
 export function scoreCandidate(candidate, selected, context = {}) {
@@ -346,11 +348,13 @@ export function scoreCandidate(candidate, selected, context = {}) {
   }
   if (context.palette?.sparingly?.includes(main)) score -= 0.03;
 
-  // Gewählte Saison als Filter-Hinweis
+  // Saisons des Outfits: Abzug je nach Anteil, den das Teil nicht abdeckt (Herbstjacke im Sommer-Outfit)
   const own = seasonsOf(candidate);
-  if (context.season && own?.length && !own.includes(context.season)) {
-    score -= 0.15;
-    reasons.push({ text: 'nicht für diese Saison', good: false });
+  const wanted = context.seasons ?? (context.season ? [context.season] : []);
+  const missing = own?.length ? wanted.filter((s) => !own.includes(s)) : [];
+  if (missing.length) {
+    score -= (0.15 * missing.length) / wanted.length;
+    reasons.push({ text: `nicht für ${missing.map((s) => SEASON_LABELS[s] ?? s).join(' & ')}`, good: false });
   }
 
   reasons.sort((a, b) => Number(a.good) - Number(b.good)); // Probleme zuerst

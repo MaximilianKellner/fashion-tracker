@@ -82,7 +82,7 @@ einzelner Ausreißer, etwa eine gelbe Nebenfarbe zu Bordeaux, nicht im Durchschn
 | Funktionsjacke (Regen, Softshell, Fleece, Training) zu einem Outfit mit Formalität ab 2 | −6 | „Funktionsjacke wirkt hier sportlich“ |
 | Formalität weicht zu stark ab (siehe unten) | −4 und mehr | „zu schick dafür“ / „zu lässig dafür“ |
 | keine gemeinsame Saison mit einem gewählten Teil | −10 | „andere Saison“ |
-| passt nicht zur gewählten Saison im Filter | −15 | „nicht für diese Saison“ |
+| deckt Saisons des Outfits nicht ab | bis −15 (anteilig) | „nicht für Sommer“ |
 | schon zusammen in einem gespeicherten Outfit | +4, je nach Bewertung bis +8 | „schon zusammen getragen“ |
 | Hauptfarbe unter „Steht mir besonders“ im Profil | +4 | „steht dir besonders“ |
 | Hauptfarbe unter „Sparsam einsetzen“ | −3 | |
@@ -103,6 +103,10 @@ Je mehr Teile eine eigene `formality` und `seasons` haben, desto genauer werden 
 Steppjacke, Rollkragen, Mütze, Schal, Handschuhe Herbst/Winter; Strick, Hoodie, Sweatshirt, Quarter-Zip, Cardigan, Fleece und
 Softshell Frühling bis Winter; Blouson, Jeansjacke und Overshirt Frühling bis Herbst. Übrige Teile ohne Saison gelten als ganzjährig.
 
+Die **Saisons des Outfits** (`context.seasons`, im Builder Saison-Filter und Speicherformular zugleich) sind der Maßstab:
+Fehlt einem Teil eine davon, gibt es den Abzug anteilig, z. B. −15 für eine Herbstjacke im reinen Sommer-Outfit, −7,5 im
+Frühling/Sommer-Outfit. Die Outfit-Karten bewerten mit den gespeicherten Saisons des Outfits.
+
 ## 4. Gesamturteil und Auffüllen
 
 - **Gesamturteil** (`scoreOutfit`): Jedes Teil wird gegen die übrigen bewertet. Der nach Sichtbarkeit gewichtete
@@ -111,7 +115,7 @@ Softshell Frühling bis Winter; Blouson, Jeansjacke und Overshirt Frühling bis 
   betroffenen Teile (`issues: [{ text, items }]`), die der Builder markiert.
 - **Leeres Outfit**: Statt gegen nichts zu bewerten, sortiert der Builder nach **Vielseitigkeit**, also der durchschnittlichen
   Punktzahl gegen alle Teile anderer Plätze.
-- **Auffüllen** (`completeOutfit`): füllt Oberteil, Hose, Schuhe (ab Herbst auch Jacke). Statt Platz für Platz das gerade
+- **Auffüllen** (`completeOutfit`): füllt Oberteil, Hose, Schuhe (mit Herbst oder Winter in den Saisons auch Jacke). Statt Platz für Platz das gerade
   beste Teil zu nehmen, verfolgt es mehrere Kombinationen parallel (Beam-Suche) und nimmt die mit dem besten Gesamturteil.
   **Würfeln** stellt 24 Outfits aus guten Kandidaten zusammen (je Platz zufällig unter den bis zu fünf, die höchstens
   12 Punkte hinter dem besten liegen) und wählt zufällig eines, das höchstens 5 Punkte hinter dem besten liegt.
