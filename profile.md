@@ -31,6 +31,7 @@ palette:
 measurements: {}
 sizes: {}
 hidden_gaps:
+  - hose/chino/weiss
   - jacke/blouson/hellblau
   - jacke/overshirt/hellblau
 ---
