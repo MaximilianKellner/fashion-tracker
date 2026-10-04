@@ -3,8 +3,8 @@
 import { startTransition, useActionState, useMemo, useState, type FormEvent } from "react";
 import { saveOutfit } from "@/app/actions";
 import { SEASONS } from "@lib/schema.mjs";
-import { SLOTS, completeOutfit, scoreCandidate, scoreOutfit, slotsFor } from "@lib/outfit-match.mjs";
-import { label, swatch } from "@/lib/labels";
+import { SLOTS, completeOutfit, layerOf, scoreCandidate, scoreOutfit, slotsFor } from "@lib/outfit-match.mjs";
+import { label, scoreTone, swatch } from "@/lib/labels";
 import type { Item, OutfitData } from "@/lib/types";
 import { Errors, Field } from "./form-bits";
 import { Photo } from "./photo";
@@ -29,21 +29,24 @@ function ColorDot({ color, size = "h-3 w-3" }: { color: string; size?: string })
 
 const photoSrc = (item: Item) => (item.data.photos?.[0] ? `/photos/${item.id}/${item.data.photos[0]}` : null);
 
-/** Verteilt Teile auf die Plätze: jedes in den ersten freien passenden Platz */
+/** Verteilt Teile auf die Plätze: jedes in den ersten freien passenden Platz, äußere Schichten zuerst (Pulli vor Shirt) */
 function assign(ids: string[], items: Item[]): Chosen {
   const chosen: Chosen = {};
-  for (const id of ids) {
-    const item = items.find((i) => i.id === id);
-    const slot = item && (slotsFor(item) as SlotId[]).find((s) => !chosen[s]);
+  const found = ids.map((id) => items.find((i) => i.id === id)).filter((i): i is Item => !!i);
+  for (const item of found.sort((a, b) => (layerOf(b) ?? 0) - (layerOf(a) ?? 0))) {
+    const slot = (slotsFor(item) as SlotId[]).find((s) => !chosen[s]);
     if (slot) chosen[slot] = item;
   }
   return chosen;
 }
 
-function scoreTone(score: number) {
-  if (score >= 80) return "bg-accent text-accent-ink";
-  if (score >= 65) return "bg-surface-2 text-ink";
-  return "bg-danger/15 text-danger";
+/** Liegt das Teil unter „Darunter“ weiter außen als das Oberteil, tauschen die beiden (Hemd über T-Shirt) */
+function orderLayers(chosen: Chosen): Chosen {
+  const { oberteil, darunter } = chosen;
+  if (oberteil && darunter && slotsFor(oberteil).includes("darunter") && layerOf(darunter) > layerOf(oberteil)) {
+    return { ...chosen, oberteil: darunter, darunter: oberteil };
+  }
+  return chosen;
 }
 
 export function OutfitBuilder({ items, outfits, palette, initialItems, initialSeason, outfit }: Props) {
@@ -73,8 +76,11 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
       .filter(([slot, item]) => slot !== active && item)
       .map(([, item]) => item as Item);
     const usedElsewhere = new Set(others.map((i) => i.id));
+    // Darunter nur, was unter das gewählte Oberteil passt
+    const top = active === "darunter" ? chosen.oberteil : undefined;
     return items
       .filter((i) => slotsFor(i).includes(active) && !usedElsewhere.has(i.id))
+      .filter((i) => !top || layerOf(i) < layerOf(top))
       .map((item) => {
         const result = scoreCandidate(item, others, context);
         if (others.length) return { item, ...result };
@@ -85,18 +91,12 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
       .sort((a, b) => b.score - a.score);
   }, [items, chosen, active, context, versatility]);
 
+  // Gesamturteil und Probleme im Outfit (jedes Teil gegen den Rest)
   const overall = useMemo(() => scoreOutfit(selected, context), [selected, context]);
-  // Probleme im fertigen Outfit: für jedes Teil die negativen Gründe gegen den Rest
-  const problems = useMemo(() => {
-    const seen = new Set<string>();
-    for (const item of selected) {
-      for (const r of scoreCandidate(item, selected.filter((s) => s !== item), context).reasons) if (!r.good) seen.add(r.text);
-    }
-    return [...seen];
-  }, [selected, context]);
+  const problems = overall?.problems ?? [];
 
   function pick(item: Item) {
-    const next = { ...chosen, [active]: chosen[active]?.id === item.id ? undefined : item };
+    const next = orderLayers({ ...chosen, [active]: chosen[active]?.id === item.id ? undefined : item });
     setChosen(next);
     // Zum nächsten leeren Pflichtplatz springen
     const empty = SLOTS.find((s) => s.required && !next[s.id]);

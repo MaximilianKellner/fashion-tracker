@@ -51,6 +51,8 @@ Läuft komplett lokal, ohne KI. Getestet mit Zara, H&M und About You; Zalando bl
 ![Outfits](screenshots/outfits.webp)
 
 - Übersicht als Collage mit Anlass, Bewertung und Hinweis, ob Claude das Outfit vorgeschlagen hat.
+- Oben rechts auf jeder Karte die Punktzahl des Outfit-Builders (0–100, gleiche Farben wie im Builder); beim Darüberfahren
+  Urteil und erkannte Probleme.
 - **Outfit bauen** öffnet den Builder (siehe unten), **Aus Liste** die schlichte Auswahl per Raster.
 - Auf der Outfit-Seite: **Im Builder** (visuell bearbeiten) oder **Bearbeiten** (Formular).
 
@@ -60,11 +62,13 @@ Läuft komplett lokal, ohne KI. Getestet mit Zara, H&M und About You; Zalando bl
 
 - Das Outfit liegt als Flatlay da: Oberteil, Hose und Schuhe in der Mitte, Jacke rechts, Kopf, „Darunter“ und Accessoire links.
 - Platz antippen, Teil wählen. Danach springt der Builder zum nächsten leeren Pflichtplatz.
+- „Darunter“ bietet nur Shirts und Hemden an, die unter das gewählte Oberteil passen. Landet ein Hemd unter einem T-Shirt,
+  tauschen die beiden die Plätze.
 - Die Vorschläge für den gewählten Platz sind **live nach Passung sortiert** (0–100) und begründet, z. B. „Ton in Ton mit
-  Bordeaux“, „neutral, erdet Bordeaux“, „zu lässig dafür“, „zu viele Farben“.
+  Bordeaux“, „neutral, erdet Bordeaux“, „zu lässig dafür“, „zu viele Farben“, „Fleecejacke über Hoodie“.
 - Unter dem Outfit: Farbpunkte, Gesamturteil (*Sehr stimmig*, *Stimmig*, *Mutig*, *Unruhig*) und erkannte Probleme.
-- **Auffüllen** ergänzt leere Plätze mit den besten Treffern (ab Herbst auch eine Jacke), **Würfeln** wählt zufällig unter
-  den guten, **Leeren** fängt neu an.
+- **Auffüllen** ergänzt leere Plätze so, dass das ganze Outfit am stimmigsten ist (ab Herbst auch eine Jacke), **Würfeln**
+  wählt zufällig eines der stimmigsten, **Leeren** fängt neu an.
 - **Saison**-Filter: Teile, die nicht zur gewählten Saison passen, rutschen nach unten. Vorausgewählt ist die aktuelle Jahreszeit.
 - Ab zwei Teilen erscheint das Speicherformular. Name (aus den Farben vorgeschlagen) und gemeinsame Saisons sind vorausgefüllt.
 - Aufruf mit Startteilen: `/outfits/builder?items=<id>,<id>`, ein gespeichertes Outfit bearbeiten: `?outfit=<id>`.
