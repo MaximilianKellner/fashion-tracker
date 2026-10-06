@@ -39,6 +39,7 @@ hidden_gaps:
   - hose/jeans/weiss
   - jacke/blouson/hellblau
   - jacke/overshirt/hellblau
+  - schuhe/sneaker/hellblau
 ---
 
 # Mein Style-Profil
