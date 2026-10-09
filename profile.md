@@ -31,6 +31,7 @@ palette:
 measurements: {}
 sizes: {}
 hidden_gaps:
+  - hose/anzughose/dunkelgruen
   - hose/anzughose/grau
   - hose/anzughose/weiss
   - hose/chino/dunkelgruen
