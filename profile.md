@@ -34,8 +34,10 @@ hidden_gaps:
   - hose/anzughose/dunkelgruen
   - hose/anzughose/grau
   - hose/anzughose/weiss
+  - hose/chino/bordeaux
   - hose/chino/dunkelgruen
   - hose/chino/grau
+  - hose/chino/weinrot
   - hose/chino/weiss
   - hose/jeans/grau
   - hose/jeans/weiss
