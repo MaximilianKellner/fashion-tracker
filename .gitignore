@@ -4,9 +4,17 @@ out/
 *.log
 .env*.local
 
-# Rohfotos werden nach dem Verarbeiten gelöscht
-inbox/*
-!inbox/.gitkeep
+# Einstellungen und Daten liegen nicht im (öffentlichen) Code-Repo, siehe .env.example
+.env
+/data/
+*.db
+*.db-shm
+*.db-wal
+
+# Nix
+result
+result-*
 
 # KI-Modell fürs Freistellen (lädt die Website bei Bedarf herunter)
 .cache/
+.export/

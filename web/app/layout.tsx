@@ -1,12 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
+// Schrift aus dem npm-Paket statt von Google Fonts: der Build braucht so kein Internet (z. B. im Nix-Sandbox-Build)
+import { GeistSans } from "geist/font/sans";
 import { Nav } from "@/components/nav";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Kleiderschrank",
@@ -24,7 +20,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="de" className={`${geistSans.variable} h-full antialiased`}>
+    <html lang="de" className={`${GeistSans.variable} h-full antialiased`}>
       <body className="min-h-full font-sans">
         <Nav />
         {/* Unten Platz für die mobile Navigationsleiste lassen */}

@@ -9,7 +9,10 @@
     "start:lan": "npm run start:lan -w web",
     "photo": "node scripts/process-photo.mjs",
     "validate": "node scripts/validate.mjs",
-    "stats": "node scripts/stats.mjs"
+    "stats": "node scripts/stats.mjs",
+    "export": "node scripts/export.mjs",
+    "import": "node scripts/import.mjs",
+    "init-data": "node scripts/init-data.mjs"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
@@ -17,5 +20,8 @@
   },
   "workspaces": [
     "web"
-  ]
+  ],
+  "engines": {
+    "node": ">=22.13"
+  }
 }

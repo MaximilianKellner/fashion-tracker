@@ -1,8 +1,12 @@
 # Fashion Tracker
 
-Mein Kleiderschrank als Git-Repo. Kleidungsstücke, Outfits, Wunschliste und Stilprofil liegen als Markdown-Dateien mit Fotos
-im Repo; es gibt keine Datenbank. Eine Website (Next.js) zum Erfassen und Ansehen läuft dauerhaft auf dem Home-PC, und
-**Claude Code ist der Stilberater**: Er liest dieselben Dateien, sieht sich die Fotos an und gibt Outfit- und Kaufempfehlungen.
+Ein Kleiderschrank zum Selbst-Hosten. Kleidungsstücke, Outfits, Wunschliste und Stilprofil liegen entweder als
+Markdown-Dateien mit Fotos in einem eigenen, privaten Git-Repo oder in einer SQLite-Datenbank. Eine Website (Next.js) zum
+Erfassen und Ansehen läuft dauerhaft auf einem Server, und **Claude Code ist der Stilberater**: Er liest dieselben Daten,
+sieht sich die Fotos an und gibt Outfit- und Kaufempfehlungen.
+
+Dieses Repo enthält nur den Code. Jeder betreibt seine eigene Instanz mit eigenen Daten:
+[Einrichtung und Speicher-Modi](docs/betrieb.md), [NixOS-Modul](docs/nix.md).
 
 ![Kleiderschrank](docs/screenshots/schrank.webp)
 
@@ -30,22 +34,26 @@ Alle Seiten im Detail: [docs/website.md](docs/website.md)
 
 ## So hängt alles zusammen
 
+Im Git-Modus:
+
 ```
- Handy / PC (Browser)                Home-PC (NixOS)                       GitHub (privat)        Laptop mit Claude Code
+ Handy / PC (Browser)                Server (NixOS)                        Daten-Repo (privat)    Laptop mit Claude Code
  ───────────────────      ─────────────────────────────────────      ─────────────────      ──────────────────────
  Website benutzen  ──────▶ Next.js liest/schreibt Markdown + Fotos  ──▶  git push  ──────▶  git pull, /outfit,
                            committet jede Änderung automatisch      ◀──  git pull  ◀──────  /kaufempfehlung, ...
                            holt neue Commits (höchstens alle 15 min)                        committet Antworten
 ```
 
-- **Daten** (`wardrobe/`, `outfits/`, `wishlist/`, `recommendations/`, `profile.md`) ändert man über die Website oder über Claude.
-  Beide Wege landen als Commit im selben Repo.
-- **Code** (`web/`, `scripts/`) kommt ebenfalls über Git auf den Home-PC; der Server baut sich dann selbst neu.
-  Details und Fehlerbehebung: [docs/home-pc.md](docs/home-pc.md)
+- **Daten** (`wardrobe/`, `outfits/`, `wishlist/`, `recommendations/`, `profile.md`) liegen im Datenverzeichnis und ändert man
+  über die Website oder über Claude. Beide Wege landen als Commit im Daten-Repo.
+- **Code** (`web/`, `scripts/`) kommt aus diesem Repo, per `nixos-rebuild` oder mit Auto-Update: Der Server holt neuen Code
+  selbst und baut sich neu. Beispiel-Setup und Fehlerbehebung: [docs/home-pc.md](docs/home-pc.md)
+- Im **Datenbankmodus** fällt das Daten-Repo weg; Claude arbeitet dann über `export`/`import` ([docs/betrieb.md](docs/betrieb.md)).
 
 ## Mit Claude arbeiten
 
-Repo in Claude Code öffnen. Claude liest vor jeder Empfehlung `profile.md` und holt mit `git pull` die neuesten Teile.
+Code-Repo in Claude Code öffnen; das Datenverzeichnis steht in `.env` (`DATA_DIR`). Claude liest vor jeder Empfehlung
+`profile.md` und holt mit `git pull` im Daten-Repo die neuesten Teile.
 
 | Befehl | Was passiert |
 |---|---|
@@ -61,22 +69,37 @@ Die Regeln, nach denen Claude empfiehlt und Daten anlegt, stehen in [CLAUDE.md](
 
 ```bash
 npm install
+```
+
+```bash
+cp .env.example .env
+```
+
+```bash
+npm run init-data
+```
+
+```bash
 npm run dev:lan
 ```
+
+In `.env` stehen Speicher-Modus und Datenverzeichnis ([docs/betrieb.md](docs/betrieb.md)); `init-data` legt ein leeres an.
 
 - Am PC: http://localhost:3000
 - Am Handy (gleiches WLAN): `http://<PC-IP>:3000`. Die IP zeigt der Server beim Start unter „Network“ an.
   Beim ersten Mal fragt Windows ggf. nach einer Firewall-Freigabe für Node.js. Diese nur für **private Netzwerke** erlauben.
 
-Lokal ist der Git-Abgleich aus; Änderungen über die Website muss man dann selbst committen.
+Lokal ist der Git-Abgleich aus; Änderungen über die Website muss man dann selbst im Daten-Repo committen.
 
 ## Hilfsskripte
 
 | Befehl | Zweck |
 |---|---|
-| `npm run validate` | alle Dateien gegen das Schema prüfen (nach jeder Datenänderung) |
+| `npm run validate` | alle Daten gegen das Schema prüfen (nach jeder Datenänderung) |
 | `npm run stats` | Kennzahlen im Terminal, `npm run stats -- --json` für Skripte und Claude |
 | `npm run photo -- <foto> <item-id>` | Foto auf 1024 px verkleinern, als WebP ohne EXIF (GPS!) ablegen |
+| `npm run export -- <ordner>` / `npm run import -- <ordner>` | Daten als Markdown-Ordner holen bzw. übernehmen (Backup, Umzug, Claude im Datenbankmodus) |
+| `npm run init-data [-- <ordner>] [--git]` | leeres Datenverzeichnis mit Profil-Vorlage anlegen |
 
 ## Dokumentation
 
@@ -85,10 +108,24 @@ Lokal ist der Git-Abgleich aus; Änderungen über die Website muss man dann selb
 | [docs/website.md](docs/website.md) | alle Seiten und Funktionen der Website, Shop-Import per Lesezeichen |
 | [docs/outfit-builder.md](docs/outfit-builder.md) | wie der Builder Farben und Outfits bewertet |
 | [docs/schema.md](docs/schema.md) | Datenformat: alle Felder, erlaubte Werte, Farbnamen |
-| [docs/home-pc.md](docs/home-pc.md) | Server auf dem Home-PC: Dienst, Auto-Update, Fehlerbehebung |
+| [docs/betrieb.md](docs/betrieb.md) | Speicher-Modi (Git oder Datenbank), eigene Instanz einrichten, Export/Import |
+| [docs/nix.md](docs/nix.md) | Flake, Nix-Paket und NixOS-Modul mit allen Optionen |
+| [docs/home-pc.md](docs/home-pc.md) | Beispiel-Server auf dem Home-PC: Dienst, Auto-Update, Fehlerbehebung |
 | [CLAUDE.md](CLAUDE.md) | Anleitung für Claude: Struktur, Befehle, Regeln für Empfehlungen |
 
 ## Projektstruktur
+
+Code (dieses Repo):
+
+```
+scripts/lib/               Schema, Speicher (store/files, store/sqlite), Fotos, Farben, Outfit-Bewertung, Git-Abgleich
+scripts/                   Kommandozeile: validate, stats, photo, export, import, init-data
+web/                       Next.js-16-App (npm-Workspace)
+nix/, flake.nix            Nix-Paket und NixOS-Modul
+.claude/commands/          Slash-Commands für Claude
+```
+
+Datenverzeichnis (privat, eigenes Repo oder neben der Datenbank):
 
 ```
 profile.md                 Stil, Farbpalette, Maße, Größen
@@ -97,7 +134,4 @@ outfits/<id>.md            gespeicherte Kombinationen (verweisen auf Item-IDs)
 wishlist/<id>.md           Kaufwünsche, Bilder in wishlist/<id>/
 recommendations/<id>.md    Fragen und Antworten von Claude
 inbox/                     Rohfotos für /neues-teil (nicht im Repo)
-scripts/lib/               Schema, Lesen/Schreiben, Fotos, Farben, Outfit-Bewertung, Git-Abgleich
-web/                       Next.js-16-App (npm-Workspace)
-.claude/commands/          Slash-Commands für Claude
 ```

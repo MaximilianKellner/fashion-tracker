@@ -1,27 +1,37 @@
-// Lesen und Schreiben der Markdown-Daten. Wird von den CLI-Skripten und später von der Website genutzt.
-import fs from 'node:fs/promises';
+// Lesen und Schreiben der Daten, egal ob als Markdown-Dateien (STORAGE=files) oder in SQLite (STORAGE=sqlite).
+// Wird von der Website (web/lib/data.ts, web/app/actions.ts) und den Kommandozeilen-Skripten genutzt.
+// Einträge haben immer die Form { id, data, body }: data sind die Frontmatter-Felder, body der Markdown-Text.
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import matter from 'gray-matter';
-import { ITEM_FIELDS, OUTFIT_FIELDS, PROFILE_FIELDS, RECOMMENDATION_FIELDS, WISHLIST_FIELDS } from './schema.mjs';
+import { dataRoot, databaseFile, loadEnv, storageMode } from './config.mjs';
+import { NotFoundError } from './store/common.mjs';
+import { createFileStore } from './store/files.mjs';
+import { createSqliteStore } from './store/sqlite.mjs';
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+export { dataRoot } from './config.mjs';
 
-/** Wurzelverzeichnis der Daten. Über DATA_DIR überschreibbar (z. B. für die Website in web/). */
-export function dataRoot() {
-  return process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : REPO_ROOT;
+// .env aus dem Code-Repo, damit auch `node -e` und die Skripte den eingestellten Speicher nutzen
+loadEnv();
+
+let current = null;
+
+/** Der eingestellte Speicher. Wird neu angelegt, wenn sich STORAGE, DATA_DIR oder DATABASE_FILE ändern. */
+export function store() {
+  const mode = storageMode();
+  const key = [mode, dataRoot(), mode === 'sqlite' ? databaseFile() : ''].join('|');
+  if (current?.key !== key) {
+    current?.store.close();
+    const s = mode === 'sqlite' ? createSqliteStore(databaseFile(), dataRoot()) : createFileStore(dataRoot());
+    current = { key, store: s };
+  }
+  return current.store;
 }
 
 export const dirs = {
-  wardrobe: () => path.join(dataRoot(), 'wardrobe'),
-  outfits: () => path.join(dataRoot(), 'outfits'),
-  wishlist: () => path.join(dataRoot(), 'wishlist'),
-  /** Fotos eines Wunsches liegen in wishlist/<id>/photo-N.webp neben wishlist/<id>.md */
-  wishPhotos: (id) => path.join(dataRoot(), 'wishlist', id),
   inbox: () => path.join(dataRoot(), 'inbox'),
-  recommendations: () => path.join(dataRoot(), 'recommendations'),
 };
-export const profileFile = () => path.join(dataRoot(), 'profile.md');
+
+/** Ordner mit den Fotos eines Teils (kind "items") oder Wunsches (kind "wishlist") */
+export const photoDir = (kind, id) => store().photoDir(kind, id);
 
 /** "Navy Chino!" -> "navy-chino" (Umlaute werden ausgeschrieben). */
 export function slugify(text) {
@@ -53,113 +63,41 @@ export function makeId(name, existing = [], date = today()) {
   return id;
 }
 
-// YAML macht aus 2024-03-15 ein Date-Objekt. Wir arbeiten durchgehend mit Strings.
-function normalize(value) {
-  if (value instanceof Date) return value.toISOString().slice(0, 10);
-  if (Array.isArray(value)) return value.map(normalize);
-  if (value && typeof value === 'object') {
-    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, normalize(v)]));
-  }
-  return value;
+/** Alle IDs einer Art (items, outfits, wishlist, recommendations) */
+export const listIds = (kind) => store().ids(kind);
+
+async function readOne(kind, id) {
+  const record = await store().get(kind, id);
+  if (!record) throw new NotFoundError(`${kind}/${id} nicht gefunden`);
+  return record;
 }
 
-async function readMarkdown(file) {
-  const raw = await fs.readFile(file, 'utf8');
-  // Optionen übergeben, damit gray-matter nicht cached und Objekte nicht geteilt werden
-  const { data, content } = matter(raw, {});
-  return { data: normalize(data), body: content.trim() };
-}
+// ---------- Kleidungsstücke ----------
+export const readItems = () => store().list('items');
+export const readItem = (id) => readOne('items', id);
+export const writeItem = (id, data, body) => store().put('items', id, data, body);
+/** Löscht das Teil samt Fotos */
+export const deleteItem = (id) => store().remove('items', id);
 
-async function writeMarkdown(file, data, body = '', fields = {}) {
-  // Felder in Schema-Reihenfolge, unbekannte Felder dahinter; undefined-Felder entfernen (js-yaml kann sie nicht serialisieren)
-  const ordered = {};
-  for (const key of [...Object.keys(fields), ...Object.keys(data)]) {
-    if (!(key in ordered) && data[key] !== undefined) ordered[key] = data[key];
-  }
-  const clean = JSON.parse(JSON.stringify(ordered));
-  await fs.mkdir(path.dirname(file), { recursive: true });
-  await fs.writeFile(file, matter.stringify(body ? `\n${body.trim()}\n` : '', clean), 'utf8');
-}
+// ---------- Outfits ----------
+export const readOutfits = () => store().list('outfits');
+export const readOutfit = (id) => readOne('outfits', id);
+export const writeOutfit = (id, data, body) => store().put('outfits', id, data, body);
+export const deleteOutfit = (id) => store().remove('outfits', id);
 
-async function listDir(dir) {
-  try {
-    return (await fs.readdir(dir, { withFileTypes: true })).filter((e) => !e.name.startsWith('.'));
-  } catch (err) {
-    if (err.code === 'ENOENT') return [];
-    throw err;
-  }
-}
+// ---------- Wunschliste ----------
+export const readWishlist = () => store().list('wishlist');
+export const readWish = (id) => readOne('wishlist', id);
+export const writeWish = (id, data, body) => store().put('wishlist', id, data, body);
+/** Löscht den Wunsch samt Fotos */
+export const deleteWish = (id) => store().remove('wishlist', id);
 
-// ---------- Kleidungsstücke: wardrobe/<id>/item.md ----------
+// ---------- Empfehlungen ----------
+export const readRecommendations = () => store().list('recommendations');
+export const readRecommendation = (id) => readOne('recommendations', id);
+export const writeRecommendation = (id, data, body) => store().put('recommendations', id, data, body);
+export const deleteRecommendation = (id) => store().remove('recommendations', id);
 
-export async function readItems() {
-  const entries = await listDir(dirs.wardrobe());
-  const items = [];
-  for (const e of entries.filter((e) => e.isDirectory())) {
-    const file = path.join(dirs.wardrobe(), e.name, 'item.md');
-    try {
-      items.push({ id: e.name, file, ...(await readMarkdown(file)) });
-    } catch (err) {
-      if (err.code !== 'ENOENT') throw err;
-    }
-  }
-  return items.sort((a, b) => a.id.localeCompare(b.id));
-}
-
-export async function readItem(id) {
-  const file = path.join(dirs.wardrobe(), id, 'item.md');
-  return { id, file, ...(await readMarkdown(file)) };
-}
-
-export async function writeItem(id, data, body) {
-  await writeMarkdown(path.join(dirs.wardrobe(), id, 'item.md'), data, body, ITEM_FIELDS);
-}
-
-// ---------- Outfits und Wunschliste: <ordner>/<id>.md ----------
-
-async function readFlat(dir) {
-  const entries = await listDir(dir);
-  const result = [];
-  for (const e of entries.filter((e) => e.isFile() && e.name.endsWith('.md'))) {
-    const file = path.join(dir, e.name);
-    result.push({ id: e.name.replace(/\.md$/, ''), file, ...(await readMarkdown(file)) });
-  }
-  return result.sort((a, b) => a.id.localeCompare(b.id));
-}
-
-export const readOutfits = () => readFlat(dirs.outfits());
-export const readWishlist = () => readFlat(dirs.wishlist());
-
-export const readOutfit = async (id) => {
-  const file = path.join(dirs.outfits(), `${id}.md`);
-  return { id, file, ...(await readMarkdown(file)) };
-};
-export const readWish = async (id) => {
-  const file = path.join(dirs.wishlist(), `${id}.md`);
-  return { id, file, ...(await readMarkdown(file)) };
-};
-
-export const writeOutfit = (id, data, body) => writeMarkdown(path.join(dirs.outfits(), `${id}.md`), data, body, OUTFIT_FIELDS);
-export const writeWish = (id, data, body) => writeMarkdown(path.join(dirs.wishlist(), `${id}.md`), data, body, WISHLIST_FIELDS);
-
-// ---------- Empfehlungen: recommendations/<id>.md ----------
-
-export const readRecommendations = () => readFlat(dirs.recommendations());
-export const readRecommendation = async (id) => {
-  const file = path.join(dirs.recommendations(), `${id}.md`);
-  return { id, file, ...(await readMarkdown(file)) };
-};
-export const writeRecommendation = (id, data, body) =>
-  writeMarkdown(path.join(dirs.recommendations(), `${id}.md`), data, body, RECOMMENDATION_FIELDS);
-
-// ---------- Profil: profile.md (Frontmatter mit Maßen und Größen, Text für Stil, Anlässe, Einkauf) ----------
-
-export async function readProfile() {
-  try {
-    return { file: profileFile(), ...(await readMarkdown(profileFile())) };
-  } catch (err) {
-    if (err.code === 'ENOENT') return { file: profileFile(), data: {}, body: '' };
-    throw err;
-  }
-}
-export const writeProfile = (data, body) => writeMarkdown(profileFile(), data, body, PROFILE_FIELDS);
+// ---------- Profil (Frontmatter mit Maßen und Größen, Text für Stil, Anlässe, Einkauf) ----------
+export const readProfile = () => store().getProfile();
+export const writeProfile = (data, body) => store().putProfile(data, body);

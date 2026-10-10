@@ -4,6 +4,8 @@ description: Statistiken, Stil-Feedback und Aussortier-Kandidaten für den Kleid
 
 Analysiere meinen Kleiderschrank. $ARGUMENTS
 
+Datenpfade (`profile.md`, `wardrobe/` …) gelten im Datenverzeichnis aus `.env`, nicht in diesem Repo (siehe CLAUDE.md, auch zum Datenbankmodus).
+
 1. Führ `npm run stats -- --json` aus und lies `profile.md`.
 2. **Zahlen** kompakt darstellen: Anzahl aktiver Teile, Verteilung nach Kategorie und Farbe, Gesamtwert, Wert pro Kategorie, Ausgaben pro Jahr, Teile ohne Preis.
 3. **Stil-Feedback**: Passt der Kleiderschrank zu dem Stil und Alltag, den ich im Profil beschreibe? Gibt es eine stimmige Farbpalette?
