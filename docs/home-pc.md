@@ -18,7 +18,8 @@ services.fashion-tracker = {
   user = "max";
   group = "users";
   dataDir = "/home/max/fashion-tracker-data";
-  git.url = "git@github.com:MaximilianKellner/fashion-tracker-data.git";
+  # Host-Alias aus ~/.ssh/config mit eigenem Deploy-Key; GitHub erlaubt einen Deploy-Key nur pro Repo
+  git.url = "git@github-fashion-tracker-data:MaximilianKellner/fashion-tracker-data.git";
   git.authorName = null; # git config und ~/.ssh von max
   git.authorEmail = null;
   autoUpdate.enable = true;
@@ -41,7 +42,10 @@ Das Modul wird direkt aus dem Checkout importiert; Änderungen am Modul selbst g
 
 Früher lagen Code und Daten im selben Repo, und der Dienst war direkt in `configuration.nix` definiert.
 
-1. Daten-Repo klonen: `git clone git@github.com:MaximilianKellner/fashion-tracker-data.git /home/max/fashion-tracker-data`
+1. Deploy-Key fürs Daten-Repo anlegen (`ssh-keygen -t ed25519 -f ~/.ssh/fashion_tracker_data_deploy`), in `~/.ssh/config`
+   als `Host github-fashion-tracker-data` eintragen (wie `github-fashion-tracker` für den Code) und auf GitHub im Daten-Repo
+   mit Schreibrecht hinterlegen. Dann klonen:
+   `git clone git@github-fashion-tracker-data:MaximilianKellner/fashion-tracker-data.git /home/max/fashion-tracker-data`
 2. Im alten Dienstblock `systemd.services.fashion-tracker = { … };` löschen, Port 3000 aus
    `networking.firewall.allowedTCPPorts` entfernen (macht jetzt `openFirewall`) und den Block oben eintragen.
 3. Code-Checkout auf den neuen Stand bringen (`git -C /home/max/fashion-tracker pull`), dann `sudo nixos-rebuild switch`
