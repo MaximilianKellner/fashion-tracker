@@ -5,7 +5,9 @@ argument-hint: "[Anlass, z. B. Büro, Date, Hochzeit am Samstag]"
 
 Schlag mir Outfits aus meinem Kleiderschrank vor. Anlass/Wunsch: $ARGUMENTS
 
-1. Lies `profile.md`. Fehlt der Anlass oben, frag kurz danach (ein Satz genügt).
+Datenpfade (`profile.md`, `wardrobe/` …) gelten im Datenverzeichnis aus `.env`, nicht in diesem Repo (siehe CLAUDE.md, auch zum Datenbankmodus).
+
+1. Hol die aktuellen Daten (siehe CLAUDE.md) und lies `profile.md`. Fehlt der Anlass oben, frag kurz danach (ein Satz genügt).
 2. Bestimme Saison und, wenn der Anlass heute oder in den nächsten Tagen ist, das Wetter am Wohnort per Websuche.
 3. Lies alle `wardrobe/*/item.md` mit `status: aktiv`. Filtere nach Saison und passender Formalität.
    Sieh dir die Fotos der Kandidaten an, wenn Farbtöne oder Muster für die Kombination wichtig sind.

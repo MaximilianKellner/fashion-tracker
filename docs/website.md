@@ -1,8 +1,8 @@
 # Die Website
 
-Next.js-16-App in `web/`. Sie liest und schreibt direkt die Dateien im Repo (über `scripts/lib/`) und hat keine eigene Datenbank.
-Auf dem Home-PC läuft sie dauerhaft unter http://192.168.178.151:3000 und committet jede Änderung automatisch
-(siehe [home-pc.md](home-pc.md)).
+Next.js-16-App in `web/`. Sie liest und schreibt über `scripts/lib/data.mjs` die Daten im Datenverzeichnis, je nach
+Einstellung als Markdown-Dateien oder in SQLite (siehe [betrieb.md](betrieb.md)). Auf dem Home-PC läuft sie dauerhaft unter
+http://192.168.178.151:3000 und committet jede Änderung automatisch ins Daten-Repo (siehe [home-pc.md](home-pc.md)).
 
 Navigation: am Handy unten **Schrank, Outfits, Neu, Wünsche, Tipps**, oben rechts Statistik und Profil.
 Am PC alles in der oberen Leiste.

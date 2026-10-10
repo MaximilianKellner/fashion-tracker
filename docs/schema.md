@@ -1,6 +1,7 @@
 # Datenschema
 
-Alle Daten sind Markdown-Dateien mit YAML-Frontmatter. Die erlaubten Werte sind in
+Alle Daten sind Markdown-Dateien mit YAML-Frontmatter im Datenverzeichnis (Pfade unten relativ dazu). Im Datenbankmodus
+speichert SQLite dieselben Felder als JSON, `npm run export` erzeugt genau dieses Format. Die erlaubten Werte sind in
 [`scripts/lib/schema.mjs`](../scripts/lib/schema.mjs) definiert. Diese Datei ist die Referenz für Menschen.
 Geprüft wird mit `npm run validate`.
 

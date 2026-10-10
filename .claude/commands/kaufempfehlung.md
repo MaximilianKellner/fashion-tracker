@@ -5,6 +5,8 @@ argument-hint: "[optional: konkreter Wunsch, z. B. Winterjacke bis 200 €]"
 
 Gib mir Kaufempfehlungen. Konkreter Wunsch (optional): $ARGUMENTS
 
+Datenpfade (`profile.md`, `wardrobe/` …) gelten im Datenverzeichnis aus `.env`, nicht in diesem Repo (siehe CLAUDE.md, auch zum Datenbankmodus).
+
 1. Lies `profile.md` (Stil, Größen, Budget, Shops, No-Gos), alle aktiven Teile in `wardrobe/`, `outfits/` und die offenen Einträge in `wishlist/`.
    Führ `npm run stats -- --json` für den Überblick aus.
 2. **Lückenanalyse** (überspringen, wenn ich einen konkreten Wunsch genannt habe):

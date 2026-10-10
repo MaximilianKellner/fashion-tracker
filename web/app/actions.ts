@@ -58,17 +58,6 @@ const list = (fd: FormData, key: string) =>
     .map((s) => s.trim().toLowerCase().replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss"))
     .filter(Boolean);
 
-async function existingIds(dir: string, flat: boolean) {
-  try {
-    const entries = await fs.readdir(dir, { withFileTypes: true });
-    return entries
-      .filter((e) => (flat ? e.isFile() && e.name.endsWith(".md") : e.isDirectory()))
-      .map((e) => e.name.replace(/\.md$/, ""));
-  } catch {
-    return [];
-  }
-}
-
 const PHOTO_FILE = /^photo-\d+\.webp$/;
 
 /**
@@ -186,11 +175,11 @@ export async function saveItem(_prev: FormState, fd: FormData): Promise<FormStat
     fromWish && isSafeId(fromWish)
       ? all(fd, "wishPhotos")
           .filter((p) => PHOTO_FILE.test(p))
-          .map((p) => path.join(lib.dirs.wishPhotos(fromWish), p))
+          .map((p) => path.join(lib.photoDir("wishlist", fromWish), p))
       : [];
 
-  const id = existingId ?? lib.makeId(data.name, await existingIds(lib.dirs.wardrobe(), false));
-  const added = await storePhotos(fd, path.join(lib.dirs.wardrobe(), id), downloaded, wishFiles);
+  const id = existingId ?? lib.makeId(data.name, await lib.listIds("items"));
+  const added = await storePhotos(fd, lib.photoDir("items", id), downloaded, wishFiles);
   if ("error" in added) return { errors: [added.error] };
   data.photos!.push(...added);
 
@@ -213,7 +202,7 @@ export async function saveItem(_prev: FormState, fd: FormData): Promise<FormStat
 
 export async function deleteItem(id: string) {
   if (!isSafeId(id)) return;
-  await fs.rm(path.join(lib.dirs.wardrobe(), id), { recursive: true, force: true });
+  await lib.deleteItem(id);
   // Verweise in Outfits entfernen, damit die Daten gültig bleiben
   for (const outfit of await lib.readOutfits()) {
     const items = (outfit.data.items as string[]) ?? [];
@@ -243,7 +232,7 @@ export async function saveOutfit(_prev: FormState, fd: FormData): Promise<FormSt
   if (errors.length) return { errors };
   if (!data.seasons?.length) delete data.seasons;
 
-  const id = existingId ?? lib.makeId(data.name, await existingIds(lib.dirs.outfits(), true));
+  const id = existingId ?? lib.makeId(data.name, await lib.listIds("outfits"));
   await lib.writeOutfit(id, data, text(fd, "body") ?? "");
   refreshAll(`Website: Outfit ${existingId ? "geändert" : "gespeichert"}: ${data.name}`);
   redirect("/outfits");
@@ -251,7 +240,7 @@ export async function saveOutfit(_prev: FormState, fd: FormData): Promise<FormSt
 
 export async function deleteOutfit(id: string) {
   if (!isSafeId(id)) return;
-  await fs.rm(path.join(lib.dirs.outfits(), `${id}.md`), { force: true });
+  await lib.deleteOutfit(id);
   refreshAll(`Website: Outfit gelöscht: ${id}`);
 }
 
@@ -284,13 +273,13 @@ export async function saveWish(_prev: FormState, fd: FormData): Promise<FormStat
   const downloaded = await downloadImports(fd);
   if ("error" in downloaded) return { errors: [downloaded.error] };
 
-  const id = existingId ?? lib.makeId(data.name, await existingIds(lib.dirs.wishlist(), true));
-  const added = await storePhotos(fd, lib.dirs.wishPhotos(id), downloaded);
+  const id = existingId ?? lib.makeId(data.name, await lib.listIds("wishlist"));
+  const added = await storePhotos(fd, lib.photoDir("wishlist", id), downloaded);
   if ("error" in added) return { errors: [added.error] };
   data.photos!.push(...added);
   if (!data.photos?.length) {
     delete data.photos;
-    await fs.rm(lib.dirs.wishPhotos(id), { recursive: true, force: true });
+    await fs.rm(lib.photoDir("wishlist", id), { recursive: true, force: true });
   }
 
   await lib.writeWish(id, data, text(fd, "body") ?? "");
@@ -307,8 +296,7 @@ export async function setWishStatus(id: string, status: string) {
 
 export async function deleteWish(id: string) {
   if (!isSafeId(id)) return;
-  await fs.rm(path.join(lib.dirs.wishlist(), `${id}.md`), { force: true });
-  await fs.rm(lib.dirs.wishPhotos(id), { recursive: true, force: true });
+  await lib.deleteWish(id);
   refreshAll(`Website: Wunsch gelöscht: ${id}`);
 }
 
@@ -331,7 +319,7 @@ export async function askQuestion(_prev: FormState, fd: FormData): Promise<FormS
   const errors = validateFields(data, RECOMMENDATION_FIELDS);
   if (errors.length) return { errors };
 
-  const id = lib.makeId(title, await existingIds(lib.dirs.recommendations(), true));
+  const id = lib.makeId(title, await lib.listIds("recommendations"));
   await lib.writeRecommendation(id, data, question);
   refreshAll(`Website: Frage an Claude: ${title}`);
   redirect("/empfehlungen");
@@ -346,7 +334,7 @@ export async function setRecommendationStatus(id: string, status: string) {
 
 export async function deleteRecommendation(id: string) {
   if (!isSafeId(id)) return;
-  await fs.rm(path.join(lib.dirs.recommendations(), `${id}.md`), { force: true });
+  await lib.deleteRecommendation(id);
   // Antworten auf eine gelöschte Frage verlieren nur den Verweis
   for (const rec of await lib.readRecommendations()) {
     if (rec.data.answers === id) {

@@ -6,6 +6,16 @@ import { PHASE_PRODUCTION_SERVER } from "next/constants";
 
 const repoRoot = path.join(__dirname, "..");
 
+// Einstellungen (STORAGE, DATA_DIR, ...) aus .env im Code-Repo laden, siehe .env.example und scripts/lib/config.mjs.
+// Werte aus der Umgebung (z. B. vom NixOS-Modul) haben Vorrang. Läuft bei `next dev`, `next build` und `next start`.
+process.env.CODE_DIR ??= repoRoot;
+const envFile = path.join(repoRoot, ".env");
+if (fs.existsSync(envFile)) {
+  const before = { ...process.env };
+  process.loadEnvFile(envFile);
+  Object.assign(process.env, before);
+}
+
 // Alle IPv4-Adressen dieses PCs, damit das Handy im WLAN (http://<PC-IP>:3000) den Dev-Server nutzen darf
 const lanAddresses = Object.values(os.networkInterfaces())
   .flat()
@@ -15,7 +25,6 @@ const lanAddresses = Object.values(os.networkInterfaces())
 const nextConfig: NextConfig = {
   // scripts/lib liegt außerhalb von web/ und muss für Turbopack auflösbar sein
   turbopack: { root: repoRoot },
-  env: { DATA_DIR: process.env.DATA_DIR ?? repoRoot },
   allowedDevOrigins: lanAddresses,
   // Unten links verdeckt das Symbol sonst die mobile Navigationsleiste
   devIndicators: { position: "top-right" },

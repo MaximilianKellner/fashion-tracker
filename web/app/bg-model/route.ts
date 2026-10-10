@@ -1,10 +1,10 @@
 // KI-Modell fürs Freistellen (RMBG-1.4 von BRIA, fp16, 88 MB). Der Server lädt es beim ersten Abruf einmalig
-// von Hugging Face nach .cache/ (nicht im Git) und liefert es danach selbst aus. Der Browser rechnet damit lokal.
+// von Hugging Face in den Cache (CACHE_DIR, Standard .cache/, nicht im Git) und liefert es danach selbst aus. Der Browser rechnet damit lokal.
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
-import { dataRoot } from "@lib/data.mjs";
+import { cacheDir } from "@lib/config.mjs";
 
 // fp16 statt der quantisierten 44-MB-Version: die liefert sichtbar fleckige Masken
 const MODEL_URL = "https://huggingface.co/briaai/RMBG-1.4/resolve/main/onnx/model_fp16.onnx";
@@ -13,7 +13,7 @@ const FILE = "rmbg-1.4-fp16.onnx"; // bei einem anderen Modell auch MODEL in lib
 let downloading: Promise<string> | null = null;
 
 async function modelPath() {
-  const file = path.join(dataRoot(), ".cache", FILE);
+  const file = path.join(cacheDir(), FILE);
   try {
     await fsp.access(file);
     return file;
@@ -37,8 +37,8 @@ async function modelPath() {
 export async function GET() {
   try {
     const file = await modelPath();
-    const { size } = await fsp.stat(file);
-    return new Response(Readable.toWeb(fs.createReadStream(file)) as ReadableStream, {
+    const { size } = await fsp.stat(/*turbopackIgnore: true*/ file);
+    return new Response(Readable.toWeb(fs.createReadStream(/*turbopackIgnore: true*/ file)) as ReadableStream, {
       headers: {
         "Content-Type": "application/octet-stream",
         "Content-Length": String(size),

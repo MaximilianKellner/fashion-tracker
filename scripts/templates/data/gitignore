@@ -1,0 +1,8 @@
+# Rohfotos werden nach dem Verarbeiten gelöscht
+inbox/*
+!inbox/.gitkeep
+
+# Datenbank (nur bei STORAGE=sqlite) gehört nicht ins Repo
+*.db
+*.db-shm
+*.db-wal
