@@ -76,6 +76,7 @@ export async function validateStore(store) {
 
   const profile = await store.getProfile();
   for (const e of validateFields(profile.data, PROFILE_FIELDS)) report('profile.md', e);
+  if (profile.data.birthdate !== undefined && !isIsoDate(profile.data.birthdate)) report('profile.md', `"birthdate" muss JJJJ-MM-TT sein (ist: "${profile.data.birthdate}")`);
   for (const [key, value] of Object.entries(profile.data.measurements ?? {})) {
     if (!(key in MEASUREMENTS)) report('profile.md', `unbekanntes Maß "measurements.${key}" (erlaubt: ${Object.keys(MEASUREMENTS).join(', ')})`);
     else if (typeof value !== 'number' || value <= 0) report('profile.md', `"measurements.${key}" muss eine Zahl in cm sein`);

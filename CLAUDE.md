@@ -18,7 +18,8 @@ gelten **im Datenverzeichnis**. Vor der Arbeit `.env` lesen (fehlt sie, gelten `
 
 ## Struktur der Daten (im Datenverzeichnis)
 - `profile.md`: Stil, Größen, Budget, Anlässe des Nutzers. **Vor jeder Empfehlung lesen.** Größe, Gewicht, Körpermaße (cm) und
-  Konfektionsgrößen stehen im Frontmatter, der Rest als Text. Auf der Website unter „Profil“ bearbeitbar.
+  Konfektionsgrößen stehen im Frontmatter, der Rest als Text. Statt des Alters steht dort `birthdate`; das Alter mit
+  `ageFromBirthdate` aus `scripts/lib/schema.mjs` bzw. aus dem heutigen Datum berechnen. Auf der Website unter „Profil“ bearbeitbar.
 - `wardrobe/<id>/item.md` + `photo-N.webp`: ein Ordner pro Kleidungsstück
 - `outfits/<id>.md`: gespeicherte Kombinationen (verweisen auf Item-IDs)
 - `wishlist/<id>.md`: Kaufwünsche und -empfehlungen

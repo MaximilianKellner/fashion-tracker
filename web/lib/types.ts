@@ -57,7 +57,7 @@ export type RecommendationData = {
 export type ProfileData = {
   height_cm?: number;
   weight_kg?: number;
-  age?: number;
+  birthdate?: string;
   appearance?: Record<string, string>;
   palette?: Record<string, string[]>;
   measurements?: Record<string, number>;

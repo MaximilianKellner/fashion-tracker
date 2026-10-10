@@ -3,10 +3,12 @@ import { getProfile } from "@/lib/data";
 import { BodyChart } from "@/components/body-chart";
 import { Markdown } from "@/components/markdown";
 import { label, swatch } from "@/lib/labels";
-import { APPEARANCE, PALETTE, SIZES } from "@lib/schema.mjs";
+import { APPEARANCE, PALETTE, SIZES, ageFromBirthdate } from "@lib/schema.mjs";
+import { today } from "@lib/data.mjs";
 
 export default async function ProfilePage() {
   const { data, body } = await getProfile();
+  const age = data.birthdate ? ageFromBirthdate(data.birthdate, today()) : null;
   const sizes = Object.entries(SIZES) as [string, { label: string }][];
   const filledSizes = sizes.filter(([k]) => data.sizes?.[k]);
   const appearance = (Object.entries(APPEARANCE) as [string, { label: string }][]).filter(([k]) => data.appearance?.[k]);
@@ -60,7 +62,7 @@ export default async function ProfilePage() {
         <div className="mb-3 flex flex-wrap items-baseline gap-x-4 gap-y-1">
           <h2 className="font-semibold">Körpermaße</h2>
           <span className="text-sm text-muted">
-            {[data.height_cm && `${data.height_cm} cm`, data.weight_kg && `${data.weight_kg} kg`, data.age && `${data.age} Jahre`]
+            {[data.height_cm && `${data.height_cm} cm`, data.weight_kg && `${data.weight_kg} kg`, age !== null && `${age} Jahre`]
               .filter(Boolean)
               .join(" · ")}
           </span>
