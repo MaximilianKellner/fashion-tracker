@@ -136,8 +136,12 @@ die **in keinem Outfit** vorkommen (Kandidaten für neue Kombinationen oder für
 
 - **Typ & Farben**: Haut, Haare, Kontrast, Brille und die Farbpalette in drei Stufen: *Steht mir besonders*, *Basis*,
   *Sparsam einsetzen*. Der Outfit-Builder bevorzugt Farben aus der ersten Stufe.
-- **Körpermaße** mit interaktiver Grafik: Hover oder Tippen auf ein Maß zeigt, wo gemessen wird; durchgezogene Linie = erfasst,
-  gestrichelt = fehlt. Die Messanleitung steht im Formular.
+- Oben **Größe, Gewicht und Alter**; das Alter wird aus dem Geburtsdatum berechnet.
+- **Körpermaße** mit interaktiver Grafik: Die Figur folgt den Angaben (Breiten aus Brust, Taille, Hüfte, Schultern und Hals,
+  Bein- und Armlänge, fehlende Maße geschätzt aus Größe und Gewicht) und zeigt darunter die geschätzte Statur (schlank,
+  durchschnittlich, athletisch, kräftig). Im Formular ändert sie sich beim Tippen. Hover oder Tippen auf ein Maß zeigt, wo
+  gemessen wird; durchgezogene Linie = erfasst, gestrichelt = fehlt. Die Messanleitung steht im Formular.
+  Berechnung: `web/lib/body-shape.ts`.
 - **Größen** pro Kleidungsart und Abweichungen je Marke.
 - Darunter der freie Text aus `profile.md` mit Stil, Budget, Anlässen und Claudes Notizen.
 

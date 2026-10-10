@@ -1,26 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { MEASUREMENTS } from "@lib/schema.mjs";
+import { bodyShape, type MeasureKey } from "@/lib/body-shape";
 
-type Key = keyof typeof MEASUREMENTS;
+type Key = MeasureKey;
 
-// Wo jedes Maß an der Figur genommen wird (viewBox 0 0 200 445)
-const GUIDES: Record<Key, { d: string; labelAt: [number, number] }> = {
-  neck: { d: "M88 73 Q100 79 112 73", labelAt: [118, 70] },
-  shoulder: { d: "M58 91 L142 91", labelAt: [146, 88] },
-  chest: { d: "M62 124 L138 124", labelAt: [146, 124] },
-  waist: { d: "M68 194 L132 194", labelAt: [146, 194] },
-  hips: { d: "M65 232 L135 232", labelAt: [146, 232] },
-  sleeve: { d: "M143 92 Q157 100 159 122 L169 230", labelAt: [172, 168] },
-  inseam: { d: "M107 258 L108 412", labelAt: [112, 340] },
-  foot: { d: "M104 437 L139 437", labelAt: [142, 440] },
-};
-
-const ORDER = Object.keys(GUIDES) as Key[];
+const ORDER: Key[] = ["neck", "shoulder", "chest", "waist", "hips", "sleeve", "inseam", "foot"];
 
 /**
- * Figur mit den Stellen, an denen die Körpermaße genommen werden.
+ * Figur mit den Stellen, an denen die Körpermaße genommen werden. Die Figur selbst folgt den Angaben
+ * (Größe, Gewicht, Umfänge, Proportionen), siehe lib/body-shape.ts.
  * Antippen oder Überfahren eines Maßes hebt es in Grafik und Liste hervor; mit onPick (im Formular)
  * springt ein Klick zum passenden Eingabefeld.
  */
@@ -38,6 +28,8 @@ export function BodyChart({
   const [active, setActive] = useState<Key | null>(null);
   const shown = active ?? null;
   const value = (k: Key) => measurements[k];
+  const shape = useMemo(() => bodyShape({ measurements, heightCm, weightKg }), [measurements, heightCm, weightKg]);
+  const GUIDES = shape.guides;
 
   const pick = (k: Key) => {
     setActive(k);
@@ -46,7 +38,8 @@ export function BodyChart({
 
   return (
     <div className="grid grid-cols-[minmax(0,8.5rem)_minmax(0,1fr)] items-start gap-3 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] sm:gap-5">
-      <svg viewBox="0 0 200 445" className="h-auto w-full" role="img" aria-label="Figur mit Körpermaßen">
+      <figure>
+      <svg viewBox="0 0 200 445" className="h-auto w-full" role="img" aria-label={`Figur mit Körpermaßen, Statur ${shape.build}`}>
         {/* Körpergröße */}
         <g className="text-muted" stroke="currentColor" strokeWidth={1}>
           <line x1={14} y1={18} x2={14} y2={428} />
@@ -59,22 +52,26 @@ export function BodyChart({
           </text>
         )}
 
-        {/* Silhouette */}
-        <g className="fill-surface-2 stroke-line" strokeWidth={1.5} strokeLinejoin="round">
-          <circle cx={100} cy={40} r={22} />
-          <rect x={91} y={58} width={18} height={22} rx={4} />
-          <path d="M58 90 Q100 80 142 90 L138 150 Q131 185 132 200 L136 250 L64 250 L68 200 Q69 185 62 150 Z" />
-          <path d="M142 90 Q157 97 159 120 L171 231 L159 235 L146 140 Z" />
-          <path d="M58 90 Q43 97 41 120 L29 231 L41 235 L54 140 Z" />
-          <circle cx={166} cy={242} r={8} />
-          <circle cx={34} cy={242} r={8} />
-          <path d="M64 249 L99 249 L97 415 L74 415 Z" />
-          <path d="M101 249 L136 249 L126 415 L103 415 Z" />
-          <path d="M74 415 L97 415 L97 428 L60 428 Q61 418 74 415 Z" />
-          <path d="M103 415 L126 415 Q139 418 140 428 L103 428 Z" />
+        {/* Silhouette: erst alle Teile mit Rand, darüber nur die Flächen, so bleibt nur der äußere Umriss sichtbar */}
+        <g className="stroke-line" fill="none" strokeWidth={3} strokeLinejoin="round">
+          <ellipse {...shape.head} />
+          {shape.parts.map((d, i) => (
+            <path key={i} d={d} />
+          ))}
+        </g>
+        <g className="fill-surface-2">
+          <ellipse {...shape.head} />
+          {shape.parts.map((d, i) => (
+            <path key={i} d={d} />
+          ))}
+        </g>
+        <g className="stroke-line" fill="none" strokeWidth={1.2} strokeLinecap="round">
+          {shape.details.map((d, i) => (
+            <path key={i} d={d} />
+          ))}
         </g>
         {weightKg && (
-          <text x={100} y={168} className="fill-muted" fontSize={10} textAnchor="middle">
+          <text x={shape.torsoCenter[0]} y={shape.torsoCenter[1]} className="fill-muted" fontSize={10} textAnchor="middle">
             {weightKg} kg
           </text>
         )}
@@ -108,7 +105,9 @@ export function BodyChart({
                   dy={3}
                   fontSize={11}
                   fontWeight={600}
-                  className="fill-ink"
+                  className="fill-ink stroke-surface"
+                  strokeWidth={3}
+                  paintOrder="stroke"
                   textAnchor={GUIDES[k].labelAt[0] > 160 ? "end" : "start"}
                 >
                   {has ? `${value(k)!.toLocaleString("de-DE")} cm` : "?"}
@@ -118,6 +117,8 @@ export function BodyChart({
           );
         })}
       </svg>
+        <figcaption className="mt-1 text-center text-xs text-muted">Statur (geschätzt): {shape.build}</figcaption>
+      </figure>
 
       <ul className="divide-y divide-line rounded-xl border border-line bg-surface text-sm">
         {ORDER.map((k) => {

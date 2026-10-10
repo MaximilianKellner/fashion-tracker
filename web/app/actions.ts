@@ -11,6 +11,7 @@ import { downloadImage } from "@lib/product-import.mjs";
 import {
   ITEM_FIELDS,
   APPEARANCE,
+  ageFromBirthdate,
   MEASUREMENTS,
   OUTFIT_FIELDS,
   PALETTE,
@@ -401,11 +402,21 @@ export async function saveProfile(_prev: FormState, fd: FormData): Promise<FormS
     if (v) sizes[key] = v;
   }
 
+  // Geburtsdatum als JJJJ-MM-TT (das Datumsfeld liefert es so, getippt geht auch TT.MM.JJJJ)
+  const birthdate = () => {
+    const raw = text(fd, "birthdate");
+    if (raw === undefined) return undefined;
+    const iso = normalizeDate(raw);
+    const age = iso ? ageFromBirthdate(iso, lib.today()) : null;
+    if (!iso || age === null || age < 5 || age > 120) errors.push("Geburtsdatum ist kein gültiges Datum (JJJJ-MM-TT oder TT.MM.JJJJ)");
+    return iso ?? raw;
+  };
+
   const data: ProfileData = {
     ...previous.data,
     height_cm: measure("height_cm", "Größe"),
     weight_kg: measure("weight_kg", "Gewicht"),
-    age: measure("age", "Alter"),
+    birthdate: birthdate(),
     appearance,
     palette,
     measurements,

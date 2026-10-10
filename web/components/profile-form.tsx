@@ -44,8 +44,8 @@ export function ProfileForm({ data, body }: { data: ProfileData; body: string })
           <Field label="Gewicht (kg)">
             <input name="weight_kg" inputMode="decimal" className="field" value={weight} onChange={(e) => setWeight(e.target.value)} />
           </Field>
-          <Field label="Alter">
-            <input name="age" inputMode="numeric" className="field" defaultValue={data.age ?? ""} />
+          <Field label="Geburtsdatum">
+            <input name="birthdate" type="date" className="field" defaultValue={data.birthdate ?? ""} />
           </Field>
         </div>
       </Section>

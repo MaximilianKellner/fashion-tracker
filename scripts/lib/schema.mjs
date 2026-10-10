@@ -155,13 +155,21 @@ export const RECOMMENDATION_FIELDS = {
 export const PROFILE_FIELDS = {
   height_cm: { type: 'number', min: 100, max: 250 },
   weight_kg: { type: 'number', min: 30, max: 250 },
-  age: { type: 'number', min: 10, max: 120 },
+  birthdate: { type: 'string' }, // JJJJ-MM-TT, das Alter wird daraus berechnet (ageFromBirthdate)
   appearance: { type: 'object' },
   palette: { type: 'object' },
   measurements: { type: 'object' },
   sizes: { type: 'object' },
   hidden_gaps: { type: 'string[]' },
 };
+
+/** Alter in ganzen Jahren am Tag `on` (JJJJ-MM-TT, Standard heute) für ein Geburtsdatum JJJJ-MM-TT; null, wenn ungültig */
+export function ageFromBirthdate(birthdate, on = new Date().toISOString().slice(0, 10)) {
+  if (!isIsoDate(birthdate) || !isIsoDate(on) || birthdate > on) return null;
+  const [by, bm, bd] = birthdate.split('-').map(Number);
+  const [y, m, d] = on.split('-').map(Number);
+  return y - by - (m < bm || (m === bm && d < bd) ? 1 : 0);
+}
 
 /**
  * Datumsangaben werden immer als ISO 8601 "JJJJ-MM-TT" gespeichert.
