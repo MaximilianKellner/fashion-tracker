@@ -3,6 +3,7 @@ import { deleteWish, setWishStatus } from "@/app/actions";
 import { getWishlist } from "@/lib/data";
 import { euro, label, PRIORITY } from "@/lib/labels";
 import { ConfirmButton } from "@/components/confirm-button";
+import { WishRemoveButton } from "@/components/wish-remove-button";
 import { Photo } from "@/components/photo";
 import type { Wish } from "@/lib/types";
 
@@ -41,10 +42,7 @@ function WishRow({ wish }: { wish: Wish }) {
               <Link href={`/items/new?fromWish=${wish.id}`} className="btn-primary py-1.5">
                 Gekauft – erfassen
               </Link>
-              <ConfirmButton action={setWishStatus.bind(null, wish.id, "verworfen")} className="btn-ghost py-1.5">
-                Verwerfen
-              </ConfirmButton>
-            </>
+              </>
           )}
           {!open && (
             <ConfirmButton action={setWishStatus.bind(null, wish.id, "offen")} className="btn-ghost py-1.5">
@@ -54,9 +52,17 @@ function WishRow({ wish }: { wish: Wish }) {
           <Link href={`/wishlist/${wish.id}/edit`} className="btn-ghost py-1.5">
             Bearbeiten
           </Link>
-          <ConfirmButton action={deleteWish.bind(null, wish.id)} confirm={`"${data.name}" löschen?`} className="btn-ghost py-1.5 text-danger">
-            Löschen
-          </ConfirmButton>
+          {open ? (
+            <WishRemoveButton
+              name={data.name}
+              discard={setWishStatus.bind(null, wish.id, "verworfen")}
+              remove={deleteWish.bind(null, wish.id)}
+            />
+          ) : (
+            <ConfirmButton action={deleteWish.bind(null, wish.id)} confirm={`"${data.name}" löschen?`} className="btn-ghost py-1.5 text-danger">
+              Löschen
+            </ConfirmButton>
+          )}
         </div>
       </div>
     </li>
