@@ -10,67 +10,54 @@ function WishRow({ wish }: { wish: Wish }) {
   const { data } = wish;
   const open = data.status === "offen";
   return (
-    <li className={`rounded-xl border border-line bg-surface p-4 ${open ? "" : "opacity-70"}`}>
-      <div className="flex items-start gap-3">
-        {data.photos?.[0] && (
-          <Photo
-            src={`/wish-photos/${wish.id}/${data.photos[0]}`}
-            alt={data.name}
-            className="aspect-[3/4] w-20 shrink-0 rounded-lg sm:w-24"
-          />
-        )}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="font-medium">{data.name}</div>
-              <div className="mt-0.5 text-sm text-muted">
-                {[
-                  label(data.category),
-                  data.priority ? `Priorität ${PRIORITY[data.priority].toLowerCase()}` : "",
-                  !open ? label(data.status) : "",
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </div>
-            </div>
-            <div className="shrink-0 text-right font-medium">{euro(data.price)}</div>
-          </div>
-        </div>
-      </div>
-      {(data.fills_gap || data.reason) && (
-        <p className="mt-2 text-sm">
-          {data.fills_gap && <span className="text-muted">Lücke: {data.fills_gap}. </span>}
-          {data.reason}
-        </p>
+    <li className={`flex flex-col overflow-hidden rounded-xl border border-line bg-surface ${open ? "" : "opacity-70"}`}>
+      {data.photos?.[0] ? (
+        <Photo src={`/wish-photos/${wish.id}/${data.photos[0]}`} alt={data.name} className="aspect-[4/5] w-full" />
+      ) : (
+        <div className="aspect-[4/5] w-full bg-surface-2" />
       )}
-      {wish.body && <p className="mt-2 whitespace-pre-line text-sm text-muted">{wish.body}</p>}
-      <div className="mt-3 flex flex-wrap gap-2 text-sm">
-        {data.link && (
-          <a href={data.link} target="_blank" rel="noopener noreferrer" className="btn-ghost py-1.5">
-            Zum Shop ↗
-          </a>
-        )}
-        {open && (
-          <>
-            <Link href={`/items/new?fromWish=${wish.id}`} className="btn-primary py-1.5">
-              Gekauft – erfassen
-            </Link>
-            <ConfirmButton action={setWishStatus.bind(null, wish.id, "verworfen")} className="btn-ghost py-1.5">
-              Verwerfen
+      <div className="flex flex-1 flex-col p-3">
+        <div className="flex items-baseline justify-between gap-3">
+          <div className="min-w-0 font-medium leading-snug">{data.name}</div>
+          <div className="shrink-0 font-medium">{euro(data.price)}</div>
+        </div>
+        <div className="mt-0.5 text-sm text-muted">
+          {[
+            label(data.category),
+            data.priority ? `Priorität ${PRIORITY[data.priority].toLowerCase()}` : "",
+            !open ? label(data.status) : "",
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </div>
+        <div className="mt-auto flex flex-wrap gap-2 pt-3 text-sm">
+          {data.link && (
+            <a href={data.link} target="_blank" rel="noopener noreferrer" className="btn-ghost py-1.5">
+              Zum Shop ↗
+            </a>
+          )}
+          {open && (
+            <>
+              <Link href={`/items/new?fromWish=${wish.id}`} className="btn-primary py-1.5">
+                Gekauft – erfassen
+              </Link>
+              <ConfirmButton action={setWishStatus.bind(null, wish.id, "verworfen")} className="btn-ghost py-1.5">
+                Verwerfen
+              </ConfirmButton>
+            </>
+          )}
+          {!open && (
+            <ConfirmButton action={setWishStatus.bind(null, wish.id, "offen")} className="btn-ghost py-1.5">
+              Wieder öffnen
             </ConfirmButton>
-          </>
-        )}
-        {!open && (
-          <ConfirmButton action={setWishStatus.bind(null, wish.id, "offen")} className="btn-ghost py-1.5">
-            Wieder öffnen
+          )}
+          <Link href={`/wishlist/${wish.id}/edit`} className="btn-ghost py-1.5">
+            Bearbeiten
+          </Link>
+          <ConfirmButton action={deleteWish.bind(null, wish.id)} confirm={`"${data.name}" löschen?`} className="btn-ghost py-1.5 text-danger">
+            Löschen
           </ConfirmButton>
-        )}
-        <Link href={`/wishlist/${wish.id}/edit`} className="btn-ghost py-1.5">
-          Bearbeiten
-        </Link>
-        <ConfirmButton action={deleteWish.bind(null, wish.id)} confirm={`"${data.name}" löschen?`} className="btn-ghost py-1.5 text-danger">
-          Löschen
-        </ConfirmButton>
+        </div>
       </div>
     </li>
   );
