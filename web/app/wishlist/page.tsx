@@ -83,7 +83,7 @@ export default async function WishlistPage() {
   const total = open.reduce((s, w) => s + (w.data.price ?? 0), 0);
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-[110rem]">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Wunschliste</h1>
         <Link href="/wishlist/new" className="btn-primary">
@@ -104,7 +104,7 @@ export default async function WishlistPage() {
           </p>
         </div>
       ) : (
-        <ul className="mt-4 space-y-3">
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {open.map((w) => (
             <WishRow key={w.id} wish={w} />
           ))}
@@ -114,7 +114,7 @@ export default async function WishlistPage() {
       {done.length > 0 && (
         <details className="mt-8">
           <summary className="cursor-pointer text-sm font-medium text-muted">Erledigt ({done.length})</summary>
-          <ul className="mt-3 space-y-3">
+          <ul className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             {done.map((w) => (
               <WishRow key={w.id} wish={w} />
             ))}
