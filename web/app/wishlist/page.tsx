@@ -33,15 +33,6 @@ function WishRow({ wish }: { wish: Wish }) {
             .join(" · ")}
         </div>
         <div className="mt-auto flex flex-wrap gap-2 pt-3 text-sm">
-          {open ? (
-            <Link href={`/items/new?fromWish=${wish.id}`} className="btn-primary w-full justify-center py-1.5">
-              Gekauft – erfassen
-            </Link>
-          ) : (
-            <ConfirmButton action={setWishStatus.bind(null, wish.id, "offen")} className="btn-ghost w-full justify-center py-1.5">
-              Wieder öffnen
-            </ConfirmButton>
-          )}
           {data.link && (
             <a href={data.link} target="_blank" rel="noopener noreferrer" className="btn-ghost flex-1 justify-center gap-1.5 py-1.5">
               <ShoppingBag className="size-4" />
@@ -53,6 +44,15 @@ function WishRow({ wish }: { wish: Wish }) {
             Bearbeiten
           </Link>
           <TrashButton name={data.name} action={trashWish.bind(null, wish.id)} />
+          {open ? (
+            <Link href={`/items/new?fromWish=${wish.id}`} className="btn-primary w-full justify-center py-1.5">
+              Gekauft
+            </Link>
+          ) : (
+            <ConfirmButton action={setWishStatus.bind(null, wish.id, "offen")} className="btn-ghost w-full justify-center py-1.5">
+              Wieder öffnen
+            </ConfirmButton>
+          )}
         </div>
       </div>
     </li>
