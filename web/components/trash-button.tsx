@@ -15,7 +15,7 @@ export function TrashButton({ name, action }: { name: string; action: () => Prom
     <>
       <button
         type="button"
-        className="btn-ghost px-2.5 py-1.5 text-danger"
+        className="btn bg-danger px-2.5 py-1.5 text-white hover:opacity-90 dark:text-[#141311]"
         title="In den Papierkorb"
         aria-label="In den Papierkorb"
         onClick={() => dialog.current?.showModal()}
@@ -37,7 +37,7 @@ export function TrashButton({ name, action }: { name: string; action: () => Prom
           </button>
           <button
             type="button"
-            className="btn-primary"
+            className="btn bg-danger text-white hover:opacity-90 dark:text-[#141311]"
             disabled={pending}
             onClick={() =>
               startTransition(async () => {
