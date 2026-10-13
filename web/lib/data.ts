@@ -40,9 +40,15 @@ export async function getOutfit(id: string): Promise<Outfit | null> {
   }
 }
 
+/** Wunschliste ohne die Wünsche im Papierkorb */
 export async function getWishlist(): Promise<Wish[]> {
   await fresh();
-  return (await lib.readWishlist()) as Wish[];
+  return ((await lib.readWishlist()) as Wish[]).filter((w) => !w.data.trashed_at);
+}
+
+export async function getTrashedWishes(): Promise<Wish[]> {
+  await fresh();
+  return ((await lib.readWishlist()) as Wish[]).filter((w) => w.data.trashed_at);
 }
 
 export async function getWish(id: string): Promise<Wish | null> {

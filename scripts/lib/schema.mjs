@@ -138,6 +138,7 @@ export const WISHLIST_FIELDS = {
   status: { type: 'string', required: true, enum: WISHLIST_STATUS },
   fills_gap: { type: 'string' },
   photos: { type: 'string[]' },
+  trashed_at: { type: 'string' }, // JJJJ-MM-TT: im Papierkorb, wird nach 30 Tagen beim nächsten Build gelöscht
 };
 
 export const RECOMMENDATION_FIELDS = {
