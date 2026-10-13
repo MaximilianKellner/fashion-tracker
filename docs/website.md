@@ -12,6 +12,8 @@ Am PC alles in der oberen Leiste.
 ![Kleiderschrank](screenshots/schrank.webp)
 
 - Teile sind nach Kategorie gruppiert: Jacken & Mäntel, Oberteile, Hosen, Schuhe, Accessoires …
+- **Sprungmarken** am rechten Rand: ein Punkt je Kategorie, der aktuelle ist hervorgehoben; Klick scrollt weich dorthin, am PC
+  erscheint beim Darüberfahren der Name (`web/components/section-rail.tsx`).
 - Filter oben: Kategorie, Saison und Farbe, frei kombinierbar. Die Gruppierung bleibt beim Filtern erhalten.
 - Unter jedem Teil: Farbpunkte, Marke und Unterkategorie.
 - Fotos werden nie abgeschnitten. Schmale Hochkant-Fotos (z. B. Hosen) bekommen einen unscharf gestreckten Hintergrund aus ihren
