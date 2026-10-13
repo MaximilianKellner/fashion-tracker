@@ -18,17 +18,23 @@ export function Footer() {
             </Link>
           ))}
         </nav>
-        <p className="mt-3 text-center text-xs">
-          © 2026 Maximilian Kellner ·{" "}
-          <a
-            href="https://github.com/MaximilianKellner/fashion-tracker"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline underline-offset-2 hover:text-ink"
-          >
-            Projekt auf GitHub ↗
+        <div className="mt-3 grid items-center gap-2 text-xs sm:grid-cols-3">
+          <span className="hidden sm:block" />
+          <p className="text-center">
+            © 2026 Maximilian Kellner ·{" "}
+            <a
+              href="https://github.com/MaximilianKellner/fashion-tracker"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-ink"
+            >
+              Projekt auf GitHub ↗
+            </a>
+          </p>
+          <a href="#" className="justify-self-end hover:text-ink">
+            Nach oben ↑
           </a>
-        </p>
+        </div>
       </div>
     </footer>
   );
