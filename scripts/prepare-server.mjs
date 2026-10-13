@@ -42,6 +42,15 @@ const saveState = () => fs.writeFileSync(stateFile, JSON.stringify(state, null, 
 const stampOf = (slot) => readJson(path.join(web, slot, 'build-stamp.json'));
 const hasBuild = (slot) => fs.existsSync(path.join(web, slot, 'BUILD_ID'));
 
+// Papierkorb leeren: Einträge, die seit über 30 Tagen darin liegen, endgültig löschen (unabhängig vom Code-Build)
+try {
+  const { purgeTrash } = await import('./lib/trash.mjs');
+  const purged = await purgeTrash();
+  if (purged.length) log(`Papierkorb: ${purged.length} Eintrag/Einträge endgültig gelöscht`);
+} catch (err) {
+  console.error('[prepare] Papierkorb leeren fehlgeschlagen:', err.message);
+}
+
 const { codeHash, lockHash } = await codeFingerprint(root);
 const ready = (slot) => hasBuild(slot) && stampOf(slot)?.codeHash === codeHash && stampOf(slot)?.lockHash === lockHash;
 const other = SLOTS.find((s) => s !== state.active);

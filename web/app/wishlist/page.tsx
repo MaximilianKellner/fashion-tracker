@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { deleteWish, setWishStatus } from "@/app/actions";
+import { setWishStatus, trashWish } from "@/app/actions";
 import { getWishlist } from "@/lib/data";
 import { euro, label, PRIORITY } from "@/lib/labels";
 import { ConfirmButton } from "@/components/confirm-button";
-import { Pencil, ShoppingBag, Trash2 } from "@/components/icons";
-import { WishRemoveButton } from "@/components/wish-remove-button";
+import { Pencil, ShoppingBag } from "@/components/icons";
+import { TrashButton } from "@/components/trash-button";
 import { Photo } from "@/components/photo";
 import type { Wish } from "@/lib/types";
 
@@ -43,22 +43,7 @@ function WishRow({ wish }: { wish: Wish }) {
             <Pencil className="size-4" />
             Bearbeiten
           </Link>
-          {open ? (
-            <WishRemoveButton
-              name={data.name}
-              discard={setWishStatus.bind(null, wish.id, "verworfen")}
-              remove={deleteWish.bind(null, wish.id)}
-            />
-          ) : (
-            <ConfirmButton
-              action={deleteWish.bind(null, wish.id)}
-              confirm={`"${data.name}" löschen?`}
-              className="btn-ghost px-2.5 py-1.5 text-danger"
-              title="Löschen"
-            >
-              <Trash2 className="size-4" />
-            </ConfirmButton>
-          )}
+          <TrashButton name={data.name} action={trashWish.bind(null, wish.id)} />
           {open ? (
             <Link href={`/items/new?fromWish=${wish.id}`} className="btn-primary w-full justify-center py-1.5">
               Gekauft

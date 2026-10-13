@@ -95,6 +95,7 @@ Sitzt an der Hüfte gut, Beinlänge leicht zu lang – wird gekrempelt getragen.
 | `status`    | ja      | Text     | `offen`, `gekauft`, `verworfen` |
 | `fills_gap` |         | Text     | Welche Lücke schließt es? z. B. `warme Schicht fürs Büro` |
 | `photos`    |         | Liste    | Bilder in `wishlist/<id>/`, z. B. `[photo-1.webp]` (über `npm run photo` bzw. die Website) |
+| `trashed_at`|         | Datum    | `"2026-10-13"`: Wunsch liegt im Papierkorb (nicht auf der Wunschliste). Nach 30 Tagen löscht ihn `npm run purge-trash`, auch automatisch bei `prepare-server` |
 
 Wird ein Wunsch gekauft: `status: gekauft` setzen und ein neues Kleidungsstück in `wardrobe/` anlegen. Die Website bietet dabei an, die Bilder des Wunsches zu übernehmen.
 

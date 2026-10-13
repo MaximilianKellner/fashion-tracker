@@ -12,6 +12,7 @@
     "stats": "node scripts/stats.mjs",
     "export": "node scripts/export.mjs",
     "import": "node scripts/import.mjs",
+    "purge-trash": "node scripts/purge-trash.mjs",
     "init-data": "node scripts/init-data.mjs"
   },
   "dependencies": {

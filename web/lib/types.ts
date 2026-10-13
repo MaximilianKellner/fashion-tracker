@@ -40,6 +40,7 @@ export type WishData = {
   status: string;
   fills_gap?: string;
   photos?: string[];
+  trashed_at?: string;
 };
 
 export type RecommendationData = {

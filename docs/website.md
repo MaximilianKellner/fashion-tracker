@@ -95,7 +95,14 @@ Wie die Bewertung rechnet: [outfit-builder.md](outfit-builder.md)
 - Bilder per Upload, Drag & Drop oder automatisch beim Shop-Import.
 - **Gekauft – erfassen** öffnet das Formular für ein neues Teil, vorausgefüllt mit den Daten des Wunsches; die Bilder lassen
   sich übernehmen. Danach steht der Wunsch auf „gekauft“.
-- **Verwerfen** und **Wieder öffnen**; erledigte Wünsche stehen eingeklappt unten.
+- **Wieder öffnen** für erledigte Wünsche, die eingeklappt unten stehen.
+- Das Papierkorb-Icon fragt per Popup in der Bildschirmmitte nach („Papierkorb“ oder „Abbrechen“).
+
+## Papierkorb (`/papierkorb`)
+
+Erreichbar über den Footer. Gelöschte Wünsche (Feld `trashed_at`) stehen nicht mehr auf der Wunschliste, lassen sich hier
+**wiederherstellen** oder **endgültig löschen**. Nach 30 Tagen löscht `scripts/prepare-server.mjs` sie beim nächsten Start bzw.
+Build automatisch (auch von Hand: `npm run purge-trash`).
 
 ## Empfehlungen (`/empfehlungen`)
 

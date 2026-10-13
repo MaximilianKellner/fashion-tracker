@@ -295,6 +295,23 @@ export async function setWishStatus(id: string, status: string) {
   refreshAll(`Website: Wunsch ${status}: ${wish.data.name}`);
 }
 
+/** Wunsch in den Papierkorb legen; nach 30 Tagen wird er beim nächsten Build endgültig gelöscht (scripts/lib/trash.mjs) */
+export async function trashWish(id: string) {
+  if (!isSafeId(id)) return;
+  const wish = await lib.readWish(id);
+  await lib.writeWish(id, { ...wish.data, trashed_at: new Date().toISOString().slice(0, 10) }, wish.body);
+  refreshAll(`Website: Wunsch in den Papierkorb: ${wish.data.name}`);
+}
+
+export async function restoreWish(id: string) {
+  if (!isSafeId(id)) return;
+  const wish = await lib.readWish(id);
+  const { trashed_at: _trashedAt, ...data } = wish.data as WishData;
+  await lib.writeWish(id, data, wish.body);
+  refreshAll(`Website: Wunsch wiederhergestellt: ${wish.data.name}`);
+}
+
+/** Endgültig löschen (aus dem Papierkorb) */
 export async function deleteWish(id: string) {
   if (!isSafeId(id)) return;
   await lib.deleteWish(id);

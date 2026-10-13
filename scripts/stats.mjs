@@ -2,7 +2,7 @@
 import { readItems, readOutfits, readWishlist } from './lib/data.mjs';
 import { computeStats } from './lib/stats.mjs';
 
-const stats = computeStats(await readItems(), await readOutfits(), await readWishlist());
+const stats = computeStats(await readItems(), await readOutfits(), (await readWishlist()).filter((w) => !w.data.trashed_at));
 if (process.argv.includes('--json')) {
   console.log(JSON.stringify(stats, null, 2));
 } else {
