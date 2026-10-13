@@ -3,6 +3,7 @@ import { getItems } from "@/lib/data";
 import { label } from "@/lib/labels";
 import { CATEGORIES, SEASONS } from "@lib/schema.mjs";
 import { ColorDot, ItemCard } from "@/components/item-card";
+import { SectionRail } from "@/components/section-rail";
 
 // Reihenfolge im Kleiderschrank: von oben nach unten wie ein Outfit, dann der Rest
 const CATEGORY_ORDER = ["jacke", "oberteil", "kleid", "hose", "schuhe", "accessoire", "sport", "unterwaesche"];
@@ -115,7 +116,7 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
       ) : (
         <div className="mt-4 space-y-6">
           {groups.map((g) => (
-            <section key={g.category}>
+            <section key={g.category} id={`kat-${g.category}`} className="scroll-mt-20">
               <h2 className="mb-2 flex items-baseline gap-2 text-lg font-semibold">
                 {GROUP_TITLES[g.category] ?? label(g.category)}
                 <span className="text-sm font-normal text-muted">{g.items.length}</span>
@@ -129,6 +130,7 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
           ))}
         </div>
       )}
+      <SectionRail sections={groups.map((g) => ({ id: `kat-${g.category}`, label: GROUP_TITLES[g.category] ?? label(g.category) }))} />
     </div>
   );
 }
