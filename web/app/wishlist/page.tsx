@@ -3,6 +3,7 @@ import { deleteWish, setWishStatus } from "@/app/actions";
 import { getWishlist } from "@/lib/data";
 import { euro, label, PRIORITY } from "@/lib/labels";
 import { ConfirmButton } from "@/components/confirm-button";
+import { Pencil, ShoppingBag, Trash2 } from "@/components/icons";
 import { WishRemoveButton } from "@/components/wish-remove-button";
 import { Photo } from "@/components/photo";
 import type { Wish } from "@/lib/types";
@@ -32,24 +33,23 @@ function WishRow({ wish }: { wish: Wish }) {
             .join(" · ")}
         </div>
         <div className="mt-auto flex flex-wrap gap-2 pt-3 text-sm">
-          {data.link && (
-            <a href={data.link} target="_blank" rel="noopener noreferrer" className="btn-ghost py-1.5">
-              Zum Shop ↗
-            </a>
-          )}
-          {open && (
-            <>
-              <Link href={`/items/new?fromWish=${wish.id}`} className="btn-primary py-1.5">
-                Gekauft – erfassen
-              </Link>
-              </>
-          )}
-          {!open && (
-            <ConfirmButton action={setWishStatus.bind(null, wish.id, "offen")} className="btn-ghost py-1.5">
+          {open ? (
+            <Link href={`/items/new?fromWish=${wish.id}`} className="btn-primary w-full justify-center py-1.5">
+              Gekauft – erfassen
+            </Link>
+          ) : (
+            <ConfirmButton action={setWishStatus.bind(null, wish.id, "offen")} className="btn-ghost w-full justify-center py-1.5">
               Wieder öffnen
             </ConfirmButton>
           )}
-          <Link href={`/wishlist/${wish.id}/edit`} className="btn-ghost py-1.5">
+          {data.link && (
+            <a href={data.link} target="_blank" rel="noopener noreferrer" className="btn-ghost flex-1 justify-center gap-1.5 py-1.5">
+              <ShoppingBag className="size-4" />
+              Shop
+            </a>
+          )}
+          <Link href={`/wishlist/${wish.id}/edit`} className="btn-ghost flex-1 justify-center gap-1.5 py-1.5">
+            <Pencil className="size-4" />
             Bearbeiten
           </Link>
           {open ? (
@@ -59,8 +59,13 @@ function WishRow({ wish }: { wish: Wish }) {
               remove={deleteWish.bind(null, wish.id)}
             />
           ) : (
-            <ConfirmButton action={deleteWish.bind(null, wish.id)} confirm={`"${data.name}" löschen?`} className="btn-ghost py-1.5 text-danger">
-              Löschen
+            <ConfirmButton
+              action={deleteWish.bind(null, wish.id)}
+              confirm={`"${data.name}" löschen?`}
+              className="btn-ghost px-2.5 py-1.5 text-danger"
+              title="Löschen"
+            >
+              <Trash2 className="size-4" />
             </ConfirmButton>
           )}
         </div>

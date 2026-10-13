@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Trash2 } from "@/components/icons";
 
 /** Entfernen-Button für offene Wünsche: fragt, ob der Wunsch nur aussortiert (verworfen) oder ganz gelöscht wird */
 export function WishRemoveButton({
@@ -17,8 +18,8 @@ export function WishRemoveButton({
 
   if (!asking) {
     return (
-      <button type="button" className="btn-ghost py-1.5 text-danger" onClick={() => setAsking(true)}>
-        Entfernen
+      <button type="button" className="btn-ghost px-2.5 py-1.5 text-danger" title="Entfernen" aria-label="Entfernen" onClick={() => setAsking(true)}>
+        <Trash2 className="size-4" />
       </button>
     );
   }
