@@ -82,6 +82,8 @@ export const APPEARANCE = {
   hair: { label: 'Haare', hint: 'z. B. dunkelblond, wellig' },
   contrast: { label: 'Kontrast', hint: 'niedrig, mittel oder hoch' },
   glasses: { label: 'Brille', hint: 'z. B. rund, dünner Metallrahmen' },
+  undertone: { label: 'Unterton', hint: 'warm, neutral oder kühl' },
+  season: { label: 'Farbtyp', hint: 'z. B. Herbst' },
 };
 // Farbpalette mit Farb-IDs aus scripts/lib/colors.mjs (Felder unter profile.md -> palette)
 export const PALETTE = {
