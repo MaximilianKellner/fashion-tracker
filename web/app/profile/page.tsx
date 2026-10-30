@@ -23,40 +23,47 @@ export default async function ProfilePage() {
         </Link>
       </div>
 
-      {(appearance.length > 0 || palette.length > 0) && (
-        <section className="rounded-xl border border-line bg-surface p-4">
-          <h2 className="mb-3 font-semibold">Typ & Farben</h2>
-          {appearance.length > 0 && (
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-4">
-              {appearance.map(([k, { label: what }]) => (
-                <div key={k}>
-                  <dt className="text-muted">{what}</dt>
-                  <dd className="font-medium">{data.appearance![k]}</dd>
+      <section className="rounded-xl border border-line bg-surface p-4">
+        <h2 className="mb-3 font-semibold">Typ & Farben</h2>
+        {appearance.length === 0 && palette.length === 0 && (
+          <p className="text-sm text-muted">
+            Noch kein Farbtyp und keine Farbpalette. Mit ihnen bevorzugen Outfit-Builder und Kaufempfehlungen Farben, die dir
+            stehen.{" "}
+            <Link href="/profile/edit" className="underline">
+              Farbtyp bestimmen
+            </Link>
+          </p>
+        )}
+        {appearance.length > 0 && (
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-4">
+            {appearance.map(([k, { label: what }]) => (
+              <div key={k}>
+                <dt className="text-muted">{what}</dt>
+                <dd className="font-medium">{data.appearance![k]}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        {palette.length > 0 && (
+          <div className="mt-4 space-y-3">
+            {palette.map(([k, { label: group, hint }]) => (
+              <div key={k}>
+                <div className="text-sm">
+                  <span className="font-medium">{group}</span> <span className="text-xs text-muted">· {hint}</span>
                 </div>
-              ))}
-            </dl>
-          )}
-          {palette.length > 0 && (
-            <div className="mt-4 space-y-3">
-              {palette.map(([k, { label: group, hint }]) => (
-                <div key={k}>
-                  <div className="text-sm">
-                    <span className="font-medium">{group}</span> <span className="text-xs text-muted">· {hint}</span>
-                  </div>
-                  <ul className="mt-1.5 flex flex-wrap gap-2">
-                    {data.palette![k].map((c) => (
-                      <li key={c} className="flex items-center gap-1.5 rounded-full border border-line py-1 pl-1 pr-3 text-sm">
-                        <span className="h-6 w-6 rounded-full border border-black/15" style={{ backgroundColor: swatch(c) }} />
-                        {label(c)}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
+                <ul className="mt-1.5 flex flex-wrap gap-2">
+                  {data.palette![k].map((c) => (
+                    <li key={c} className="flex items-center gap-1.5 rounded-full border border-line py-1 pl-1 pr-3 text-sm">
+                      <span className="h-6 w-6 rounded-full border border-black/15" style={{ backgroundColor: swatch(c) }} />
+                      {label(c)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section className="rounded-xl border border-line bg-surface p-4">
         <div className="mb-3 flex flex-wrap items-baseline gap-x-4 gap-y-1">

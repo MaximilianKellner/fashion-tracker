@@ -5,8 +5,10 @@ import { startTransition, useActionState, useState, type FormEvent } from "react
 import { saveProfile } from "@/app/actions";
 import { APPEARANCE, MEASUREMENTS, PALETTE, SIZES } from "@lib/schema.mjs";
 import type { ProfileData } from "@/lib/types";
+import { COLOR_TYPE_QUESTIONS } from "@lib/color-type.mjs";
 import { BodyChart } from "./body-chart";
 import { ColorPicker } from "./color-picker";
+import { ColorTypeFinder } from "./color-type-finder";
 import { Errors, Field, Section } from "./form-bits";
 
 const toNumber = (v: string) => {
@@ -22,6 +24,13 @@ export function ProfileForm({ data, body }: { data: ProfileData; body: string })
   );
   const [height, setHeight] = useState(data.height_cm?.toString() ?? "");
   const [weight, setWeight] = useState(data.weight_kg?.toString() ?? "");
+  // Typ und Palette gesteuert, damit der Farbtyp-Test sie füllen kann
+  const [appearance, setAppearance] = useState<Record<string, string>>(() =>
+    Object.fromEntries(Object.keys(APPEARANCE).map((k) => [k, data.appearance?.[k] ?? ""])),
+  );
+  const [palette, setPalette] = useState<Record<string, string[]>>(() =>
+    Object.fromEntries(Object.keys(PALETTE).map((k) => [k, data.palette?.[k] ?? []])),
+  );
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -51,10 +60,27 @@ export function ProfileForm({ data, body }: { data: ProfileData; body: string })
       </Section>
 
       <Section title="Typ">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <ColorTypeFinder
+          onApply={(result, answers) => {
+            setPalette(result.palette);
+            setAppearance((a) => ({
+              ...a,
+              season: result.label,
+              undertone: (COLOR_TYPE_QUESTIONS.undertone.options as Record<string, string>)[answers.undertone] ?? a.undertone,
+              contrast: answers.contrast ?? a.contrast,
+            }));
+          }}
+        />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {(Object.entries(APPEARANCE) as [string, { label: string; hint: string }][]).map(([k, { label, hint }]) => (
             <Field key={k} label={label}>
-              <input name={`a_${k}`} className="field" placeholder={hint} defaultValue={data.appearance?.[k] ?? ""} />
+              <input
+                name={`a_${k}`}
+                className="field"
+                placeholder={hint}
+                value={appearance[k]}
+                onChange={(e) => setAppearance((a) => ({ ...a, [k]: e.target.value }))}
+              />
             </Field>
           ))}
         </div>
@@ -64,7 +90,12 @@ export function ProfileForm({ data, body }: { data: ProfileData; body: string })
         {(Object.entries(PALETTE) as [string, { label: string; hint: string }][]).map(([k, { label, hint }]) => (
           <div key={k}>
             <span className="mb-1 block text-sm font-medium">{label}</span>
-            <ColorPicker name={`p_${k}`} defaultValue={data.palette?.[k] ?? []} ranked={false} />
+            <ColorPicker
+              name={`p_${k}`}
+              value={palette[k]}
+              onChange={(colors) => setPalette((p) => ({ ...p, [k]: colors }))}
+              ranked={false}
+            />
             <span className="mt-1 block text-xs text-muted">{hint}</span>
           </div>
         ))}

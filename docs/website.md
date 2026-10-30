@@ -143,8 +143,13 @@ die **in keinem Outfit** vorkommen (Kandidaten für neue Kombinationen oder für
 
 ![Profil](screenshots/profil.webp)
 
-- **Typ & Farben**: Haut, Haare, Kontrast, Brille und die Farbpalette in drei Stufen: *Steht mir besonders*, *Basis*,
-  *Sparsam einsetzen*. Der Outfit-Builder bevorzugt Farben aus der ersten Stufe.
+- **Typ & Farben**: Haut, Haare, Kontrast, Brille, Unterton, Farbtyp und die Farbpalette in drei Stufen: *Steht mir
+  besonders*, *Basis*, *Sparsam einsetzen*. Der Outfit-Builder bevorzugt Farben aus der ersten Stufe. Ist noch nichts
+  eingetragen, verlinkt die Seite auf den Farbtyp-Test.
+- **Farbtyp bestimmen** (im Formular unter „Typ“): vier Fragen zu Unterton, Helligkeit, Kontrast und Leuchtkraft ergeben
+  einen der vier Farbtypen (Frühling, Sommer, Herbst, Winter). „Palette übernehmen“ füllt die drei Farbgruppen mit einer
+  Startpalette und trägt Farbtyp, Unterton und Kontrast ein; danach frei anpassbar. So geht das Profil auch ohne Claude.
+  Logik und Paletten: `scripts/lib/color-type.mjs`.
 - Oben **Größe, Gewicht und Alter**; das Alter wird aus dem Geburtsdatum berechnet.
 - **Körpermaße** mit interaktiver Grafik: Die Figur folgt den Angaben (Breiten aus Brust, Taille, Hüfte, Schultern und Hals,
   Bein- und Armlänge, fehlende Maße geschätzt aus Größe und Gewicht) und zeigt darunter die geschätzte Statur (schlank,
