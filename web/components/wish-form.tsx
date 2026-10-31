@@ -21,7 +21,10 @@ export function WishForm({
   importedPhotos?: string[];
 }) {
   const [state, formAction, pending] = useActionState(saveWish, null);
-  const picker = usePhotoPicker(importedPhotos);
+  const picker = usePhotoPicker({
+    saved: id ? (data.photos ?? []).map((p) => ({ name: p, src: `/wish-photos/${id}/${p}` })) : [],
+    imported: importedPhotos,
+  });
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -37,7 +40,6 @@ export function WishForm({
         <PhotoPicker
           picker={picker}
           camera={false}
-          existing={id ? (data.photos ?? []).map((p) => ({ name: p, src: `/wish-photos/${id}/${p}` })) : []}
           tip="Tipp: Produktbild aus dem Shop-Tab hierher ziehen, einen Screenshot einfügen (Strg+V) oder ein Foto aus dem Laden hochladen."
         />
       </Section>

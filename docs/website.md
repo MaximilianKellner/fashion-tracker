@@ -31,8 +31,17 @@ das Teil vorkommt. „Outfit mit diesem Teil“ öffnet den Outfit-Builder mit d
 - Fotos per **Kamera**, aus der **Galerie**, per **Drag & Drop** (auch Bilder direkt aus einem Shop-Tab) oder mit **Strg+V**.
   Der Browser verkleinert sie vor dem Hochladen, der Server speichert sie als WebP mit max. 1024 px und **ohne EXIF-Daten**
   (die den GPS-Standort enthalten können).
-- **Hintergrund weiß**: Unter jedem neuen Foto stellt der Knopf das Teil per KI frei und legt es auf Weiß, bei mehreren
-  Fotos auch alle auf einmal („Alle Hintergründe weiß“). „Original“ macht es rückgängig. Das läuft komplett im Browser
+- Alle Fotos stehen in **einer Liste**, egal ob neu hochgeladen, aus dem Shop-Import (Etikett „Shop“), vom Wunsch übernommen
+  oder (beim Bearbeiten) schon gespeichert. Das **erste Foto ist das Hauptfoto** (Rahmen und Etikett „Hauptfoto“).
+  Umsortieren per Drag & Drop oder mit den Pfeilen ‹ › auf jedem Foto (am Handy). Beim Speichern werden die Dateien in
+  dieser Reihenfolge zu `photo-1.webp`, `photo-2.webp` … umbenannt und so ins Frontmatter geschrieben.
+- **×** nimmt ein Foto aus der Liste. Neue Dateien fallen weg, alles andere landet unter **„Weitere Bilder“** und kommt
+  per Antippen wieder ans Ende der Liste. Dort stehen auch die übrigen Shop-Bilder (vorausgewählt ist nur das erste).
+  Gespeicherte Fotos, die beim Speichern nicht in der Liste sind, werden gelöscht.
+- **Hintergrund weiß**: Unter jedem Foto der Liste (auch Shop-Bildern und gespeicherten Fotos) stellt der Knopf das Teil
+  per KI frei und legt es auf Weiß, bei mehreren Fotos auch alle auf einmal („Alle Hintergründe weiß“). „Original“ macht es
+  rückgängig. Shop-Bilder lädt der Browser dafür über `/image-proxy?url=…` vom eigenen Server (Shops erlauben kein CORS;
+  gleiche Prüfung wie beim Speichern: nur öffentliche https-Adressen). Das läuft komplett im Browser
   (Modell [RMBG-1.4](https://huggingface.co/briaai/RMBG-1.4) über onnxruntime-web, ohne API-Kosten) und dauert je nach Gerät
   10–60 Sekunden. Das Modell (88 MB) lädt der Server beim ersten Gebrauch einmalig nach `.cache/` und liefert es unter
   `/bg-model` aus; der Browser speichert es danach in IndexedDB. Lizenz von RMBG-1.4: nur nicht-kommerzielle Nutzung.

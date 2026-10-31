@@ -71,7 +71,11 @@ function withSuggestions(name: string, values: Values, own: Set<Key>) {
 
 export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions, importedPhotos = [], wishPhotos = [] }: Props) {
   const [state, formAction, pending] = useActionState(saveItem, null);
-  const picker = usePhotoPicker(importedPhotos);
+  const picker = usePhotoPicker({
+    saved: id ? (data.photos ?? []).map((p) => ({ name: p, src: `/photos/${id}/${p}` })) : [],
+    carried: wishPhotos.map((p) => ({ name: p, src: `/wish-photos/${fromWish}/${p}` })),
+    imported: importedPhotos,
+  });
 
   const [name, setName] = useState(data.name ?? "");
   const [values, setValues] = useState<Values>(() => ({
@@ -121,8 +125,6 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
       <Section title="Fotos">
         <PhotoPicker
           picker={picker}
-          existing={id ? (data.photos ?? []).map((p) => ({ name: p, src: `/photos/${id}/${p}` })) : []}
-          carried={wishPhotos.map((p) => ({ name: p, src: `/wish-photos/${fromWish}/${p}`, field: "wishPhotos" }))}
           tip="Tipp: Teil flach vor neutralem Hintergrund bei Tageslicht fotografieren. Ein Foto vom Etikett hilft Claude bei Marke und Material."
         />
       </Section>
