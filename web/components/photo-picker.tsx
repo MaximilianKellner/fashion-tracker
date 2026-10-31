@@ -58,12 +58,18 @@ type PhotoEntry = {
   src: string;
   /** Nur ausgewählte Fotos werden gespeichert; die übrigen stehen unter „Weitere Bilder“ zum Hinzufügen bereit */
   selected: boolean;
-  /** Freigestellte Fassung; „Original“ verwirft sie wieder */
+  /** Freigestellte Fassung; bleibt erhalten, wenn man zum Original zurückschaltet */
   whitened?: { file: File; url: string };
+  /** Freigestellte Fassung verwenden (umschaltbar, ohne neu zu rechnen) */
+  white?: boolean;
   /** Fortschritt bzw. Fehler beim Weißmachen */
   whitening?: BgProgress;
   error?: string;
 };
+
+/** Was angezeigt und gespeichert wird: die freigestellte Fassung oder das Original */
+const shown = (p: PhotoEntry) => (p.white && p.whitened ? p.whitened.url : p.src);
+const isWhite = (p: PhotoEntry) => !!(p.white && p.whitened);
 
 /** Bild als Datei holen, um es im Browser zu bearbeiten. Shop-Bilder über den eigenen Server (CORS). */
 async function loadImage({ source, src }: PhotoEntry): Promise<Blob> {
@@ -224,10 +230,11 @@ export function usePhotoPicker({
     });
   }
 
-  /** Stellt das Teil per KI frei und legt es auf weißen Hintergrund (lokal im Browser) */
+  /** Stellt das Teil per KI frei und legt es auf weißen Hintergrund (lokal im Browser); schon berechnet: nur umschalten */
   async function whiten(key: string) {
     const photo = entries.find((p) => p.key === key);
-    if (!photo || photo.whitened || photo.whitening) return;
+    if (!photo || photo.whitening) return;
+    if (photo.whitened) return update(key, (p) => ({ ...p, white: true }));
     update(key, (p) => ({ ...p, whitening: { stage: "compute" }, error: undefined }));
     try {
       const blob = await whitenBackground(await loadImage(photo), (whitening) => update(key, (p) => ({ ...p, whitening })));
@@ -235,17 +242,15 @@ export function usePhotoPicker({
       const file = new File([blob], `${base}-weiss.jpg`, { type: "image/jpeg" });
       const url = URL.createObjectURL(file);
       urls.current.add(url);
-      update(key, (p) => ({ ...p, whitened: { file, url }, whitening: undefined }));
+      update(key, (p) => ({ ...p, whitened: { file, url }, white: true, whitening: undefined }));
     } catch (e) {
       update(key, (p) => ({ ...p, whitening: undefined, error: (e as Error).message }));
     }
   }
 
+  /** Zurück zum Original; die freigestellte Fassung bleibt für „Hintergrund weiß“ erhalten */
   function restore(key: string) {
-    const photo = entries.find((p) => p.key === key);
-    if (!photo?.whitened) return;
-    release(photo.whitened.url);
-    update(key, (p) => ({ ...p, whitened: undefined }));
+    update(key, (p) => ({ ...p, white: false }));
   }
 
   /**
@@ -256,8 +261,9 @@ export function usePhotoPicker({
     fd.delete("photos");
     fd.delete("photoOrder");
     setPreparing(true);
-    for (const { source, whitened } of entries.filter((p) => p.selected)) {
-      if (whitened) {
+    for (const p of entries.filter((e) => e.selected)) {
+      const { source, whitened } = p;
+      if (whitened && isWhite(p)) {
         // Freigestellte Fotos sind schon verkleinert
         fd.append("photos", whitened.file, whitened.file.name);
         fd.append("photoOrder", "upload");
@@ -335,8 +341,8 @@ export function PhotoPicker({ picker, camera = true, tip }: { picker: PhotoPicke
               >
                 <div className="relative">
                   <Photo
-                    src={p.whitened?.url ?? p.src}
-                    remote={p.source.type === "web" && !p.whitened}
+                    src={shown(p)}
+                    remote={p.source.type === "web" && !isWhite(p)}
                     lazy={false}
                     className={`aspect-[3/4] w-24 rounded-lg ${i === 0 ? "ring-2 ring-accent" : ""}`}
                   />
@@ -379,11 +385,17 @@ export function PhotoPicker({ picker, camera = true, tip }: { picker: PhotoPicke
                 <button
                   type="button"
                   disabled={!!p.whitening}
-                  onClick={() => (p.whitened ? restore(p.key) : whiten(p.key))}
-                  title={p.whitened ? "Wieder das unveränderte Foto verwenden" : "Hintergrund per KI entfernen und weiß machen"}
+                  onClick={() => (isWhite(p) ? restore(p.key) : whiten(p.key))}
+                  title={
+                    isWhite(p)
+                      ? "Wieder das unveränderte Foto verwenden"
+                      : p.whitened
+                        ? "Wieder die freigestellte Fassung verwenden"
+                        : "Hintergrund per KI entfernen und weiß machen"
+                  }
                   className="mt-1 w-full rounded-md border border-line px-1 py-0.5 text-xs text-muted hover:bg-surface-2 disabled:opacity-50"
                 >
-                  {p.whitened ? "Original" : "Hintergrund weiß"}
+                  {isWhite(p) ? "Original" : "Hintergrund weiß"}
                 </button>
                 {p.error && (
                   <p className="mt-1 text-xs text-danger" title={p.error}>
@@ -394,7 +406,7 @@ export function PhotoPicker({ picker, camera = true, tip }: { picker: PhotoPicke
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {chosen.filter((p) => !p.whitened).length > 1 && (
+            {chosen.filter((p) => !isWhite(p)).length > 1 && (
               <button
                 type="button"
                 disabled={chosen.some((p) => p.whitening)}
@@ -428,8 +440,8 @@ export function PhotoPicker({ picker, camera = true, tip }: { picker: PhotoPicke
                 title={p.source.type === "saved" ? "Entferntes Foto wieder hinzufügen" : "Hinzufügen"}
               >
                 <Photo
-                  src={p.whitened?.url ?? p.src}
-                  remote={p.source.type === "web" && !p.whitened}
+                  src={shown(p)}
+                  remote={p.source.type === "web" && !isWhite(p)}
                   className="aspect-[3/4] w-16 rounded-lg opacity-60 transition-opacity group-hover:opacity-100"
                 />
                 <span className="absolute inset-0 flex items-center justify-center">
