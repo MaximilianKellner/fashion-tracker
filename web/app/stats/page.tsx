@@ -5,7 +5,7 @@ import { computeStats } from "@lib/stats.mjs";
 import { euro, label } from "@/lib/labels";
 import { ColorDot } from "@/components/item-card";
 
-function Tile({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Tile({ label, value, sub }: { label: string; value: string; sub?: ReactNode }) {
   return (
     <div className="rounded-xl border border-line bg-surface p-4">
       <div className="text-sm text-muted">{label}</div>
@@ -61,6 +61,7 @@ export default async function StatsPage() {
   const stats = computeStats(items, outfits, wishlist);
   const priced = stats.items.total - stats.value.itemsWithoutPrice;
   const unused = stats.outfits.itemsNotInAnyOutfit as string[];
+  const noPrice = stats.value.idsWithoutPrice as string[];
   const byId = new Map(items.map((i) => [i.id, i]));
 
   // Jahre chronologisch statt nach Wert sortieren
@@ -78,9 +79,13 @@ export default async function StatsPage() {
           label="Wert (aktiv)"
           value={euro(stats.value.totalActive)}
           sub={
-            stats.value.itemsWithoutPrice
-              ? `${stats.value.itemsWithoutPrice} ${stats.value.itemsWithoutPrice === 1 ? "Teil" : "Teile"} ohne Preis`
-              : `alle ${priced} mit Preis`
+            stats.value.itemsWithoutPrice ? (
+              <a href="#ohne-preis" className="underline decoration-dotted underline-offset-2 hover:text-ink">
+                {stats.value.itemsWithoutPrice} {stats.value.itemsWithoutPrice === 1 ? "Teil" : "Teile"} ohne Preis
+              </a>
+            ) : (
+              `alle ${priced} mit Preis`
+            )
           }
         />
         <Tile label="Outfits" value={String(stats.outfits.total)} sub={`${unused.length} ${unused.length === 1 ? "Teil" : "Teile"} in keinem Outfit`} />
@@ -112,6 +117,20 @@ export default async function StatsPage() {
         <BarList title="Saisons" data={stats.bySeason} />
         <BarList title="Marken" data={stats.byBrand} />
       </div>
+
+      {noPrice.length > 0 && (
+        <section id="ohne-preis" className="mt-4 scroll-mt-20 rounded-xl border border-line bg-surface p-4">
+          <h2 className="font-semibold">Ohne Preis</h2>
+          <p className="mt-1 text-sm text-muted">Fehlen im Wert und in den Ausgaben pro Jahr.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {noPrice.map((id) => (
+              <Link key={id} href={`/items/${id}`} className="chip">
+                {byId.get(id)?.data.name ?? id}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {unused.length > 0 && stats.outfits.total > 0 && (
         <section className="mt-4 rounded-xl border border-line bg-surface p-4">

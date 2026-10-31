@@ -149,8 +149,9 @@ Build automatisch (auch von Hand: `npm run purge-trash`).
 ![Statistik](screenshots/statistik.webp)
 
 Aktive Teile, Wert des Schranks, Outfits, offene Wünsche; Verteilung nach Kategorie und Farbe, Ausgaben pro Jahr und die Teile,
-die **in keinem Outfit** vorkommen (Kandidaten für neue Kombinationen oder fürs Aussortieren). Dieselben Zahlen liefert
-`npm run stats` im Terminal.
+die **in keinem Outfit** vorkommen (Kandidaten für neue Kombinationen oder fürs Aussortieren). Fehlt bei Teilen der Preis,
+scrollt ein Klick auf „N Teile ohne Preis“ zur Liste **Ohne Preis** (aufgebaut wie „In keinem Outfit“, mit Links zu den
+Teilen). Dieselben Zahlen liefert `npm run stats` im Terminal.
 
 ## Profil (`/profile`)
 
