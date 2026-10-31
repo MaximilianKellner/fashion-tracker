@@ -14,11 +14,11 @@ export function computeStats(items, outfits, wishlist) {
   const valueByCategory = {};
   const spendByYear = {};
   let totalValue = 0;
-  let withoutPrice = 0;
+  const withoutPrice = [];
   for (const i of items) {
     const price = i.data.purchase?.price;
     if (typeof price !== 'number') {
-      withoutPrice++;
+      withoutPrice.push(i.id);
       continue;
     }
     if (i.data.status === 'aktiv') {
@@ -43,7 +43,8 @@ export function computeStats(items, outfits, wishlist) {
       totalActive: round(totalValue),
       byCategory: mapValues(valueByCategory, round),
       spendByYear: mapValues(spendByYear, round),
-      itemsWithoutPrice: withoutPrice,
+      itemsWithoutPrice: withoutPrice.length,
+      idsWithoutPrice: withoutPrice,
     },
     outfits: { total: outfits.length, itemsNotInAnyOutfit: notInOutfit },
     wishlist: {

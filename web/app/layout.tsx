@@ -21,7 +21,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="de" className={`${GeistSans.variable} h-full antialiased`}>
+    <html lang="de" data-scroll-behavior="smooth" className={`${GeistSans.variable} h-full antialiased motion-safe:scroll-smooth`}>
       <body className="min-h-full font-sans">
         <Nav />
         {/* Unten Platz für die mobile Navigationsleiste lassen */}
