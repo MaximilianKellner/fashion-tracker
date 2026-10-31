@@ -61,59 +61,64 @@ const list = (fd: FormData, key: string) =>
 
 const PHOTO_FILE = /^photo-\d+\.webp$/;
 
+/** Ein Foto des Formulars in Speicher-Reihenfolge: schon gespeichert, oder Bild bzw. Datei, die neu verarbeitet wird */
+type PhotoPlan = { keep: string } | { input: Buffer | string; what: string };
+
 /**
- * Produktbilder aus dem Shop-Import (Feld importPhotos) herunterladen. Passiert vor dem Speichern,
- * damit bei einem Fehler nichts halb angelegt wird.
+ * Liest die Fotoauswahl (Feld photoOrder, siehe usePhotoPicker): gespeicherte Fotos (saved:), Fotos aus carryDir
+ * (carried:, z. B. vom Wunsch), Bilder aus dem Web (web:) und hochgeladene Dateien (upload, Feld photos).
+ * Lädt die Web-Bilder schon hier herunter, damit bei einem Fehler nichts halb angelegt wird.
  */
-async function downloadImports(fd: FormData): Promise<Buffer[] | { error: string }> {
-  const images: Buffer[] = [];
-  for (const url of all(fd, "importPhotos").slice(0, 8)) {
-    try {
-      images.push(await downloadImage(url));
-    } catch (err) {
-      return { error: `Produktbild konnte nicht geladen werden (${(err as Error).message}). Haken entfernen und erneut speichern.` };
+async function planPhotos(fd: FormData, saved: string[], carryDir?: string): Promise<PhotoPlan[] | { error: string }> {
+  const uploads = fd.getAll("photos").filter((f): f is File => f instanceof File && f.size > 0);
+  const plan: PhotoPlan[] = [];
+  let webCount = 0;
+  for (const entry of all(fd, "photoOrder")) {
+    const [type, ...rest] = entry.split(":");
+    const value = rest.join(":");
+    if (type === "saved" && saved.includes(value)) plan.push({ keep: value });
+    else if (type === "carried" && carryDir && PHOTO_FILE.test(value)) plan.push({ input: path.join(carryDir, value), what: "Ein übernommenes Foto" });
+    else if (type === "upload" && uploads.length) {
+      const file = uploads.shift()!;
+      plan.push({ input: Buffer.from(await file.arrayBuffer()), what: `Foto "${file.name}"` });
+    } else if (type === "web" && ++webCount <= 8) {
+      try {
+        plan.push({ input: await downloadImage(value), what: "Ein Produktbild" });
+      } catch (err) {
+        return { error: `Produktbild konnte nicht geladen werden (${(err as Error).message}). Bild entfernen und erneut speichern.` };
+      }
     }
   }
-  return images;
+  return plan;
 }
 
 /**
- * Speichert Fotos in dir als photo-N.webp: heruntergeladene Bilder, hochgeladene Dateien (Feld photos) und
- * Dateien aus copyFrom (z. B. Fotos eines Wunsches). Entfernt die Fotos aus removePhotos. Gibt die neuen Dateinamen zurück.
+ * Speichert die Fotos in dir: neue werden verarbeitet, nicht mehr gewählte gespeicherte gelöscht und alle in der
+ * gewählten Reihenfolge zu photo-1.webp, photo-2.webp … umbenannt. Gibt die Dateinamen in dieser Reihenfolge zurück.
  */
-async function storePhotos(
-  fd: FormData,
-  dir: string,
-  downloaded: Buffer[],
-  copyFrom: string[] = [],
-): Promise<string[] | { error: string }> {
-  const added: string[] = [];
-  for (const file of copyFrom) {
+async function storePhotos(plan: PhotoPlan[], dir: string, saved: string[]): Promise<string[] | { error: string }> {
+  const names: string[] = [];
+  for (const p of plan) {
+    if ("keep" in p) {
+      names.push(p.keep);
+      continue;
+    }
     try {
-      added.push(await processPhoto(file, dir));
+      names.push(await processPhoto(p.input, dir));
     } catch {
-      return { error: "Ein Foto vom Wunsch konnte nicht übernommen werden" };
+      return { error: `${p.what} konnte nicht gelesen werden (Format nicht unterstützt?)` };
     }
   }
-  for (const image of downloaded) {
-    try {
-      added.push(await processPhoto(image, dir));
-    } catch {
-      return { error: "Ein Produktbild hat ein unbekanntes Format. Haken entfernen und erneut speichern." };
-    }
+  for (const photo of saved) {
+    if (PHOTO_FILE.test(photo) && !names.includes(photo)) await fs.rm(path.join(dir, photo), { force: true });
   }
-  for (const file of fd.getAll("photos")) {
-    if (!(file instanceof File) || file.size === 0) continue;
-    try {
-      added.push(await processPhoto(Buffer.from(await file.arrayBuffer()), dir));
-    } catch {
-      return { error: `Foto "${file.name}" konnte nicht gelesen werden (Format nicht unterstützt?)` };
-    }
+  // Erst auf Zwischennamen, damit sich die Umbenennungen nicht gegenseitig überschreiben
+  const target = names.map((_, i) => `photo-${i + 1}.webp`);
+  if (names.some((n, i) => n !== target[i])) {
+    for (const [i, n] of names.entries()) await fs.rename(path.join(dir, n), path.join(dir, `sort-${i}.tmp`));
+    for (const [i, t] of target.entries()) await fs.rename(path.join(dir, `sort-${i}.tmp`), path.join(dir, t));
   }
-  for (const photo of all(fd, "removePhotos")) {
-    if (PHOTO_FILE.test(photo)) await fs.rm(path.join(dir, photo), { force: true });
-  }
-  return added;
+  return target;
 }
 
 /** Seiten neu laden lassen und die Änderung (falls GIT_AUTOSYNC=1) committen und pushen */
@@ -131,8 +136,7 @@ export async function saveItem(_prev: FormState, fd: FormData): Promise<FormStat
   const previous = existingId ? await lib.readItem(existingId).catch(() => null) : null;
   if (existingId && !previous) return { errors: ["Teil nicht gefunden"] };
 
-  const removePhotos = new Set(all(fd, "removePhotos"));
-  const keptPhotos = ((previous?.data.photos as string[] | undefined) ?? []).filter((p) => !removePhotos.has(p));
+  const savedPhotos = (previous?.data.photos as string[] | undefined) ?? [];
 
   const rawDate = text(fd, "purchaseDate");
   const purchase = {
@@ -154,7 +158,6 @@ export async function saveItem(_prev: FormState, fd: FormData): Promise<FormStat
     formality: num(fd, "formality"),
     status: text(fd, "status") ?? "aktiv",
     purchase: Object.values(purchase).some((v) => v !== undefined) ? purchase : undefined,
-    photos: keptPhotos,
     tags: list(fd, "tags"),
     link: text(fd, "link"),
   };
@@ -167,22 +170,15 @@ export async function saveItem(_prev: FormState, fd: FormData): Promise<FormStat
   if (data.link && !/^https?:\/\//.test(data.link)) errors.push("Link muss mit http:// oder https:// beginnen");
   if (errors.length) return { errors };
 
-  const downloaded = await downloadImports(fd);
-  if ("error" in downloaded) return { errors: [downloaded.error] };
-
-  // Aus der Wunschliste gekauft: angehakte Fotos des Wunsches übernehmen
+  // Aus der Wunschliste gekauft: ausgewählte Fotos des Wunsches übernehmen
   const fromWish = text(fd, "fromWish");
-  const wishFiles =
-    fromWish && isSafeId(fromWish)
-      ? all(fd, "wishPhotos")
-          .filter((p) => PHOTO_FILE.test(p))
-          .map((p) => path.join(lib.photoDir("wishlist", fromWish), p))
-      : [];
+  const plan = await planPhotos(fd, savedPhotos, fromWish && isSafeId(fromWish) ? lib.photoDir("wishlist", fromWish) : undefined);
+  if ("error" in plan) return { errors: [plan.error] };
 
   const id = existingId ?? lib.makeId(data.name, await lib.listIds("items"));
-  const added = await storePhotos(fd, lib.photoDir("items", id), downloaded, wishFiles);
-  if ("error" in added) return { errors: [added.error] };
-  data.photos!.push(...added);
+  const photos = await storePhotos(plan, lib.photoDir("items", id), savedPhotos);
+  if ("error" in photos) return { errors: [photos.error] };
+  data.photos = photos;
 
   // Leere Listen nicht in die Datei schreiben
   if (!data.seasons?.length) delete data.seasons;
@@ -253,7 +249,7 @@ export async function saveWish(_prev: FormState, fd: FormData): Promise<FormStat
 
   const previous = existingId ? await lib.readWish(existingId).catch(() => null) : null;
   if (existingId && !previous) return { errors: ["Wunsch nicht gefunden"] };
-  const removePhotos = new Set(all(fd, "removePhotos"));
+  const savedPhotos = (previous?.data.photos as string[] | undefined) ?? [];
 
   const data: WishData = {
     name: text(fd, "name") ?? "",
@@ -264,20 +260,19 @@ export async function saveWish(_prev: FormState, fd: FormData): Promise<FormStat
     reason: text(fd, "reason"),
     status: text(fd, "status") ?? "offen",
     fills_gap: text(fd, "fills_gap"),
-    photos: ((previous?.data.photos as string[] | undefined) ?? []).filter((p) => !removePhotos.has(p)),
   };
   const errors = validateFields(data, WISHLIST_FIELDS);
   if (data.price !== undefined && Number.isNaN(data.price)) errors.push("Preis nicht erkannt (z. B. 39,90 oder 39,90 €)");
   if (data.link && !/^https?:\/\//.test(data.link)) errors.push("Link muss mit http:// oder https:// beginnen");
   if (errors.length) return { errors };
 
-  const downloaded = await downloadImports(fd);
-  if ("error" in downloaded) return { errors: [downloaded.error] };
+  const plan = await planPhotos(fd, savedPhotos);
+  if ("error" in plan) return { errors: [plan.error] };
 
   const id = existingId ?? lib.makeId(data.name, await lib.listIds("wishlist"));
-  const added = await storePhotos(fd, lib.photoDir("wishlist", id), downloaded);
-  if ("error" in added) return { errors: [added.error] };
-  data.photos!.push(...added);
+  const photos = await storePhotos(plan, lib.photoDir("wishlist", id), savedPhotos);
+  if ("error" in photos) return { errors: [photos.error] };
+  data.photos = photos;
   if (!data.photos?.length) {
     delete data.photos;
     await fs.rm(lib.photoDir("wishlist", id), { recursive: true, force: true });
