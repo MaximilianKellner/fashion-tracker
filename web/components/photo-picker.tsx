@@ -355,7 +355,7 @@ export function PhotoPicker({ picker, camera = true, tip }: { picker: PhotoPicke
                       <span className="size-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
                       {p.whitening.stage === "download"
                         ? `KI-Modell lädt${p.whitening.percent !== undefined ? ` ${p.whitening.percent} %` : " …"}`
-                        : "Wird freigestellt …"}
+                        : `Wird freigestellt${p.whitening.backend === "webgpu" ? " (GPU)" : ""} …`}
                     </div>
                   )}
                   <button type="button" onClick={() => remove(p.key)} className={`absolute right-1 top-1 ${roundBtn}`} aria-label="Foto entfernen">
@@ -409,8 +409,8 @@ export function PhotoPicker({ picker, camera = true, tip }: { picker: PhotoPicke
             )}
           </div>
           <p className="text-xs text-muted">
-            „Hintergrund weiß“ stellt das Teil per KI direkt im Browser frei, ohne fremde Dienste. Das dauert je nach Gerät
-            10–60 Sekunden; beim ersten Mal wird dafür einmalig ein Modell geladen (88 MB).
+            „Hintergrund weiß“ stellt das Teil per KI direkt im Browser frei, ohne fremde Dienste. Mit Grafikkarte (WebGPU, nur
+            über HTTPS) dauert das wenige Sekunden, sonst je nach Gerät 10–60 Sekunden; beim ersten Mal wird dafür einmalig ein Modell geladen (88 MB).
           </p>
         </div>
       )}

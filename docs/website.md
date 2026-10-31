@@ -42,8 +42,11 @@ das Teil vorkommt. „Outfit mit diesem Teil“ öffnet den Outfit-Builder mit d
   per KI frei und legt es auf Weiß, bei mehreren Fotos auch alle auf einmal („Alle Hintergründe weiß“). „Original“ macht es
   rückgängig. Shop-Bilder lädt der Browser dafür über `/image-proxy?url=…` vom eigenen Server (Shops erlauben kein CORS;
   gleiche Prüfung wie beim Speichern: nur öffentliche https-Adressen). Das läuft komplett im Browser
-  (Modell [RMBG-1.4](https://huggingface.co/briaai/RMBG-1.4) über onnxruntime-web, ohne API-Kosten) und dauert je nach Gerät
-  10–60 Sekunden. Das Modell (88 MB) lädt der Server beim ersten Gebrauch einmalig nach `.cache/` und liefert es unter
+  (Modell [RMBG-1.4](https://huggingface.co/briaai/RMBG-1.4) über onnxruntime-web, ohne API-Kosten). Gerechnet wird per
+  **WebGPU** auf der Grafikkarte (etwa 1 Sekunde pro Foto, die Anzeige sagt dann „Wird freigestellt (GPU)“). WebGPU gibt es
+  nur über HTTPS oder `localhost` und in Browsern, die es unterstützen; sonst (z. B. Handy im WLAN per `http://`) rechnet die
+  CPU per WebAssembly wie früher, je nach Gerät 10–60 Sekunden. Das WebGPU-Paket von onnxruntime-web lädt der Worker nur,
+  wenn eine Grafikkarte verfügbar ist (`lib/bg-removal.worker.ts`). Das Modell (88 MB) lädt der Server beim ersten Gebrauch einmalig nach `.cache/` und liefert es unter
   `/bg-model` aus; der Browser speichert es danach in IndexedDB. Lizenz von RMBG-1.4: nur nicht-kommerzielle Nutzung.
 - **Kategorie** und **Unterkategorie** als Auswahl; die Unterkategorien hängen von der Kategorie ab (Liste in
   `scripts/lib/schema.mjs`).
