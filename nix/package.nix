@@ -34,7 +34,7 @@ buildNpmPackage {
   inherit src;
 
   nodejs = nodejs_22;
-  npmDepsHash = "sha256-BMsNfqBiIRC4RZckgD+CxmYIbr3abe2M1V632GJ2Koo=";
+  npmDepsHash = "sha256-Zn7rDXa55vMK5um3Ip2k5tyyXWXs0AvMk6NAm54vqT4=";
 
   nativeBuildInputs = [ makeWrapper ];
 
