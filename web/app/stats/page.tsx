@@ -88,7 +88,19 @@ export default async function StatsPage() {
             )
           }
         />
-        <Tile label="Outfits" value={String(stats.outfits.total)} sub={`${unused.length} ${unused.length === 1 ? "Teil" : "Teile"} in keinem Outfit`} />
+        <Tile
+          label="Outfits"
+          value={String(stats.outfits.total)}
+          sub={
+            unused.length > 0 && stats.outfits.total > 0 ? (
+              <a href="#kein-outfit" className="underline decoration-dotted underline-offset-2 hover:text-ink">
+                {unused.length} {unused.length === 1 ? "Teil" : "Teile"} in keinem Outfit
+              </a>
+            ) : (
+              `${unused.length} ${unused.length === 1 ? "Teil" : "Teile"} in keinem Outfit`
+            )
+          }
+        />
         <Tile label="Wunschliste" value={String(stats.wishlist.open)} sub={`offen · ${euro(stats.wishlist.openValue)}`} />
       </div>
 
@@ -133,7 +145,7 @@ export default async function StatsPage() {
       )}
 
       {unused.length > 0 && stats.outfits.total > 0 && (
-        <section className="mt-4 rounded-xl border border-line bg-surface p-4">
+        <section id="kein-outfit" className="mt-4 scroll-mt-20 rounded-xl border border-line bg-surface p-4">
           <h2 className="font-semibold">In keinem Outfit</h2>
           <p className="mt-1 text-sm text-muted">Kandidaten für neue Kombinationen oder fürs Aussortieren.</p>
           <div className="mt-3 flex flex-wrap gap-2">
