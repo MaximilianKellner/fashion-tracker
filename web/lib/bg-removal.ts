@@ -1,4 +1,4 @@
-// Hintergrund eines Fotos weiß machen, lokal im Browser (siehe bg-removal.worker.ts)
+// Hintergrund eines Fotos durch helles Grau ersetzen („Hintergrund weiß“), lokal im Browser (siehe bg-removal.worker.ts)
 import type { Backend, BgRequest, BgResponse } from "./bg-removal.worker";
 
 /** backend: womit gerechnet wird (Grafikkarte per WebGPU oder CPU per WebAssembly) */
@@ -30,7 +30,7 @@ function getWorker() {
   return worker;
 }
 
-/** Liefert das Foto als JPEG mit weißem Hintergrund (lange Seite höchstens maxSize Pixel) */
+/** Liefert das Foto als JPEG mit hellgrauem Hintergrund (lange Seite höchstens maxSize Pixel) */
 export function whitenBackground(image: Blob, onProgress?: (p: BgProgress) => void, maxSize = 2048): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const id = nextId++;

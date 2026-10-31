@@ -1,4 +1,4 @@
-// Web Worker: stellt ein Foto mit RMBG-1.4 frei und legt es auf weißen Hintergrund. Läuft komplett im Browser
+// Web Worker: stellt ein Foto mit RMBG-1.4 frei und legt es auf hellgrauen Hintergrund (#eeeeee). Läuft komplett im Browser
 // (onnxruntime-web), damit die Seite während der Berechnung bedienbar bleibt. Mit WebGPU rechnet die Grafikkarte;
 // ohne (kein HTTPS, z. B. Handy im WLAN per http://, oder Browser ohne WebGPU) wie bisher die CPU per WebAssembly.
 import type * as Ort from "onnxruntime-web";
@@ -11,6 +11,8 @@ export type BgResponse =
   | { id: number; type: "error"; message: string };
 
 const SIZE = 1024; // feste Eingabegröße des Modells
+// Helles Grau statt reinem Weiß: blendet in der dunklen Oberfläche weniger und hebt weiße Teile besser ab
+const BACKGROUND = "#eeeeee";
 const MODEL = "rmbg-1.4-fp16"; // muss zur Datei in app/bg-model/route.ts passen
 
 /** Modell-Cache in IndexedDB: Der HTTP-Cache behält 88 MB oft nicht, und die Cache-API fehlt ohne HTTPS (Handy im WLAN) */
@@ -135,7 +137,7 @@ async function whiten({ id, image, maxSize }: BgRequest): Promise<Blob> {
   for (let i = 0; i < plane; i++) maskData.data[i * 4 + 3] = Math.round(((mask[i] - min) / range) * 255);
   maskCtx.putImageData(maskData, 0, 0);
 
-  // Original (höchstens maxSize) mit der hochskalierten Maske ausschneiden und auf Weiß legen
+  // Original (höchstens maxSize) mit der hochskalierten Maske ausschneiden und auf den Hintergrund legen
   const scale = Math.min(1, maxSize / Math.max(bitmap.width, bitmap.height));
   const w = Math.round(bitmap.width * scale);
   const h = Math.round(bitmap.height * scale);
@@ -147,7 +149,7 @@ async function whiten({ id, image, maxSize }: BgRequest): Promise<Blob> {
   cutCtx.drawImage(maskCanvas, 0, 0, w, h);
 
   const [result, ctx] = canvas(w, h);
-  ctx.fillStyle = "#fff";
+  ctx.fillStyle = BACKGROUND;
   ctx.fillRect(0, 0, w, h);
   ctx.drawImage(cut, 0, 0);
   return result.convertToBlob({ type: "image/jpeg", quality: 0.92 });

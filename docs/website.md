@@ -39,10 +39,10 @@ das Teil vorkommt. „Outfit mit diesem Teil“ öffnet den Outfit-Builder mit d
   per Antippen wieder ans Ende der Liste. Dort stehen auch die übrigen Shop-Bilder (vorausgewählt ist nur das erste).
   Gespeicherte Fotos, die beim Speichern nicht in der Liste sind, werden gelöscht.
 - **Hintergrund weiß**: Unter jedem Foto der Liste (auch Shop-Bildern und gespeicherten Fotos) stellt der Knopf das Teil
-  per KI frei und legt es auf Weiß, bei mehreren Fotos auch alle auf einmal („Alle Hintergründe weiß“). „Original“ schaltet
-  zurück; die freigestellte Fassung bleibt dabei erhalten, sodass man ohne neue Berechnung hin- und herwechseln kann.
-  Gespeichert wird, was gerade angezeigt wird. Shop-Bilder lädt der Browser dafür über `/image-proxy?url=…` vom eigenen Server (Shops erlauben kein CORS;
-  gleiche Prüfung wie beim Speichern: nur öffentliche https-Adressen). Das läuft komplett im Browser
+  per KI frei und legt es auf helles Grau (`#eeeeee`, blendet weniger als reines Weiß), bei mehreren Fotos auch alle auf
+  einmal („Alle Hintergründe weiß“). „Original“ schaltet zurück; die freigestellte Fassung bleibt dabei erhalten, sodass
+  man ohne neue Berechnung hin- und herwechseln kann. Gespeichert wird, was gerade angezeigt wird. Shop-Bilder lädt der
+  Browser dafür über `/image-proxy?url=…` vom eigenen Server (Shops erlauben kein CORS; gleiche Prüfung wie beim Speichern: nur öffentliche https-Adressen). Das läuft komplett im Browser
   (Modell [RMBG-1.4](https://huggingface.co/briaai/RMBG-1.4) über onnxruntime-web, ohne API-Kosten). Gerechnet wird per
   **WebGPU** auf der Grafikkarte (etwa 1 Sekunde pro Foto, die Anzeige sagt dann „Wird freigestellt (GPU)“). WebGPU gibt es
   nur über HTTPS oder `localhost` und in Browsern, die es unterstützen; sonst (z. B. Handy im WLAN per `http://`) rechnet die
