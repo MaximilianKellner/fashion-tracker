@@ -1,7 +1,8 @@
 // Hintergrund eines Fotos weiß machen, lokal im Browser (siehe bg-removal.worker.ts)
-import type { BgRequest, BgResponse } from "./bg-removal.worker";
+import type { Backend, BgRequest, BgResponse } from "./bg-removal.worker";
 
-export type BgProgress = { stage: "download" | "compute"; percent?: number };
+/** backend: womit gerechnet wird (Grafikkarte per WebGPU oder CPU per WebAssembly) */
+export type BgProgress = { stage: "download" | "compute"; percent?: number; backend?: Backend };
 
 let worker: Worker | null = null;
 let nextId = 0;
@@ -14,7 +15,7 @@ function getWorker() {
       const msg = e.data;
       const job = pending.get(msg.id);
       if (!job) return;
-      if (msg.type === "progress") return job.onProgress?.({ stage: msg.stage, percent: msg.percent });
+      if (msg.type === "progress") return job.onProgress?.({ stage: msg.stage, percent: msg.percent, backend: msg.backend });
       pending.delete(msg.id);
       if (msg.type === "done") job.resolve(msg.image);
       else job.reject(new Error(msg.message));

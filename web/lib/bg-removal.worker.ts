@@ -1,10 +1,12 @@
 // Web Worker: stellt ein Foto mit RMBG-1.4 frei und legt es auf weißen Hintergrund. Läuft komplett im Browser
-// (onnxruntime-web, WebAssembly), damit die Seite während der Berechnung bedienbar bleibt.
-import * as ort from "onnxruntime-web/wasm";
+// (onnxruntime-web), damit die Seite während der Berechnung bedienbar bleibt. Mit WebGPU rechnet die Grafikkarte;
+// ohne (kein HTTPS, z. B. Handy im WLAN per http://, oder Browser ohne WebGPU) wie bisher die CPU per WebAssembly.
+import type * as Ort from "onnxruntime-web";
 
+export type Backend = "webgpu" | "wasm";
 export type BgRequest = { id: number; image: Blob; maxSize: number };
 export type BgResponse =
-  | { id: number; type: "progress"; stage: "download" | "compute"; percent?: number }
+  | { id: number; type: "progress"; stage: "download" | "compute"; percent?: number; backend?: Backend }
   | { id: number; type: "done"; image: Blob }
   | { id: number; type: "error"; message: string };
 
@@ -47,10 +49,21 @@ async function download(onProgress: (percent?: number) => void) {
   return bytes;
 }
 
-let session: Promise<ort.InferenceSession> | null = null;
+/** WebGPU nur in sicheren Kontexten (HTTPS, localhost) und mit passender Grafikkarte */
+async function hasWebGpu() {
+  try {
+    const gpu = (navigator as Navigator & { gpu?: { requestAdapter(): Promise<unknown> } }).gpu;
+    return !!(await gpu?.requestAdapter());
+  } catch {
+    return false;
+  }
+}
+
+type Session = { ort: typeof Ort; model: Ort.InferenceSession; backend: Backend };
+let session: Promise<Session> | null = null;
 
 function getSession(onProgress: (percent?: number) => void) {
-  session ??= (async () => {
+  session ??= (async (): Promise<Session> => {
     let bytes = await idb<Uint8Array | undefined>("readonly", (s) => s.get(MODEL)).catch(() => undefined);
     if (!bytes) {
       bytes = await download(onProgress);
@@ -58,12 +71,28 @@ function getSession(onProgress: (percent?: number) => void) {
       await idb("readwrite", (s) => s.clear()).catch(() => {});
       await idb("readwrite", (s) => s.put(bytes, MODEL)).catch(() => {});
     }
-    // Ohne Cross-Origin-Isolation (HTTP im WLAN) gibt es keine Threads
-    ort.env.wasm.numThreads = self.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 1) : 1;
-    return ort.InferenceSession.create(bytes, { executionProviders: ["wasm"] });
+    // Das WebGPU-Paket bringt eine größere WASM-Datei mit (26 statt 14 MB), daher nur laden, wenn es eine GPU gibt
+    if (await hasWebGpu()) {
+      const ort = await import("onnxruntime-web/webgpu");
+      setThreads(ort);
+      try {
+        return { ort, model: await ort.InferenceSession.create(bytes, { executionProviders: ["webgpu"] }), backend: "webgpu" };
+      } catch (e) {
+        console.warn("WebGPU nicht nutzbar, rechne auf der CPU:", e);
+        return { ort, model: await ort.InferenceSession.create(bytes, { executionProviders: ["wasm"] }), backend: "wasm" };
+      }
+    }
+    const ort = await import("onnxruntime-web/wasm");
+    setThreads(ort);
+    return { ort, model: await ort.InferenceSession.create(bytes, { executionProviders: ["wasm"] }), backend: "wasm" };
   })();
   session.catch(() => (session = null)); // nach einem Fehler beim nächsten Versuch neu laden
   return session;
+}
+
+// Ohne Cross-Origin-Isolation (HTTP im WLAN) gibt es keine Threads
+function setThreads(ort: typeof Ort) {
+  ort.env.wasm.numThreads = self.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 1) : 1;
 }
 
 function canvas(w: number, h: number) {
@@ -76,8 +105,8 @@ async function whiten({ id, image, maxSize }: BgRequest): Promise<Blob> {
   const bitmap = await createImageBitmap(image, { imageOrientation: "from-image" }).catch(() => {
     throw new Error("Dieses Bildformat kann der Browser nicht öffnen.");
   });
-  const model = await getSession((percent) => post({ id, type: "progress", stage: "download", percent }));
-  post({ id, type: "progress", stage: "compute" });
+  const { ort, model, backend } = await getSession((percent) => post({ id, type: "progress", stage: "download", percent }));
+  post({ id, type: "progress", stage: "compute", backend });
 
   // Eingabe: 1024×1024 RGB, Werte 0…1 minus 0,5 (Normalisierung von RMBG-1.4)
   const [, small] = canvas(SIZE, SIZE);
@@ -124,7 +153,7 @@ async function whiten({ id, image, maxSize }: BgRequest): Promise<Blob> {
   return result.convertToBlob({ type: "image/jpeg", quality: 0.92 });
 }
 
-// Anfragen nacheinander abarbeiten, eine WASM-Session rechnet nicht parallel
+// Anfragen nacheinander abarbeiten, eine Session rechnet nicht parallel
 let queue = Promise.resolve();
 self.onmessage = (e: MessageEvent<BgRequest>) => {
   const req = e.data;
