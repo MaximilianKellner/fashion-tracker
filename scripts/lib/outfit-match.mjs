@@ -450,6 +450,16 @@ export function scoreOutfit(selected, context = {}) {
 }
 
 /**
+ * Wie viele Teile aus `ids` in `other` fehlen (beides Listen von Item-IDs), also wie viel an `ids` neu ist.
+ * Gerichtet: Ist `ids` in `other` enthalten (z. B. ein gespeichertes Outfit mit zusätzlichem Gürtel), ist das Ergebnis 0.
+ * Für den Vergleich zweier gleichwertiger Outfits beide Richtungen prüfen.
+ */
+export function differentParts(ids, other) {
+  const set = new Set(other);
+  return new Set(ids.filter((id) => !set.has(id))).size;
+}
+
+/**
  * Füllt leere Plätze (standardmäßig Oberteil, Hose, Schuhe) so, dass das ganze Outfit möglichst stimmig ist.
  * Statt Platz für Platz das gerade beste Teil zu nehmen, werden mehrere Kombinationen parallel verfolgt
  * und mit scoreOutfit verglichen (Beam-Suche).
