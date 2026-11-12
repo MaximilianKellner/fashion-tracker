@@ -160,7 +160,12 @@ Build automatisch (auch von Hand: `npm run purge-trash`).
 Kacheln im Bento-Raster: Aktive Teile, Wert des Schranks, Outfits, offene Wünsche. Die Farben zeigt ein **Mosaik** in den
 echten Kleiderfarben (Fläche = Anzahl, Zahl oben, Name unten); ein Klick auf eine Farbe öffnet den Kleiderschrank mit diesem
 Farbfilter, die Balkenliste lässt sich darunter aufklappen. Daneben Kategorien, Wert pro Kategorie, Saisons, Marken (Top 8,
-Rest aufklappbar), Ausgaben pro Jahr und die Teile,
+Rest aufklappbar) und Ausgaben pro Jahr. **Bestand und Ausgaben** zeigt beide kumuliert als Linien über die Zeit wie einen
+Kursverlauf, jede in Prozent ihres Endwerts (eine gemeinsame Achse, keine zweite y-Achse). Laufen die Linien parallel, kamen
+Teile und Ausgaben gleichmäßig. Datum ist das Kaufdatum, sonst der Tag der Erfassung aus der ID. Die Kurve bleibt bis kurz vor
+einem Zugang flach und steigt dann weich an. Ein Fadenkreuz dockt am nächstgelegenen Zugang unter dem Zeiger (bzw. Finger) an,
+gleitet weich zum nächsten und zeigt Datum, Zugang sowie Bestand und Summe an diesem Tag. Die Knöpfe Gesamt / YTD / 1 J / 6 M / 3 M / 1 M wählen den Zeitraum (nur die, für die es ältere Daten gibt); beim Wechsel
+morphen die Linien weich, bei „Bewegung reduzieren“ im System ohne Animation. Darunter stehen die Teile,
 die **in keinem Outfit** vorkommen (Kandidaten für neue Kombinationen oder fürs Aussortieren; ein Klick auf „N Teile in
 keinem Outfit“ in der Kachel „Outfits“ scrollt dorthin). Fehlt bei Teilen der Preis,
 scrollt ein Klick auf „N Teile ohne Preis“ zur Liste **Ohne Preis** (aufgebaut wie „In keinem Outfit“, mit Links zu den

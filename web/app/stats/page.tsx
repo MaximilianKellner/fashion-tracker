@@ -5,6 +5,7 @@ import { computeStats } from "@lib/stats.mjs";
 import { euro, label } from "@/lib/labels";
 import { ColorDot } from "@/components/item-card";
 import { ColorTreemap } from "@/components/color-treemap";
+import { TimelineChart } from "@/components/timeline-chart";
 
 function Tile({ label, value, sub }: { label: string; value: string; sub?: ReactNode }) {
   return (
@@ -182,6 +183,9 @@ export default async function StatsPage() {
           )}
         </Card>
         <BarList title="Marken" data={stats.byBrand} twoCol limit={8} className="md:col-span-2" />
+        <Card title="Bestand und Ausgaben" className="md:col-span-2 lg:col-span-4">
+          <TimelineChart data={stats.timeline} today={new Date().toISOString().slice(0, 10)} />
+        </Card>
       </div>
 
       {noPrice.length > 0 && (
