@@ -21,7 +21,37 @@ type Props = {
 };
 
 type SlotId = (typeof SLOTS)[number]["id"];
-type Chosen = Partial<Record<SlotId, Item>>;
+/** Feld auf der Bühne: die festen Plätze plus weitere Accessoire-Felder („accessoire-2“, „accessoire-3“ …) */
+type SlotKey = SlotId | `accessoire-${number}`;
+type Chosen = Partial<Record<SlotKey, Item>>;
+
+// Accessoires dürfen mehrfach vorkommen: Ist jedes Accessoire-Feld belegt, erscheint darunter ein neues leeres
+const ACC = "accessoire";
+const isAcc = (key: string) => key === ACC || key.startsWith(`${ACC}-`);
+/** Platz, nach dem Vorschläge gefiltert werden („accessoire-2“ → „accessoire“) */
+const baseSlot = (key: SlotKey): SlotId => (isAcc(key) ? ACC : (key as SlotId));
+/** Nummer des Accessoire-Felds, ab 1 (0 für alle anderen Plätze) */
+const accIndex = (key: string) => (key === ACC ? 1 : isAcc(key) ? Number(key.slice(ACC.length + 1)) : 0);
+const accKey = (n: number): SlotKey => (n <= 1 ? ACC : `${ACC}-${n}`);
+/** Gewählte Accessoires in Feld-Reihenfolge */
+const accessoriesOf = (chosen: Chosen) =>
+  (Object.entries(chosen) as [SlotKey, Item | undefined][])
+    .filter(([key, item]) => item && isAcc(key))
+    .sort(([a], [b]) => accIndex(a) - accIndex(b))
+    .map(([, item]) => item as Item);
+/** Accessoire-Felder auf der Bühne: alle belegten plus ein leeres */
+const accessoryKeys = (chosen: Chosen) => Array.from({ length: accessoriesOf(chosen).length + 1 }, (_, n) => accKey(n + 1));
+/** Schiebt die Accessoires lückenlos auf „accessoire“, „accessoire-2“ … (nach dem Entfernen eines mittleren) */
+function compactAccessories(chosen: Chosen): Chosen {
+  const next: Chosen = {};
+  for (const [key, item] of Object.entries(chosen) as [SlotKey, Item | undefined][]) if (item && !isAcc(key)) next[key] = item;
+  accessoriesOf(chosen).forEach((item, n) => (next[accKey(n + 1)] = item));
+  return next;
+}
+const slotName = (key: SlotKey) => {
+  const name = SLOTS.find((s) => s.id === baseSlot(key))!.label;
+  return accIndex(key) > 1 ? `${name} ${accIndex(key)}` : name;
+};
 
 // Eigener Farbpunkt statt dem aus item-card (das lädt serverseitigen Code)
 function ColorDot({ color, size = "h-3 w-3" }: { color: string; size?: string }) {
@@ -34,8 +64,15 @@ const photoSrc = (item: Item) => (item.data.photos?.[0] ? `/photos/${item.id}/${
 function assign(ids: string[], items: Item[]): Chosen {
   const chosen: Chosen = {};
   const found = ids.map((id) => items.find((i) => i.id === id)).filter((i): i is Item => !!i);
+  let accessories = 0;
   for (const item of found.sort((a, b) => (layerOf(b) ?? 0) - (layerOf(a) ?? 0))) {
-    const slot = (slotsFor(item) as SlotId[]).find((s) => !chosen[s]);
+    const slots = slotsFor(item) as SlotId[];
+    // Jedes Accessoire bekommt ein eigenes Feld, damit beim Bearbeiten keins verloren geht
+    if (slots.includes(ACC)) {
+      chosen[accKey(++accessories)] = item;
+      continue;
+    }
+    const slot = slots.find((s) => !chosen[s]);
     if (slot) chosen[slot] = item;
   }
   return chosen;
@@ -51,12 +88,20 @@ function orderLayers(chosen: Chosen): Chosen {
 }
 
 export function OutfitBuilder({ items, outfits, palette, initialItems, initialSeasons, outfit }: Props) {
-  const [chosen, setChosen] = useState<Chosen>(() => assign(initialItems, items));
-  const [active, setActive] = useState<SlotId>(() => SLOTS.find((s) => !assign(initialItems, items)[s.id])?.id ?? "oberteil");
+  const [chosen, setChosenRaw] = useState<Chosen>(() => assign(initialItems, items));
+  const [active, setActive] = useState<SlotKey>(() =>SLOTS.find((s) => !assign(initialItems, items)[s.id])?.id ?? "oberteil");
   // Eine Auswahl für Filter und Speicherformular: danach werden Teile bewertet und das Outfit gespeichert (leer = egal)
   const [seasons, setSeasons] = useState<string[]>(initialSeasons);
   const toggleSeason = (s: string) => setSeasons((cur) => SEASONS.filter((x) => (x === s ? !cur.includes(s) : cur.includes(x))));
   const [state, formAction, pending] = useActionState(saveOutfit, null);
+
+  /** Neue Auswahl übernehmen: Accessoire-Felder ohne Lücken, und das aktive Feld bleibt eins, das auch zu sehen ist */
+  function setChosen(raw: Chosen) {
+    const next = compactAccessories(raw);
+    setChosenRaw(next);
+    const keys = accessoryKeys(next);
+    if (accIndex(active) > keys.length) setActive(keys[keys.length - 1]);
+  }
 
   const context = useMemo(() => ({ palette, outfits, seasons }), [palette, outfits, seasons]);
   const selected = Object.values(chosen).filter((i): i is Item => !!i);
@@ -82,7 +127,7 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
     // Darunter nur, was unter das gewählte Oberteil passt
     const top = active === "darunter" ? chosen.oberteil : undefined;
     return items
-      .filter((i) => slotsFor(i).includes(active) && !usedElsewhere.has(i.id))
+      .filter((i) => slotsFor(i).includes(baseSlot(active)) && !usedElsewhere.has(i.id))
       .filter((i) => !top || layerOf(i) < layerOf(top))
       .map((item) => {
         const result = scoreCandidate(item, others, context);
@@ -110,7 +155,7 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
     const item = selected.find((s) => s.id === id);
     return item ? label(item.data.subcategory) || item.data.name : id;
   };
-  const slotProps = { chosen, active, setActive, setChosen, problemsBy, highlighted };
+  const slotProps = { chosen, active, setActive, remove: (key: SlotKey) => setChosen({ ...chosen, [key]: undefined }), problemsBy, highlighted };
 
   function pick(item: Item) {
     const next = orderLayers({ ...chosen, [active]: chosen[active]?.id === item.id ? undefined : item });
@@ -143,7 +188,8 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
     startTransition(() => formAction(fd));
   }
 
-  const slotLabel = SLOTS.find((s) => s.id === active)?.label;
+  const slotLabel = slotName(active);
+  const accessoryCount = accessoriesOf(chosen).length;
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
@@ -154,7 +200,9 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
             <div className="space-y-2">
               <Slot id="kopf" shape="aspect-square" {...slotProps} />
               <Slot id="darunter" shape="aspect-[3/4]" {...slotProps} />
-              <Slot id="accessoire" shape="aspect-square" {...slotProps} />
+              {accessoryKeys(chosen).map((key) => (
+                <Slot key={key} id={key} shape="aspect-square" {...slotProps} />
+              ))}
             </div>
             <div className="space-y-2">
               <Slot id="oberteil" shape="aspect-[4/5]" {...slotProps} />
@@ -288,11 +336,12 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
             <button
               key={s.id}
               type="button"
-              onClick={() => setActive(s.id)}
-              className={`chip shrink-0 ${active === s.id ? "chip-active" : ""}`}
+              // Accessoire: zum leeren Feld, damit ein weiteres dazukommt (außer es ist schon ein Accessoire-Feld aktiv)
+              onClick={() => setActive(s.id !== ACC ? s.id : isAcc(active) ? active : accKey(accessoryCount + 1))}
+              className={`chip shrink-0 ${baseSlot(active) === s.id ? "chip-active" : ""}`}
             >
               {s.label}
-              {chosen[s.id] ? " ✓" : ""}
+              {s.id === ACC ? (accessoryCount > 1 ? ` ✓ ${accessoryCount}` : accessoryCount ? " ✓" : "") : chosen[s.id] ? " ✓" : ""}
             </button>
           ))}
         </div>
@@ -361,16 +410,16 @@ function Slot({
   chosen,
   active,
   setActive,
-  setChosen,
+  remove,
   problemsBy,
   highlighted,
 }: {
-  id: SlotId;
+  id: SlotKey;
   shape: string;
   chosen: Chosen;
-  active: SlotId;
-  setActive: (s: SlotId) => void;
-  setChosen: (c: Chosen) => void;
+  active: SlotKey;
+  setActive: (s: SlotKey) => void;
+  remove: (s: SlotKey) => void;
   /** Probleme je Teil-ID aus scoreOutfit */
   problemsBy: Map<string, string[]>;
   /** Teile des Problems, auf das gerade gezeigt wird */
@@ -379,7 +428,7 @@ function Slot({
   const item = chosen[id];
   const src = item && photoSrc(item);
   const isActive = active === id;
-  const name = SLOTS.find((s) => s.id === id)!.label;
+  const name = slotName(id);
   const problems = (item && problemsBy.get(item.id)) || [];
   const marked = item && highlighted.has(item.id);
   // Aktiver Platz: Akzent-Ring; Teil mit Problem: roter Rahmen, beim Zeigen auf das Problem kräftiger
@@ -417,7 +466,7 @@ function Slot({
       {item && (
         <button
           type="button"
-          onClick={() => setChosen({ ...chosen, [id]: undefined })}
+          onClick={() => remove(id)}
           aria-label={`${name} entfernen`}
           className="absolute right-1 top-1 rounded-full bg-surface/90 px-1.5 text-xs leading-5"
         >

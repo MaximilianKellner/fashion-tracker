@@ -4,6 +4,16 @@ import { label } from "@/lib/labels";
 import { CATEGORIES, SEASONS } from "@lib/schema.mjs";
 import { ColorDot, ItemCard } from "@/components/item-card";
 import { SectionRail } from "@/components/section-rail";
+import { SortSelect } from "@/components/sort-select";
+import { basicSorts, byId, byNumber, pickSort, sortChoices, type SortOption } from "@/lib/sort";
+import type { Item } from "@/lib/types";
+
+// Innerhalb jeder Kategorie; Standard ist die bisherige Reihenfolge (nach Erfassung)
+const ITEM_SORTS: SortOption<Item>[] = [
+  ...basicSorts<Item>((i) => i.data.name),
+  { id: "preis-ab", label: "Teuerste zuerst", compare: (a, b) => byNumber(a.data.purchase?.price, b.data.purchase?.price, -1) || byId(a, b) },
+  { id: "preis-auf", label: "Günstigste zuerst", compare: (a, b) => byNumber(a.data.purchase?.price, b.data.purchase?.price, 1) || byId(a, b) },
+];
 
 // Reihenfolge im Kleiderschrank: von oben nach unten wie ein Outfit, dann der Rest
 const CATEGORY_ORDER = ["jacke", "oberteil", "kleid", "hose", "schuhe", "accessoire", "sport", "unterwaesche"];
@@ -22,7 +32,8 @@ const rank = (c: string) => {
   return i < 0 ? CATEGORY_ORDER.length : i;
 };
 
-type Filters = { category?: string; color?: string; season?: string; status?: string };
+// sort gehört dazu, damit Filter-Links die gewählte Sortierung behalten
+type Filters = { category?: string; color?: string; season?: string; status?: string; sort?: string };
 
 /** Link, der einen Filter setzt bzw. beim erneuten Klick wieder entfernt */
 function filterHref(current: Filters, key: keyof Filters, value: string) {
@@ -39,8 +50,10 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
     color: one(sp.color),
     season: one(sp.season),
     status: one(sp.status),
+    sort: one(sp.sort),
   };
   const status = filters.status ?? "aktiv";
+  const sort = pickSort(ITEM_SORTS, filters.sort);
 
   const all = await getItems();
   const items = all.filter(
@@ -49,7 +62,7 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
       (!filters.category || i.data.category === filters.category) &&
       (!filters.color || i.data.colors?.includes(filters.color)) &&
       (!filters.season || i.data.seasons?.includes(filters.season)),
-  );
+  ).sort(sort.compare);
 
   // Nur Filter anbieten, die im Bestand vorkommen
   const categories = CATEGORIES.filter((c) => all.some((i) => i.data.category === c)).sort((a, b) => rank(a) - rank(b));
@@ -77,11 +90,14 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
 
   return (
     <div>
-      <div className="flex items-baseline justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Kleiderschrank</h1>
-        <span className="text-sm text-muted">
-          {items.length} von {all.length} Teilen
-        </span>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Kleiderschrank</h1>
+          <p className="mt-1 text-sm text-muted">
+            {items.length} von {all.length} Teilen
+          </p>
+        </div>
+        <SortSelect options={sortChoices(ITEM_SORTS)} value={sort.id} />
       </div>
 
       <div className="mt-4 space-y-2">

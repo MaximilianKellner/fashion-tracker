@@ -15,6 +15,9 @@ Am PC alles in der oberen Leiste.
 - **Sprungmarken** am rechten Rand: ein Punkt je Kategorie, der aktuelle ist hervorgehoben; Klick scrollt weich dorthin, am PC
   erscheint beim Darüberfahren der Name (`web/components/section-rail.tsx`).
 - Filter oben: Kategorie, Saison und Farbe, frei kombinierbar. Die Gruppierung bleibt beim Filtern erhalten.
+- **Sortieren** oben rechts (innerhalb jeder Kategorie): älteste/neueste zuerst, Name A–Z/Z–A, teuerste/günstigste zuerst.
+  Steht als `?sort=` in der URL und bleibt beim Filtern erhalten. Dieselbe Auswahl gibt es bei Outfits und Wunschliste
+  (`web/lib/sort.ts`, `web/components/sort-select.tsx`).
 - Unter jedem Teil: Farbpunkte, Marke und Unterkategorie.
 - Fotos werden nie abgeschnitten. Schmale Hochkant-Fotos (z. B. Hosen) bekommen einen unscharf gestreckten Hintergrund aus ihren
   eigenen Rändern, damit sie ins Raster passen.
@@ -72,7 +75,8 @@ Läuft komplett lokal, ohne KI. Getestet mit Zara, H&M und About You; Zalando bl
 
 ![Outfits](screenshots/outfits.webp)
 
-- Übersicht als Collage mit Anlass, Bewertung und Hinweis, ob Claude das Outfit vorgeschlagen hat.
+- Übersicht als Collage mit Anlass, Bewertung und Hinweis, ob Claude das Outfit vorgeschlagen hat. Sortierbar nach Alter,
+  Name, Punktzahl und Sternen.
 - Oben rechts auf jeder Karte die Punktzahl des Outfit-Builders (0–100, gleiche Farben wie im Builder); beim Darüberfahren
   Urteil und erkannte Probleme.
 - **Outfit bauen** öffnet den Builder (siehe unten), **Aus Liste** die schlichte Auswahl per Raster.
@@ -83,6 +87,8 @@ Läuft komplett lokal, ohne KI. Getestet mit Zara, H&M und About You; Zalando bl
 ![Outfit-Builder](screenshots/builder.webp)
 
 - Das Outfit liegt als Flatlay da: Oberteil, Hose und Schuhe in der Mitte, Jacke rechts, Kopf, „Darunter“ und Accessoire links.
+- **Mehrere Accessoires**: Sobald im Accessoire-Feld eins gewählt ist, erscheint darunter ein weiteres leeres Feld
+  („Accessoire 2“, „Accessoire 3“ …). Entfernt man eins, rücken die übrigen nach.
 - Platz antippen, Teil wählen. Danach springt der Builder zum nächsten leeren Pflichtplatz.
 - „Darunter“ bietet nur Shirts und Hemden an, die unter das gewählte Oberteil passen. Landet ein Hemd unter einem T-Shirt,
   tauschen die beiden die Plätze.
