@@ -46,6 +46,7 @@ export function computeStats(items, outfits, wishlist) {
       itemsWithoutPrice: withoutPrice.length,
       idsWithoutPrice: withoutPrice,
     },
+    timeline: timeline(items),
     outfits: { total: outfits.length, itemsNotInAnyOutfit: notInOutfit },
     wishlist: {
       open: wishlist.filter((w) => w.data.status === 'offen').length,
@@ -54,6 +55,24 @@ export function computeStats(items, outfits, wishlist) {
       ),
     },
   };
+}
+
+/**
+ * Zugänge und Ausgaben pro Tag, chronologisch (alle Teile, auch aussortierte). Nur Tage mit Zugängen.
+ * Datum ist das Kaufdatum, sonst der Tag der Erfassung aus der ID (`JJJJ-MM-TT-slug`).
+ */
+function timeline(items) {
+  const days = {};
+  for (const i of items) {
+    const date = String(i.data.purchase?.date ?? i.id).match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+    if (!date) continue;
+    const d = (days[date] ??= { count: 0, spend: 0 });
+    d.count += 1;
+    if (typeof i.data.purchase?.price === 'number') d.spend += i.data.purchase.price;
+  }
+  return Object.keys(days)
+    .sort()
+    .map((date) => ({ date, count: days[date].count, spend: round(days[date].spend) }));
 }
 
 const round = (n) => Math.round(n * 100) / 100;

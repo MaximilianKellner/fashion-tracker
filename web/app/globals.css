@@ -10,6 +10,9 @@
   --accent: #2f4a3a;
   --accent-ink: #ffffff;
   --danger: #a33a2c;
+  /* Diagrammlinien, geprüft auf Farbenblindheit (dataviz validate_palette) */
+  --chart-1: #1a8460;
+  --chart-2: #cc6620;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,6 +26,8 @@
     --accent: #9cc4a8;
     --accent-ink: #12201a;
     --danger: #e0806f;
+    --chart-1: #3fa679;
+    --chart-2: #d4722a;
   }
 }
 
@@ -36,6 +41,8 @@
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
   --color-danger: var(--danger);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
   --font-sans: var(--font-geist-sans), system-ui, sans-serif;
 }
 
