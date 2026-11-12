@@ -68,6 +68,13 @@ Früher lagen Code und Daten im selben Repo, und der Dienst war direkt in `confi
   - Offene Tabs merken das: Kommt ein Tab wieder in den Vordergrund, fragt er `/api/version` ab (höchstens alle
     30 Minuten) und zeigt nach dem Neustart unten „Neue Version verfügbar“ mit einem Button zum Neuladen, pro Browser
     höchstens einmal am Tag. Das geht überall, wo die Website aus einem Git-Checkout gebaut wird, nicht nur unter NixOS.
+  - **Sofort prüfen**: Im Footer steht die Version der geladenen Seite (Git-Commit) und **Nach Updates suchen**. Der Knopf
+    stößt denselben Abgleich sofort an, statt bis zu 15 Minuten zu warten (`checkForUpdate` in `git-sync.mjs`, höchstens
+    alle 20 Sekunden). Kam neuer Code, läuft der Build wie oben im Hintergrund; der Knopf fragt alle 15 Sekunden
+    `/api/version` ab und bietet nach dem Neustart **Neu laden** an. Ohne `CODE_AUTOUPDATE=1` (z. B. Nix-Paket ohne
+    `autoUpdate`) meldet er nur „Automatische Updates sind auf diesem Server aus“; dann kommt neuer Code per
+    `nixos-rebuild` bzw. von Hand. Der Neustart nach dem Build braucht einen Dienst, der den Server neu startet (systemd);
+    mit `npm start` oder `npm run dev` von Hand bleibt der Server nach dem Build einfach aus.
   - Haben sich die Abhängigkeiten geändert (`package-lock.json`), startet der Server sofort neu: `npm ci` kann nicht unter
     dem laufenden Server laufen. Dann ist die Website wie früher für die Bauzeit weg.
 

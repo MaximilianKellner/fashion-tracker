@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { UpdateCheck } from "./update-check";
 
 const LINKS = [
   { href: "/papierkorb", label: "Papierkorb" },
@@ -34,6 +35,9 @@ export function Footer() {
           <a href="#" className="justify-self-end hover:text-ink">
             Nach oben ↑
           </a>
+        </div>
+        <div className="mt-3 text-xs">
+          <UpdateCheck />
         </div>
       </div>
     </footer>
