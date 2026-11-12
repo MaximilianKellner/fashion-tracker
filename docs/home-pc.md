@@ -65,6 +65,9 @@ Früher lagen Code und Daten im selben Repo, und der Dienst war direkt in `confi
   **während die alte Version weiterläuft**. Erst danach beendet sich der Server (Exit-Code 75, nachdem noch ausstehende
   Commits rausgegangen sind), und systemd startet ihn mit dem fertigen Build neu.
   - Schlägt der Build fehl, läuft die bisherige Version einfach weiter.
+  - Offene Tabs merken das: Kommt ein Tab wieder in den Vordergrund, fragt er `/api/version` ab (höchstens alle
+    30 Minuten) und zeigt nach dem Neustart unten „Neue Version verfügbar“ mit einem Button zum Neuladen, pro Browser
+    höchstens einmal am Tag. Das geht überall, wo die Website aus einem Git-Checkout gebaut wird, nicht nur unter NixOS.
   - Haben sich die Abhängigkeiten geändert (`package-lock.json`), startet der Server sofort neu: `npm ci` kann nicht unter
     dem laufenden Server laufen. Dann ist die Website wie früher für die Bauzeit weg.
 

@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -22,7 +23,21 @@ const lanAddresses = Object.values(os.networkInterfaces())
   .filter((a) => a && a.family === "IPv4" && !a.internal)
   .map((a) => a!.address);
 
+/**
+ * Version dieses Builds (Git-Commit des Code-Checkouts). Wird beim Bauen fest in Server- und Browser-Code geschrieben;
+ * der Browser vergleicht sie mit /api/version und bietet nach einem Update das Neuladen an (components/update-notice.tsx).
+ * Ohne Git (z.B. Nix-Paket-Build) bleibt sie leer und der Hinweis aus.
+ */
+function appVersion(): string {
+  try {
+    return execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: repoRoot, encoding: "utf8" }).trim();
+  } catch {
+    return "";
+  }
+}
+
 const nextConfig: NextConfig = {
+  env: { APP_VERSION: appVersion() },
   // scripts/lib liegt außerhalb von web/ und muss für Turbopack auflösbar sein
   turbopack: { root: repoRoot },
   allowedDevOrigins: lanAddresses,

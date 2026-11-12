@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import { Footer } from "@/components/footer";
 import { Nav } from "@/components/nav";
+import { UpdateNotice } from "@/components/update-notice";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* Unten Platz für die mobile Navigationsleiste lassen */}
         <main className="mx-auto w-full max-w-5xl px-4 pb-6 pt-2 sm:pt-6">{children}</main>
         <Footer />
+        <UpdateNotice />
       </body>
     </html>
   );
