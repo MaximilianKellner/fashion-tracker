@@ -74,6 +74,9 @@ export default async function OutfitsPage({ searchParams }: PageProps<"/outfits"
           <Link href="/outfits/new" className="btn-ghost">
             Aus Liste
           </Link>
+          <Link href="/outfits/swipen" className="btn-ghost">
+            Swipen
+          </Link>
           <Link href="/outfits/builder" className="btn-primary">
             Outfit bauen
           </Link>

@@ -38,6 +38,7 @@ Fotos liegen im selben Ordner als `photo-1.webp`, `photo-2.webp` … (max. 1024p
 | `photos`      |         | Liste        | `[photo-1.webp]` |
 | `tags`        |         | Liste        | frei: `[lieblingsteil, buero]` |
 | `link`        |         | Text         | Produktseite im Shop (wird beim Import per Lesezeichen gesetzt) |
+| `wear`        |         | Text         | `mehr` oder `weniger`: öfter bzw. seltener tragen (Website → Outfits → Swipen), wirkt auf Outfit-Vorschläge |
 
 Der Text unter dem Frontmatter ist für Notizen: Passform, Pflege, Kombinationstipps, Mängel.
 

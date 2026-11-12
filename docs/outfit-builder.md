@@ -125,6 +125,11 @@ Frühling/Sommer-Outfit. Die Outfit-Karten bewerten mit den gespeicherten Saison
   (bei der Auswahl je Platz und unter den stimmigsten Outfits). Beim Auffüllen ohne Zufall und in der Vorschlagsliste
   des Builders gibt es bis zu 10 Punkte Abzug für die Reihenfolge (`oftenPenalty`), mit dem Hinweis „trägst du schon oft“.
   Beispiel mit Creme: Cremefarbene Oberteile kamen in rund der Hälfte der gewürfelten Herbst-Outfits vor, danach in gut 10 %.
+- **Swipen** (Teil → `wear`, Website unter Outfits → Swipen): `wearFactor` ist +1 für `mehr`, −1 für `weniger`; eine
+  Swipe-Runde im Modus „Outfit finden“ gibt `context.liked` / `context.disliked` (Item-IDs) mit, die doppelt zählen.
+  Wie bei `palette.often` ändert sich die Bewertung nicht, nur die Auswahl: je Stufe 8 Punkte Bonus bzw. Abzug beim
+  Sortieren und Auffüllen (`suggestPenalty` = `oftenPenalty` − 8 × `wearFactor`), beim Würfeln ×1,8 bzw. ÷1,8 Chance.
+  Im Builder steht dazu „willst du öfter tragen“ bzw. „willst du seltener tragen“.
 
 Zur Kontrolle: Alle gespeicherten Outfits erreichen 84–91 Punkte; Fleece über Hoodie fällt auf *Unruhig*.
 

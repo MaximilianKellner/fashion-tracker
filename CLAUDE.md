@@ -78,6 +78,7 @@ gelten **im Datenverzeichnis**. Vor der Arbeit `.env` lesen (fehlt sie, gelten `
 - Nur Teile mit `status: aktiv` für Outfits verwenden.
 - Farben unter `palette.often` im Profil trägt der Nutzer schon oft: solche Teile (vor allem Oberteile) seltener vorschlagen
   und auch nicht zum Kauf empfehlen, außer er fragt danach.
+- `wear` am Teil (vom Swipen auf der Website): `mehr` bevorzugt vorschlagen, `weniger` nur, wenn es wirklich passt.
 - Frontmatter für Überblick und Filterung nutzen, **Fotos ansehen**, wenn es auf Farbton, Muster oder Stil ankommt.
 - Saison und Wetter beachten. Das heutige Datum ist bekannt; das Wetter am Wohnort aus `profile.md` bei Bedarf per Websuche holen.
 - Outfit-Vorschläge immer mit Item-IDs/Namen und kurzer Begründung (Farben, Formalität, Proportionen).
