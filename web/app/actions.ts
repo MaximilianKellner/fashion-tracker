@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import * as lib from "@lib/data.mjs";
 import { processPhoto } from "@lib/photo.mjs";
-import { commitAndPush } from "@lib/git-sync.mjs";
+import { checkForUpdate as checkCode, commitAndPush } from "@lib/git-sync.mjs";
 import { downloadImage } from "@lib/product-import.mjs";
 import {
   ITEM_FIELDS,
@@ -463,4 +463,13 @@ export async function saveProfile(_prev: FormState, fd: FormData): Promise<FormS
   await lib.writeProfile(data, body);
   refreshAll("Website: Profil geändert");
   redirect("/profile");
+}
+
+// ---------- Update (Footer → „Nach Updates suchen“) ----------
+
+export type UpdateCheck = "off" | "building" | "new" | "current" | "error";
+
+/** Sucht sofort nach neuem Code und startet ggf. den Build im Hintergrund (nur mit CODE_AUTOUPDATE=1) */
+export async function checkForUpdate(): Promise<UpdateCheck> {
+  return (await checkCode()) as UpdateCheck;
 }

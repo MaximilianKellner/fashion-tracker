@@ -214,4 +214,6 @@ Alles ist unter **Bearbeiten** änderbar und landet im Frontmatter von `profile.
   (nur mit `GIT_AUTOSYNC=1`).
 - Fotos liegen außerhalb von `public/` und werden über `/photos/<id>/<datei>` bzw. `/wish-photos/<id>/<datei>` ausgeliefert.
 - `DATA_DIR` zeigt die Website auf einen anderen Datenordner, z. B. für Tests mit Kopien der Daten.
+- Footer: Version der geladenen Seite und **Nach Updates suchen** (sucht sofort nach neuem Code und baut ihn mit
+  `CODE_AUTOUPDATE=1` im Hintergrund, siehe [home-pc.md](home-pc.md#git-abgleich-scriptslibgit-syncmjs)).
 - Next.js 16 weicht in einigen APIs von älteren Versionen ab; vor Änderungen `web/AGENTS.md` lesen.

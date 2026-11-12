@@ -92,9 +92,11 @@ function restartWhenIdle(reason) {
  * Neuer Code ist da: im Hintergrund in den freien Build-Ordner bauen, die Website läuft solange weiter.
  * Läuft innerhalb der Git-Warteschlange, damit kein Pull die Dateien während des Builds ändert.
  */
+let building = false;
 async function rebuild() {
   console.log('[git-sync] neuer Code geholt, baue im Hintergrund (die Website läuft weiter)');
-  const code = await prepareInBackground();
+  building = true;
+  const code = await prepareInBackground().finally(() => (building = false));
   if (code === 0) restartWhenIdle('neuer Build fertig');
   else if (code === 2) restartWhenIdle('Abhängigkeiten geändert, Installation und Build beim Start');
   else if (code === 1) console.error('[git-sync] Build fehlgeschlagen, die bisherige Version läuft weiter');
@@ -115,18 +117,51 @@ async function syncData() {
   if (Number(stdout.trim()) > 0) await git('push', '--quiet');
 }
 
-/** Daten abgleichen und neuen Code holen; ist neuer Code da, im Hintergrund bauen */
-async function syncAll() {
+/**
+ * Daten abgleichen und neuen Code holen; ist neuer Code da, im Hintergrund bauen.
+ * onPulled(result) meldet direkt nach dem Pull "new", "current" oder "error" (bevor der Build startet).
+ */
+async function syncAll(onPulled) {
   lastSync = Date.now();
   const codeBefore = codeUpdateEnabled() ? await codeVersion().catch(() => null) : null;
   if (autosyncEnabled() && (await dataRepoOk())) await syncData();
+  let failed = false;
   if (codeUpdateEnabled() && !(autosyncEnabled() && sameRepo())) {
     // Der Code-Checkout hat keine eigenen Commits, also nur vorspulen
-    await gitIn(codeRoot(), 'pull', '--ff-only', '--quiet').catch((err) =>
-      console.error('[git-sync] Code-Update fehlgeschlagen:', err.stderr || err.message),
-    );
+    await gitIn(codeRoot(), 'pull', '--ff-only', '--quiet').catch((err) => {
+      failed = true;
+      console.error('[git-sync] Code-Update fehlgeschlagen:', err.stderr || err.message);
+    });
   }
-  if (codeBefore && codeBefore !== (await codeVersion().catch(() => codeBefore))) await rebuild();
+  const newCode = Boolean(codeBefore && codeBefore !== (await codeVersion().catch(() => codeBefore)));
+  onPulled?.(newCode ? 'new' : failed ? 'error' : 'current');
+  if (newCode) await rebuild();
+}
+
+// Mindestabstand zwischen zwei Prüfungen per Knopf, damit Dauerklicken nicht ständig GitHub fragt
+const CHECK_GAP_MS = 20_000;
+let lastCheck = 0;
+
+/**
+ * Sofort nach neuem Code suchen (Knopf „Nach Updates suchen“ im Footer), ohne das 15-Minuten-Intervall abzuwarten.
+ * Gleicht dabei auch die Daten ab. Ergebnis:
+ *   "off"      – Auto-Update ist aus (CODE_AUTOUPDATE), der Server kann sich nicht selbst aktualisieren
+ *   "building" – ein Update wird gerade gebaut, danach startet der Server neu
+ *   "new"      – neuer Code geholt, der Build läuft jetzt im Hintergrund
+ *   "current"  – kein neuer Code
+ *   "error"    – Abgleich fehlgeschlagen (z. B. offline)
+ */
+export function checkForUpdate() {
+  if (!codeUpdateEnabled()) return Promise.resolve('off');
+  if (building) return Promise.resolve('building');
+  if (Date.now() - lastCheck < CHECK_GAP_MS) return Promise.resolve('current');
+  lastCheck = Date.now();
+  return new Promise((resolve) => {
+    enqueue(() => (building ? resolve('building') : syncAll(resolve))).catch((err) => {
+      console.error('[git-sync] Update-Prüfung fehlgeschlagen:', err.stderr || err.message);
+      resolve('error');
+    });
+  });
 }
 
 /** Committet Datenänderungen mit der Nachricht und pusht sie. Wartet nicht auf GitHub (läuft im Hintergrund). */
