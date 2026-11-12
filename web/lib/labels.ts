@@ -90,3 +90,7 @@ export function scoreTone(score: number) {
   if (score >= 65) return "bg-surface-2 text-ink";
   return "bg-danger/15 text-danger";
 }
+
+// Jahreszeit nach Monat (Dezember bis Februar Winter usw.)
+const SEASON_BY_MONTH = ["winter", "winter", "fruehling", "fruehling", "fruehling", "sommer", "sommer", "sommer", "herbst", "herbst", "herbst", "winter"];
+export const currentSeason = (date = new Date()) => SEASON_BY_MONTH[date.getMonth()];
