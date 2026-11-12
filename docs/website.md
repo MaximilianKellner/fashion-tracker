@@ -78,6 +78,9 @@ Läuft komplett lokal, ohne KI. Getestet mit Zara, H&M und About You; Zalando bl
 - **Vorschläge für heute** ganz oben: genau eine Zeile (so viele Karten wie die Tabelle Spalten hat: 2 am Handy, 3 am Tablet,
   4 am PC). Vorne frisch gewürfelte Outfits (wie „Würfeln“ im Builder, für die aktuelle Jahreszeit; Klick öffnet es im
   Builder zum Speichern), dahinter zufällige gespeicherte, je zur Hälfte (bei 3 Spalten 2 neue, 1 gespeichertes). Bei jedem Aufruf neu.
+  Ein neuer Vorschlag muss sich in mindestens 2 Teilen von jedem gespeicherten Outfit und vom anderen neuen Vorschlag
+  unterscheiden (`differentParts` in `scripts/lib/outfit-match.mjs`); ist er in einem gespeicherten Outfit enthalten, zählt er
+  nicht als neu. Gewürfelt wird bis zu 30-mal; findet sich nichts Passendes, erscheinen lieber weniger neue Vorschläge als Fast-Duplikate.
 - Übersicht als Collage mit Anlass, Bewertung und Hinweis, ob Claude das Outfit vorgeschlagen hat. Sortierbar nach Alter,
   Name, Punktzahl und Sternen.
 - Oben rechts auf jeder Karte die Punktzahl des Outfit-Builders (0–100, gleiche Farben wie im Builder); beim Darüberfahren

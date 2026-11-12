@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getItems, getOutfits, getProfile } from "@/lib/data";
 import { currentSeason, label, scoreTone } from "@/lib/labels";
-import { completeOutfit, scoreOutfit } from "@lib/outfit-match.mjs";
+import { completeOutfit, differentParts, scoreOutfit } from "@lib/outfit-match.mjs";
 import { OutfitCollage } from "@/components/outfit-collage";
 import { SortSelect } from "@/components/sort-select";
 import { basicSorts, byId as byAge, byNumber, pickSort, sortChoices, type SortOption } from "@/lib/sort";
@@ -22,6 +22,10 @@ const GRID = "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4";
 // sodass vorne immer die neuen und dahinter die gespeicherten stehen:
 // 2 Spalten → neu 1, gespeichert 1 · 3 Spalten → neu 1, neu 2, gespeichert 1 · 4 Spalten → alle
 const ONLY_FROM = ["", "hidden sm:block", "", "hidden lg:block"];
+// Neue Vorschläge: so viele Teile müssen anders sein als in jedem gespeicherten und im anderen neuen Outfit,
+// und so oft wird höchstens gewürfelt
+const MIN_NEW = 2;
+const MAX_TRIES = 30;
 
 /** Zufällige Reihenfolge (Fisher-Yates) */
 function shuffle<T>(list: T[]): T[] {
@@ -50,16 +54,21 @@ export default async function OutfitsPage({ searchParams }: PageProps<"/outfits"
 
   // Vorschlagszeile: zur Hälfte frisch gewürfelte Outfits (wie „Würfeln“ im Builder, für die aktuelle Jahreszeit),
   // zur Hälfte zufällige gespeicherte; erst die neuen, dann die gespeicherten.
+  // Neu heißt: mindestens MIN_NEW Teile anders als jedes gespeicherte Outfit und als der andere neue Vorschlag.
+  // Findet sich das nicht, lieber weniger neue Vorschläge als Fast-Duplikate.
   const season = currentSeason();
   const context = { palette: profile.data.palette, outfits: saved, seasons: [season] };
   const slots = ["oberteil", "hose", "schuhe", ...(season === "herbst" || season === "winter" ? ["jacke"] : [])];
   const pool = items.filter((i) => i.data.status === "aktiv");
   const fresh: { ids: string[]; parts: Item[]; name: string; score: ReturnType<typeof scoreOutfit> }[] = [];
-  for (let tries = 0; fresh.length < 2 && tries < 8 && pool.length; tries++) {
+  for (let tries = 0; fresh.length < 2 && tries < MAX_TRIES && pool.length; tries++) {
     const chosen = completeOutfit({}, pool, context, { slots, random: 1 }) as Record<string, Item | undefined>;
     const parts = slots.map((s) => chosen[s]).filter((i): i is Item => !!i);
     const ids = parts.map((p) => p.id);
-    if (parts.length < 2 || fresh.some((f) => f.ids.join() === ids.join())) continue;
+    const isNew =
+      saved.every((o) => differentParts(ids, o.items) >= MIN_NEW) &&
+      fresh.every((f) => differentParts(ids, f.ids) >= MIN_NEW && differentParts(f.ids, ids) >= MIN_NEW);
+    if (parts.length < 2 || !isNew) continue;
     const name = [chosen.oberteil, chosen.hose].map((i) => i && label(i.data.colors?.[0])).filter(Boolean).join(" & ");
     fresh.push({ ids, parts, name: name || "Vorschlag", score: scoreOutfit(parts, context) });
   }
