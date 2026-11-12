@@ -157,7 +157,10 @@ Build automatisch (auch von Hand: `npm run purge-trash`).
 
 ![Statistik](screenshots/statistik.webp)
 
-Aktive Teile, Wert des Schranks, Outfits, offene Wünsche; Verteilung nach Kategorie und Farbe, Ausgaben pro Jahr und die Teile,
+Kacheln im Bento-Raster: Aktive Teile, Wert des Schranks, Outfits, offene Wünsche. Die Farben zeigt ein **Mosaik** in den
+echten Kleiderfarben (Fläche = Anzahl, Zahl oben, Name unten); ein Klick auf eine Farbe öffnet den Kleiderschrank mit diesem
+Farbfilter, die Balkenliste lässt sich darunter aufklappen. Daneben Kategorien, Wert pro Kategorie, Saisons, Marken (Top 8,
+Rest aufklappbar), Ausgaben pro Jahr und die Teile,
 die **in keinem Outfit** vorkommen (Kandidaten für neue Kombinationen oder fürs Aussortieren; ein Klick auf „N Teile in
 keinem Outfit“ in der Kachel „Outfits“ scrollt dorthin). Fehlt bei Teilen der Preis,
 scrollt ein Klick auf „N Teile ohne Preis“ zur Liste **Ohne Preis** (aufgebaut wie „In keinem Outfit“, mit Links zu den

@@ -4,6 +4,7 @@ import { getItems, getOutfits, getWishlist } from "@/lib/data";
 import { computeStats } from "@lib/stats.mjs";
 import { euro, label } from "@/lib/labels";
 import { ColorDot } from "@/components/item-card";
+import { ColorTreemap } from "@/components/color-treemap";
 
 function Tile({ label, value, sub }: { label: string; value: string; sub?: ReactNode }) {
   return (
@@ -15,44 +16,86 @@ function Tile({ label, value, sub }: { label: string; value: string; sub?: React
   );
 }
 
-/** Rangliste mit dünnen Balken. Eine Reihe -> eine Farbe, Werte stehen als Text daneben. */
+/** Kachel im Bento-Raster. `className` legt die Spannweite fest. */
+function Card({ title, className = "", children }: { title: string; className?: string; children: ReactNode }) {
+  return (
+    <section className={`rounded-xl border border-line bg-surface p-4 ${className}`}>
+      <h2 className="mb-3 font-semibold">{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+/**
+ * Rangliste mit dünnen Balken. Eine Reihe -> eine Farbe, Werte stehen als Text daneben.
+ * `twoCol` verteilt lange Listen auf zwei Spalten, `limit` klappt den Rest ein (`0` = ganze Liste eingeklappt).
+ */
 function BarList({
   title,
   data,
   format = (n) => String(n),
   prefix,
+  className,
+  twoCol = false,
+  limit,
+  chart,
 }: {
   title: string;
   data: Record<string, number>;
   format?: (n: number) => string;
   prefix?: (key: string) => ReactNode;
+  className?: string;
+  twoCol?: boolean;
+  limit?: number;
+  /** Grafik über der Liste */
+  chart?: ReactNode;
 }) {
   const entries = Object.entries(data).sort((a, b) => b[1] - a[1]);
   const max = Math.max(...entries.map(([, v]) => v), 1);
+  const shown = limit !== undefined ? entries.slice(0, limit) : entries;
+  const rest = limit !== undefined ? entries.slice(limit) : [];
+  const listClass = twoCol ? "grid grid-cols-2 gap-x-4 gap-y-2.5 sm:gap-x-6" : "space-y-2.5";
+
+  const rows = (list: [string, number][]) =>
+    list.map(([key, value]) => (
+      <li key={key} title={`${label(key)}: ${format(value)}`}>
+        <div className="flex items-center justify-between gap-3 text-sm">
+          <span className="flex min-w-0 items-center gap-2">
+            {prefix?.(key)}
+            <span className="truncate">{label(key)}</span>
+          </span>
+          <span className="shrink-0 tabular-nums text-muted">{format(value)}</span>
+        </div>
+        <div className="mt-1 h-2 rounded bg-surface-2">
+          <div className="h-2 rounded bg-accent" style={{ width: `${(value / max) * 100}%` }} />
+        </div>
+      </li>
+    ));
+
   return (
-    <section className="rounded-xl border border-line bg-surface p-4">
-      <h2 className="mb-3 font-semibold">{title}</h2>
+    <Card title={title} className={className}>
       {entries.length === 0 ? (
         <p className="text-sm text-muted">Noch keine Daten.</p>
       ) : (
-        <ul className="space-y-2.5">
-          {entries.map(([key, value]) => (
-            <li key={key} title={`${label(key)}: ${format(value)}`}>
-              <div className="flex items-center justify-between gap-3 text-sm">
-                <span className="flex min-w-0 items-center gap-2">
-                  {prefix?.(key)}
-                  <span className="truncate">{label(key)}</span>
+        <>
+          {chart}
+          {shown.length > 0 && <ul className={listClass}>{rows(shown)}</ul>}
+          {rest.length > 0 && (
+            <details className="group mt-3">
+              <summary className="cursor-pointer text-sm text-muted hover:text-ink">
+                <span className="group-open:hidden">
+                  {shown.length > 0 ? `${rest.length} weitere anzeigen` : "Als Liste anzeigen"}
                 </span>
-                <span className="shrink-0 tabular-nums text-muted">{format(value)}</span>
-              </div>
-              <div className="mt-1 h-2 rounded bg-surface-2">
-                <div className="h-2 rounded bg-accent" style={{ width: `${(value / max) * 100}%` }} />
-              </div>
-            </li>
-          ))}
-        </ul>
+                <span className="hidden group-open:inline">
+                  {shown.length > 0 ? "Weniger anzeigen" : "Liste ausblenden"}
+                </span>
+              </summary>
+              <ul className={`mt-2.5 ${listClass}`}>{rows(rest)}</ul>
+            </details>
+          )}
+        </>
       )}
-    </section>
+    </Card>
   );
 }
 
@@ -104,13 +147,25 @@ export default async function StatsPage() {
         <Tile label="Wunschliste" value={String(stats.wishlist.open)} sub={`offen · ${euro(stats.wishlist.openValue)}`} />
       </div>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <BarList title="Kategorien" data={stats.byCategory} />
-        <BarList title="Farben" data={stats.byColor} prefix={(c) => <ColorDot color={c} />} />
-        <BarList title="Wert pro Kategorie" data={stats.value.byCategory} format={euro} />
+      {/*
+        Bento-Raster: Farben als große Kachel (Mosaik füllt die Höhe, Liste eingeklappt), daneben die
+        kurzen Listen übereinander. Darunter Saisons und Jahre schmal, Marken breit und eingeklappt.
+      */}
+      <div className="mt-3 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+        <BarList
+          title="Farben"
+          data={stats.byColor}
+          prefix={(c) => <ColorDot color={c} />}
+          twoCol
+          limit={0}
+          chart={<ColorTreemap data={stats.byColor} />}
+          className="flex flex-col md:col-span-2 lg:row-span-2"
+        />
+        <BarList title="Kategorien" data={stats.byCategory} className="lg:col-span-2" />
+        <BarList title="Wert pro Kategorie" data={stats.value.byCategory} format={euro} className="lg:col-span-2" />
+        <BarList title="Saisons" data={stats.bySeason} />
         {/* Jahre als eigene Liste, Reihenfolge chronologisch absteigend */}
-        <section className="rounded-xl border border-line bg-surface p-4">
-          <h2 className="mb-3 font-semibold">Ausgaben pro Jahr</h2>
+        <Card title="Ausgaben pro Jahr">
           {Object.keys(spendByYear).length === 0 ? (
             <p className="text-sm text-muted">Noch keine Preise erfasst.</p>
           ) : (
@@ -125,9 +180,8 @@ export default async function StatsPage() {
               </tbody>
             </table>
           )}
-        </section>
-        <BarList title="Saisons" data={stats.bySeason} />
-        <BarList title="Marken" data={stats.byBrand} />
+        </Card>
+        <BarList title="Marken" data={stats.byBrand} twoCol limit={8} className="md:col-span-2" />
       </div>
 
       {noPrice.length > 0 && (
