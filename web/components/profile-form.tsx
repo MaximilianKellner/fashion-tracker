@@ -62,7 +62,8 @@ export function ProfileForm({ data, body }: { data: ProfileData; body: string })
       <Section title="Typ">
         <ColorTypeFinder
           onApply={(result, answers) => {
-            setPalette(result.palette);
+            // „Trage ich schon oft“ gehört nicht zum Farbtyp und bleibt erhalten
+            setPalette((p) => ({ ...p, ...result.palette, often: p.often ?? [] }));
             setAppearance((a) => ({
               ...a,
               season: result.label,

@@ -130,7 +130,7 @@ Das Frontmatter enthält die Zahlen, der Text darunter Stil, Anlässe und Einkau
 | `weight_kg`    | Zahl   | `84` |
 | `birthdate`    | Datum  | `"2004-01-13"`; das Alter wird daraus berechnet (`ageFromBirthdate` in `scripts/lib/schema.mjs`) |
 | `appearance`   | Objekt | Aussehen als Text: `skin` (Haut), `hair` (Haare), `contrast` (niedrig/mittel/hoch), `glasses` (Brille), `undertone` (warm/neutral/kühl), `season` (Farbtyp, z. B. Herbst) |
-| `palette`      | Objekt | Farb-IDs aus der Farbliste: `best` (steht besonders), `base` (Basis), `sparingly` (sparsam einsetzen) |
+| `palette`      | Objekt | Farb-IDs aus der Farbliste: `best` (steht besonders), `base` (Basis), `sparingly` (sparsam einsetzen), `often` (trage ich schon oft: wird seltener vorgeschlagen) |
 | `measurements` | Objekt | Körpermaße in cm: `chest` (Brust), `waist` (Taille/Bund), `hips` (Hüfte), `inseam` (Innenbein), `shoulder` (Schulterbreite), `sleeve` (Ärmellänge), `neck` (Hals), `foot` (Fußlänge) |
 | `sizes`        | Objekt | Konfektionsgrößen als Text: `tops`, `shirts`, `trousers`, `jackets`, `shoes`, `notes` (Abweichungen je Marke) |
 | `hidden_gaps`  | Liste  | Unter Empfehlungen → „Welche Farbe fehlt?“ ausgeblendete Vorschläge als `kategorie/art/farbe`, z. B. `schuhe/loafer/braun` (will ich nicht) |

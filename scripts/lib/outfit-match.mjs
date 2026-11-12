@@ -247,7 +247,7 @@ function colorFamilies(items, vis) {
 
 /**
  * Wie gut passt `candidate` zu den schon gewählten Teilen?
- * context: { palette?: { best?: string[], sparingly?: string[] }, outfits?: [{ items: string[], rating?: number }],
+ * context: { palette?: { best?: string[], sparingly?: string[], often?: string[] }, outfits?: [{ items: string[], rating?: number }],
  *   seasons?: string[] } – Saisons, für die das Outfit gedacht ist (`season` als einzelner Wert geht auch)
  * Ergebnis: { score 0..100, reasons: [{ text, good }] } – reasons nach Wichtigkeit sortiert.
  */
@@ -391,6 +391,24 @@ export function scoreCandidate(candidate, selected, context = {}) {
 }
 
 /**
+ * Wie stark fällt ein Teil unter die Farben, die man schon oft trägt (Profil → `palette.often`)? 0..1.
+ * Je größer die Fläche, desto mehr: Oberteile und Jacken voll, Hosen weniger, Schuhe und Accessoires kaum.
+ * Hauptfarbe zählt voll, Nebenfarben anteilig. Wirkt nur auf Vorschläge, nicht auf die Bewertung eines Outfits.
+ */
+export function oftenFactor(item, context = {}) {
+  const often = context.palette?.often;
+  if (!often?.length) return 0;
+  const share = (item.data.colors ?? []).reduce((s, c, i) => s + (often.includes(c) ? colorWeight(i) : 0), 0);
+  if (!share) return 0;
+  const area = isSmall(item) ? 0.3 : item.data.category === 'hose' ? 0.6 : 1;
+  return Math.min(1, share) * area;
+}
+// Punktabzug beim Sortieren von Vorschlägen bzw. beim besten Outfit (Faktor 1 = 10 Punkte)
+export const oftenPenalty = (item, context = {}) => Math.round(10 * oftenFactor(item, context));
+// Beim Würfeln: so viel seltener wird ein Teil mit Faktor 1 gezogen
+const OFTEN_DRAW = 0.65;
+
+/**
  * Gesamturteil über ein Outfit: jedes Teil gegen die übrigen, gewichtet nach Sichtbarkeit.
  * Das schwächste Teil zählt extra, damit ein einzelner Fehlgriff auffällt.
  * Ergebnis: { score, verdict, problems: string[], issues: [{ text, items: Item-IDs }] } oder null bei weniger als zwei Teilen.
@@ -422,17 +440,25 @@ export function scoreOutfit(selected, context = {}) {
 export function completeOutfit(chosen, items, context = {}, { slots = ['oberteil', 'hose', 'schuhe'], random = 0 } = {}) {
   const open = slots.filter((s) => !chosen[s]);
   const filled = (partial) => Object.values(partial).filter(Boolean);
-  const rank = (partial, slot) => {
+  // penalty: Teile in oft getragenen Farben mit Abzug sortieren (beim Würfeln stattdessen seltener ziehen)
+  const rank = (partial, slot, penalty = true) => {
     const selected = filled(partial);
     const used = new Set(selected.map((s) => s.id));
     return items
       .filter((i) => !used.has(i.id) && slotsFor(i).includes(slot))
-      .map((i) => ({ item: i, score: scoreCandidate(i, selected, context).score }))
+      .map((i) => ({ item: i, score: scoreCandidate(i, selected, context).score - (penalty ? oftenPenalty(i, context) : 0) }))
       .sort((a, b) => b.score - a.score);
   };
-  const total = (partial) => {
+  const total = (partial, penalty = true) => {
     const selected = filled(partial);
-    return scoreOutfit(selected, context)?.score ?? (selected[0] ? scoreCandidate(selected[0], [], context).score : 0);
+    const base = scoreOutfit(selected, context)?.score ?? (selected[0] ? scoreCandidate(selected[0], [], context).score : 0);
+    return base - (penalty ? selected.reduce((sum, i) => sum + oftenPenalty(i, context), 0) : 0);
+  };
+  // Zufällig ziehen; Teile in oft getragenen Farben mit geringerem Gewicht
+  const draw = (pool) => {
+    const weights = pool.map((r) => 1 - OFTEN_DRAW * oftenFactor(r.item, context));
+    let x = Math.random() * weights.reduce((a, b) => a + b, 0);
+    return pool.find((_, i) => (x -= weights[i]) < 0) ?? pool.at(-1);
   };
 
   if (random) {
@@ -440,16 +466,19 @@ export function completeOutfit(chosen, items, context = {}, { slots = ['oberteil
     for (let n = 0; n < 24; n++) {
       const partial = { ...chosen };
       for (const slot of open) {
-        const ranked = rank(partial, slot);
+        const ranked = rank(partial, slot, false);
         if (!ranked.length) continue;
         const pool = ranked.filter((r) => r.score >= ranked[0].score - 12).slice(0, 5);
-        partial[slot] = pool[Math.floor(Math.random() * pool.length)].item;
+        partial[slot] = draw(pool).item;
       }
-      runs.push({ partial, score: total(partial) });
+      runs.push({ partial, score: total(partial, false) });
     }
     const top = Math.max(...runs.map((r) => r.score));
     const good = runs.filter((r) => r.score >= top - 5);
-    return good[Math.floor(Math.random() * good.length)].partial;
+    // Unter den stimmigsten Outfits ebenfalls seltener eines mit oft getragenen Farben
+    const weights = good.map((r) => 1 - OFTEN_DRAW * Math.max(0, ...filled(r.partial).map((i) => oftenFactor(i, context))));
+    let x = Math.random() * weights.reduce((a, b) => a + b, 0);
+    return (good.find((_, i) => (x -= weights[i]) < 0) ?? good.at(-1)).partial;
   }
 
   // Ohne gewähltes Teil sagt die Bewertung noch wenig: dann breiter starten

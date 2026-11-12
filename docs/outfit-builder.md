@@ -119,6 +119,12 @@ Frühling/Sommer-Outfit. Die Outfit-Karten bewerten mit den gespeicherten Saison
   beste Teil zu nehmen, verfolgt es mehrere Kombinationen parallel (Beam-Suche) und nimmt die mit dem besten Gesamturteil.
   **Würfeln** stellt 24 Outfits aus guten Kandidaten zusammen (je Platz zufällig unter den bis zu fünf, die höchstens
   12 Punkte hinter dem besten liegen) und wählt zufällig eines, das höchstens 5 Punkte hinter dem besten liegt.
+- **Trage ich schon oft** (Profil → `palette.often`): Teile in diesen Farben werden seltener vorgeschlagen, ohne dass sich
+  die Bewertung eines Outfits ändert. Stärke je Teil (`oftenFactor`, 0–1): Hauptfarbe voll, Nebenfarbe 0,4; Oberteile und
+  Jacken voll, Hosen 0,6, Schuhe und Accessoires 0,3. Beim Würfeln sinkt die Chance, gezogen zu werden, um bis zu 65 %
+  (bei der Auswahl je Platz und unter den stimmigsten Outfits). Beim Auffüllen ohne Zufall und in der Vorschlagsliste
+  des Builders gibt es bis zu 10 Punkte Abzug für die Reihenfolge (`oftenPenalty`), mit dem Hinweis „trägst du schon oft“.
+  Beispiel mit Creme: Cremefarbene Oberteile kamen in rund der Hälfte der gewürfelten Herbst-Outfits vor, danach in gut 10 %.
 
 Zur Kontrolle: Alle gespeicherten Outfits erreichen 84–91 Punkte; Fleece über Hoodie fällt auf *Unruhig*.
 
