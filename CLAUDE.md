@@ -54,6 +54,19 @@ gelten **im Datenverzeichnis**. Vor der Arbeit `.env` lesen (fehlt sie, gelten `
   holen bzw. hineinschreiben (Datenbankmodus, Backup, Umzug zwischen den Modi)
 - `npm run init-data [-- <ordner>] [--git]`: leeres Datenverzeichnis mit Profil-Vorlage anlegen
 
+## Arbeiten am Code (Website)
+- Seiten in `web/app/` (`page.tsx` = Kleiderschrank, `outfits/`, `wishlist/`, `empfehlungen/` …), Server-Actions in
+  `web/app/actions.ts`, Datenzugriff über `web/lib/data.ts`, Anzeigenamen in `web/lib/labels.ts`, Sortierung in `web/lib/sort.ts`.
+- Styling: Tailwind v4 mit eigenen Klassen aus `web/app/globals.css` (`field`, `btn-primary`, `btn-ghost`, `chip`, `chip-active`)
+  und Farb-Tokens (`bg-surface`, `border-line`, `text-muted`, `text-accent` …). Immer auch am Handy (375 px) prüfen.
+- Prüfen: in `web/` `npx tsc --noEmit` und `npx eslint <dateien>`. Die Warnung zu `_trashedAt` in `actions.ts` ist bekannt.
+- Testen im Browser: Dev-Server über `.claude/launch.json` (`web`, Port 3000). Zum Ansehen lieber Seitentext auslesen als
+  Screenshots, die kosten viele Tokens.
+- `next dev` ändert `web/AGENTS.md` (Überschrift `#` → `##`). Die Änderung darf mit committet werden.
+- Ablauf: Vor Commits, Pushes, Deploys und Änderungen am Server **erst fragen**. Jedes Feature auf einen eigenen Branch von
+  `main` und als eigenen PR. Ohne `gh` dem Nutzer den Compare-Link
+  (`https://github.com/MaximilianKellner/fashion-tracker/compare/main...<branch>?expand=1`) und einen PR-Text geben.
+
 ## Slash-Commands
 - `/neues-teil`: Fotos aus `inbox/` erfassen
 - `/outfit [Anlass]`: Outfit-Vorschläge aus dem vorhandenen Kleiderschrank
