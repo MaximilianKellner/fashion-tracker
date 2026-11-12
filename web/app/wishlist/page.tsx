@@ -6,7 +6,17 @@ import { ConfirmButton } from "@/components/confirm-button";
 import { Pencil, ShoppingBag } from "@/components/icons";
 import { TrashButton } from "@/components/trash-button";
 import { Photo } from "@/components/photo";
+import { SortSelect } from "@/components/sort-select";
+import { basicSorts, byId, byNumber, pickSort, sortChoices, type SortOption } from "@/lib/sort";
 import type { Wish } from "@/lib/types";
+
+// Standard wie bisher: hohe Priorität zuerst (1 = hoch, ohne Angabe mittel)
+const WISH_SORTS: SortOption<Wish>[] = [
+  { id: "prioritaet", label: "Priorität", compare: (a, b) => (a.data.priority ?? 2) - (b.data.priority ?? 2) || byId(a, b) },
+  ...basicSorts<Wish>((w) => w.data.name),
+  { id: "preis-auf", label: "Günstigste zuerst", compare: (a, b) => byNumber(a.data.price, b.data.price, 1) || byId(a, b) },
+  { id: "preis-ab", label: "Teuerste zuerst", compare: (a, b) => byNumber(a.data.price, b.data.price, -1) || byId(a, b) },
+];
 
 function WishRow({ wish }: { wish: Wish }) {
   const { data } = wish;
@@ -59,9 +69,10 @@ function WishRow({ wish }: { wish: Wish }) {
   );
 }
 
-export default async function WishlistPage() {
-  const wishes = await getWishlist();
-  const open = wishes.filter((w) => w.data.status === "offen").sort((a, b) => (a.data.priority ?? 2) - (b.data.priority ?? 2));
+export default async function WishlistPage({ searchParams }: PageProps<"/wishlist">) {
+  const sort = pickSort(WISH_SORTS, (await searchParams).sort);
+  const wishes = (await getWishlist()).sort(sort.compare);
+  const open = wishes.filter((w) => w.data.status === "offen");
   const done = wishes.filter((w) => w.data.status !== "offen");
   const total = open.reduce((s, w) => s + (w.data.price ?? 0), 0);
 
@@ -73,7 +84,13 @@ export default async function WishlistPage() {
           Neuer Wunsch
         </Link>
       </div>
-      {open.length > 0 && (
+      {wishes.length > 1 && (
+        <div className="mt-2 flex items-center justify-between gap-3">
+          <span className="text-sm text-muted">{open.length > 0 && `${open.length} offen · zusammen ${euro(total)}`}</span>
+          <SortSelect options={sortChoices(WISH_SORTS)} value={sort.id} />
+        </div>
+      )}
+      {wishes.length <= 1 && open.length > 0 && (
         <p className="mt-1 text-sm text-muted">
           {open.length} offen · zusammen {euro(total)}
         </p>

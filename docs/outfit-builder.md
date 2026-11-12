@@ -16,7 +16,7 @@ Liste von Gründen; Probleme stehen vorne.
 | Schuhe | `schuhe` |
 | Jacke | `jacke` |
 | Kopf | Accessoires mit Unterkategorie `cap` oder `muetze` |
-| Accessoire | übrige Accessoires (Gürtel, Schal, Uhr …) |
+| Accessoire | übrige Accessoires (Gürtel, Schal, Uhr …), beliebig viele: jedes belegte Feld bekommt ein neues leeres darunter |
 
 Sportteile werden über ihre Unterkategorie zugeordnet (`sporthose` → Hose usw.), Unterwäsche gar nicht.
 
