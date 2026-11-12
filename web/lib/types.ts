@@ -19,6 +19,8 @@ export type ItemData = {
   photos?: string[];
   tags?: string[];
   link?: string;
+  /** Swipe-Vorliebe: öfter oder seltener tragen */
+  wear?: "mehr" | "weniger";
 };
 
 export type OutfitData = {

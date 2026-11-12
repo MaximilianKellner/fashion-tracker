@@ -19,6 +19,7 @@ import {
   RECOMMENDATION_FIELDS,
   RECOMMENDATION_STATUS,
   SIZES,
+  WEAR,
   WISHLIST_FIELDS,
   isIsoDate,
   normalizeDate,
@@ -160,6 +161,8 @@ export async function saveItem(_prev: FormState, fd: FormData): Promise<FormStat
     purchase: Object.values(purchase).some((v) => v !== undefined) ? purchase : undefined,
     tags: list(fd, "tags"),
     link: text(fd, "link"),
+    // Swipe-Vorliebe steht nicht im Formular und bleibt beim Bearbeiten erhalten
+    wear: previous?.data.wear as ItemData["wear"],
   };
 
   const errors = validateFields(data, ITEM_FIELDS);
@@ -209,6 +212,25 @@ export async function deleteItem(id: string) {
   }
   refreshAll(`Website: Teil gelöscht: ${id}`);
   redirect("/");
+}
+
+/**
+ * Swipe-Vorlieben speichern: Item-ID → „mehr“, „weniger“ oder null (zurücksetzen).
+ * Die Website sammelt mehrere Swipes und schickt sie zusammen, damit nicht jeder Swipe ein eigener Commit wird.
+ */
+export async function saveWear(changes: Record<string, "mehr" | "weniger" | null>) {
+  const names: string[] = [];
+  for (const [id, wear] of Object.entries(changes)) {
+    if (!isSafeId(id) || (wear !== null && !WEAR.includes(wear))) continue;
+    const item = await lib.readItem(id).catch(() => null);
+    if (!item || (item.data.wear ?? null) === wear) continue;
+    const data = { ...item.data };
+    if (wear) data.wear = wear;
+    else delete data.wear;
+    await lib.writeItem(id, data, item.body);
+    names.push(`${item.data.name} (${wear ?? "egal"})`);
+  }
+  if (names.length) refreshAll(`Website: Swipe-Vorlieben: ${names.join(", ")}`);
 }
 
 // ---------- Outfits ----------

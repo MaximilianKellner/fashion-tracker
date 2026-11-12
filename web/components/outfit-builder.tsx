@@ -3,7 +3,7 @@
 import { startTransition, useActionState, useMemo, useState, type FormEvent } from "react";
 import { saveOutfit } from "@/app/actions";
 import { SEASONS } from "@lib/schema.mjs";
-import { SLOTS, completeOutfit, layerOf, oftenPenalty, scoreCandidate, scoreOutfit, slotsFor } from "@lib/outfit-match.mjs";
+import { SLOTS, completeOutfit, layerOf, oftenPenalty, scoreCandidate, scoreOutfit, slotsFor, suggestPenalty, wearFactor } from "@lib/outfit-match.mjs";
 import { label, scoreTone, swatch } from "@/lib/labels";
 import type { Item, OutfitData } from "@/lib/types";
 import { Errors, Field } from "./form-bits";
@@ -131,9 +131,14 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
       .filter((i) => !top || layerOf(i) < layerOf(top))
       .map((item) => {
         const result = scoreCandidate(item, others, context);
-        // Farben, die du schon oft trägst (Profil), rücken nach hinten; die angezeigte Passung bleibt gleich
-        const penalty = oftenPenalty(item, context);
-        const often = penalty ? [{ text: "trägst du schon oft", good: false }] : [];
+        // Farben, die du schon oft trägst (Profil), und Teile, die du seltener tragen willst (Swipen), rücken nach hinten,
+        // Teile, die du öfter tragen willst, nach vorn; die angezeigte Passung bleibt gleich
+        const penalty = suggestPenalty(item, context);
+        const wear = wearFactor(item, context);
+        const often = [
+          ...(oftenPenalty(item, context) ? [{ text: "trägst du schon oft", good: false }] : []),
+          ...(wear > 0 ? [{ text: "willst du öfter tragen", good: true }] : wear < 0 ? [{ text: "willst du seltener tragen", good: false }] : []),
+        ];
         if (others.length) return { item, ...result, reasons: [...often, ...result.reasons], order: result.score - penalty };
         // Leeres Outfit: Vielseitigkeit plus die Zu- und Abschläge für Profilpalette und Saison (Basis 70)
         const score = Math.max(0, Math.min(100, versatility.get(item.id)! + result.score - 70));
