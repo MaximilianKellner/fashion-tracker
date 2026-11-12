@@ -1,8 +1,6 @@
 import { getItems, getOutfit, getOutfits, getProfile } from "@/lib/data";
 import { OutfitBuilder } from "@/components/outfit-builder";
-
-// Jahreszeit nach Monat (Dezember bis Februar Winter usw.)
-const SEASON_BY_MONTH = ["winter", "winter", "fruehling", "fruehling", "fruehling", "sommer", "sommer", "sommer", "herbst", "herbst", "herbst", "winter"];
+import { currentSeason } from "@/lib/labels";
 
 export default async function OutfitBuilderPage({ searchParams }: PageProps<"/outfits/builder">) {
   const { items: itemParam, outfit: outfitParam } = await searchParams;
@@ -23,7 +21,7 @@ export default async function OutfitBuilderPage({ searchParams }: PageProps<"/ou
         outfits={outfits.map((o) => ({ items: o.data.items, rating: o.data.rating }))}
         palette={profile.data.palette}
         initialItems={start}
-        initialSeasons={outfit?.data.seasons?.length ? outfit.data.seasons : [SEASON_BY_MONTH[new Date().getMonth()]]}
+        initialSeasons={outfit?.data.seasons?.length ? outfit.data.seasons : [currentSeason()]}
         outfit={outfit ? { id: outfit.id, data: outfit.data, body: outfit.body } : undefined}
       />
     </div>
