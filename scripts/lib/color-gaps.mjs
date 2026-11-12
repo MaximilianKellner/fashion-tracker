@@ -77,12 +77,12 @@ export const gapKey = (slot, subcategory, color) => `${slot}/${subcategory}/${co
 
 /**
  * Farbempfehlungen je Kategorie.
- * items: alle Teile (nur aktive zählen), palette: Profilpalette { best, base, sparingly }, hidden: ausgeblendete Schlüssel (gapKey).
+ * items: alle Teile (nur aktive zählen), palette: Profilpalette { best, base, sparingly, often }, hidden: ausgeblendete Schlüssel (gapKey).
  * Ergebnis: [{ slot, label, owned: Anzahl vergleichbarer Teile, counted, hidden: Anzahl ausgeblendeter,
  *   suggestions: [{ key, color, colorLabel, subcategory, name, share, great, fresh, reasons, partners: Item-IDs }] }]
  * suggestions ist in Seiten zu je `page` sortiert (die Website blättert mit „Andere Vorschläge“), höchstens `pages` Seiten.
  * @param {any[]} items
- * @param {{ palette?: { best?: string[], base?: string[], sparingly?: string[] }, hidden?: string[], page?: number, pages?: number }} [options]
+ * @param {{ palette?: { best?: string[], base?: string[], sparingly?: string[], often?: string[] }, hidden?: string[], page?: number, pages?: number }} [options]
  */
 export function colorGaps(items, { palette = {}, hidden = [], page = 3, pages = 5 } = {}) {
   // Die Rechnung dauert ca. 0,5 s; bei unverändertem Schrank das letzte Ergebnis wiederverwenden
@@ -120,6 +120,9 @@ function paginate(sorted, size, pages) {
   }
   return out;
 }
+
+// Abzug im Rang für Farben unter „Trage ich schon oft“, je nach Fläche des Teils
+const OFTEN_PENALTY = { oberteil: 0.2, jacke: 0.2, hose: 0.12, schuhe: 0.05 };
 
 function compute(items, palette) {
   const active = items.filter((i) => i.data.status === 'aktiv' && !SPECIAL.has(i.data.subcategory));
@@ -165,12 +168,15 @@ function compute(items, palette) {
         const nearest = family.map(compare).sort((a, b) => a.novelty - b.novelty || a.distance - b.distance)[0];
         const distinct = nearest?.novelty ?? 1;
 
+        const often = palette.often?.includes(id);
         const tier = palette.best?.includes(id) ? 'best' : palette.base?.includes(id) ? 'base' : palette.sparingly?.includes(id) ? 'sparingly' : null;
         const rank =
           (mean / 100) * (0.3 + 0.7 * distinct) +
           (0.15 * great) / scores.length +
           (0.25 * fresh) / scores.length +
-          (tier === 'best' ? 0.06 : tier === 'base' ? 0.02 : tier === 'sparingly' ? -0.08 : 0);
+          (tier === 'best' ? 0.06 : tier === 'base' ? 0.02 : tier === 'sparingly' ? -0.08 : 0) -
+          // Farben, die man schon oft trägt: weiter nach hinten, bei großen Flächen (Oberteile, Jacken) am stärksten
+          (often ? OFTEN_PENALTY[slot] ?? 0.1 : 0);
 
         // Teile des ersten Partner-Platzes, die am meisten gewinnen (z. B. Oberteile, zu denen es noch keine gute Hose gibt)
         const gainBy = new Map();
@@ -190,6 +196,7 @@ function compute(items, palette) {
         if (tier === 'best') reasons.push('steht dir besonders');
         if (tier === 'base') reasons.push('Basisfarbe aus deiner Palette');
         if (tier === 'sparingly') reasons.push('laut Profil sparsam einsetzen');
+        if (often) reasons.push('trägst du laut Profil schon oft');
 
         return {
           key: gapKey(slot, type.sub, id),

@@ -143,7 +143,7 @@ Build automatisch (auch von Hand: `npm run purge-trash`).
   vorhandenen plus übliche weitere, z. B. bei Schuhen Sneaker, Loafer, Schnürschuh und Chelsea Boots, bei Jacken Blouson,
   Overshirt, Mantel und Lederjacke; Lederschuhe und Lederjacken nur in üblichen Lederfarben. Vorne stehen die bis zu drei
   Vorschläge, die am häufigsten sehr stimmig sind, sich am deutlichsten von ähnlichen vorhandenen Teilen unterscheiden
-  (Chino und Stoffhose zählen als ähnlich, ebenso Loafer und Schnürschuh) und „Steht mir besonders“ sind. Als ähnlich gelten
+  (Chino und Stoffhose zählen als ähnlich, ebenso Loafer und Schnürschuh) und „Steht mir besonders“ sind; Farben unter „Trage ich schon oft“ rücken nach hinten. Als ähnlich gelten
   auch Farben mit derselben Rolle: ähnlicher Farbton und Helligkeit nah beieinander, z. B. Beige und Creme, Bordeaux und
   Weinrot (`sameColorRole` in `outfit-match.mjs`). Praktisch gleiche Teile, die man schon hat, fallen raus.
   **Andere Vorschläge** blättert weiter (bis zu fünf Seiten; je Seite jede Farbe einmal, jede Art höchstens zweimal, über alle
@@ -176,7 +176,9 @@ Teilen). Dieselben Zahlen liefert `npm run stats` im Terminal.
 ![Profil](screenshots/profil.webp)
 
 - **Typ & Farben**: Haut, Haare, Kontrast, Brille, Unterton, Farbtyp und die Farbpalette in drei Stufen: *Steht mir
-  besonders*, *Basis*, *Sparsam einsetzen*. Der Outfit-Builder bevorzugt Farben aus der ersten Stufe. Ist noch nichts
+  besonders*, *Basis*, *Sparsam einsetzen*. Der Outfit-Builder bevorzugt Farben aus der ersten Stufe. Dazu kommt
+  *Trage ich schon oft*: Teile in diesen Farben schlagen Würfeln, Outfit-Vorschläge, die Vorschlagsliste im Builder und
+  „Welche Farbe fehlt?“ seltener vor, vor allem bei Oberteilen und Jacken (Details in `docs/outfit-builder.md`). Ist noch nichts
   eingetragen, verlinkt die Seite auf den Farbtyp-Test.
 - **Farbtyp bestimmen** (im Formular unter „Typ“): vier Fragen zu Unterton, Helligkeit, Kontrast und Leuchtkraft ergeben
   einen der vier Farbtypen (Frühling, Sommer, Herbst, Winter). „Palette übernehmen“ füllt die drei Farbgruppen mit einer

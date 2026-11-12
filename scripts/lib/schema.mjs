@@ -90,6 +90,7 @@ export const PALETTE = {
   best: { label: 'Steht mir besonders', hint: 'Akzente nah am Gesicht' },
   base: { label: 'Basis', hint: 'neutrale Töne für die meisten Teile' },
   sparingly: { label: 'Sparsam einsetzen', hint: 'eher für Hosen, Schuhe oder kleine Flächen' },
+  often: { label: 'Trage ich schon oft', hint: 'wird seltener vorgeschlagen, vor allem bei Oberteilen' },
 };
 // Konfektionsgrößen (Felder unter profile.md -> sizes)
 export const SIZES = {

@@ -76,6 +76,8 @@ gelten **im Datenverzeichnis**. Vor der Arbeit `.env` lesen (fehlt sie, gelten `
 
 ## Regeln für Empfehlungen
 - Nur Teile mit `status: aktiv` für Outfits verwenden.
+- Farben unter `palette.often` im Profil trägt der Nutzer schon oft: solche Teile (vor allem Oberteile) seltener vorschlagen
+  und auch nicht zum Kauf empfehlen, außer er fragt danach.
 - Frontmatter für Überblick und Filterung nutzen, **Fotos ansehen**, wenn es auf Farbton, Muster oder Stil ankommt.
 - Saison und Wetter beachten. Das heutige Datum ist bekannt; das Wetter am Wohnort aus `profile.md` bei Bedarf per Websuche holen.
 - Outfit-Vorschläge immer mit Item-IDs/Namen und kurzer Begründung (Farben, Formalität, Proportionen).

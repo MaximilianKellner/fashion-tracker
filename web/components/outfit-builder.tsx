@@ -3,7 +3,7 @@
 import { startTransition, useActionState, useMemo, useState, type FormEvent } from "react";
 import { saveOutfit } from "@/app/actions";
 import { SEASONS } from "@lib/schema.mjs";
-import { SLOTS, completeOutfit, layerOf, scoreCandidate, scoreOutfit, slotsFor } from "@lib/outfit-match.mjs";
+import { SLOTS, completeOutfit, layerOf, oftenPenalty, scoreCandidate, scoreOutfit, slotsFor } from "@lib/outfit-match.mjs";
 import { label, scoreTone, swatch } from "@/lib/labels";
 import type { Item, OutfitData } from "@/lib/types";
 import { Errors, Field } from "./form-bits";
@@ -12,7 +12,7 @@ import { Photo } from "./photo";
 type Props = {
   items: Item[];
   outfits: { items: string[]; rating?: number }[];
-  palette?: { best?: string[]; base?: string[]; sparingly?: string[] };
+  palette?: { best?: string[]; base?: string[]; sparingly?: string[]; often?: string[] };
   initialItems: string[];
   /** Saisons, für die das Outfit gedacht ist: beim Bearbeiten die gespeicherten, sonst die aktuelle Jahreszeit */
   initialSeasons: string[];
@@ -131,12 +131,16 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
       .filter((i) => !top || layerOf(i) < layerOf(top))
       .map((item) => {
         const result = scoreCandidate(item, others, context);
-        if (others.length) return { item, ...result };
+        // Farben, die du schon oft trägst (Profil), rücken nach hinten; die angezeigte Passung bleibt gleich
+        const penalty = oftenPenalty(item, context);
+        const often = penalty ? [{ text: "trägst du schon oft", good: false }] : [];
+        if (others.length) return { item, ...result, reasons: [...often, ...result.reasons], order: result.score - penalty };
         // Leeres Outfit: Vielseitigkeit plus die Zu- und Abschläge für Profilpalette und Saison (Basis 70)
         const score = Math.max(0, Math.min(100, versatility.get(item.id)! + result.score - 70));
-        return { item, score, reasons: result.reasons.length ? result.reasons : [{ text: "vielseitig kombinierbar", good: true }] };
+        const reasons = result.reasons.length || often.length ? [...often, ...result.reasons] : [{ text: "vielseitig kombinierbar", good: true }];
+        return { item, score, reasons, order: score - penalty };
       })
-      .sort((a, b) => b.score - a.score);
+      .sort((a, b) => b.order - a.order);
   }, [items, chosen, active, context, versatility]);
 
   // Gesamturteil und Probleme im Outfit (jedes Teil gegen den Rest)
