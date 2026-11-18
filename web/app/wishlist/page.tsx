@@ -178,7 +178,7 @@ export default async function WishlistPage({ searchParams }: PageProps<"/wishlis
           </div>
         </details>
       )}
-      {view === "liste" && groups.length > 1 && <SectionRail sections={groups.map((g) => ({ id: `kat-${g.category}`, label: g.title }))} />}
+      {view === "liste" && groups.length > 1 && <SectionRail sections={groups.map((g) => ({ id: `kat-${g.category}`, label: g.title, count: g.wishes.length }))} />}
     </div>
   );
 }
