@@ -14,7 +14,7 @@
   "dependencies": {
     "geist": "^1.9.0",
     "marked": "^18.1.2",
-    "next": "16.4.3",
+    "next": "16.4.6",
     "onnxruntime-web": "^1.31.1",
     "react": "19.3.1",
     "react-dom": "19.3.1"
@@ -25,7 +25,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.4.3",
+    "eslint-config-next": "16.4.6",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
