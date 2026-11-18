@@ -7,6 +7,8 @@ export type RailSection = { id: string; label: string; count?: number };
 /** Durchmesser eines Punkts und Länge der aktiven Pille in px */
 const DOT = 8;
 const PILL = 24;
+/** Abstand über und unter jedem Punkt in px; zwei Punkte liegen also 2 × PAD auseinander */
+const PAD = 3;
 /** So lange bleibt der Name nach einem Wechsel sichtbar (Handy) */
 const LABEL_MS = 1000;
 /** Ab dieser Fingerbewegung in px wird aus einem Tipp ein Wischen über die Leiste */
@@ -16,8 +18,9 @@ const SCRUB_START = 6;
 const smooth = (w: number) => w * w * (3 - 2 * w);
 
 /**
- * Sprungmarken am rechten Rand: ein Punkt je Abschnitt. Der aktuelle Punkt wächst zu einer länglichen Pille. Beim
- * Scrollen schrumpft sie fließend zurück, während der nächste Punkt zur Pille wird; eine Feder glättet die Bewegung.
+ * Sprungmarken am rechten Rand: ein Punkt je Abschnitt, dicht beieinander. Der aktuelle Punkt wächst zu einer länglichen
+ * Pille. Beim Wechsel springt die farbige Pille wie ein Tropfen zum nächsten Punkt: Erst dehnt sich die vordere Kante
+ * bis dorthin, dann zieht die hintere nach. Eine Feder glättet die Bewegung.
  * Klick scrollt weich zum Abschnitt. Mit dem Finger (oder gedrückter Maus) kann man über die Leiste wischen, die Seite
  * springt dann live mit. Am Desktop erscheint der Name beim Darüberfahren, am Handy kurz nach jedem Wechsel und beim
  * Wischen. Die Abschnitte brauchen ein Element mit der passenden id.
@@ -29,6 +32,8 @@ export function SectionRail({ sections }: { sections: RailSection[] }) {
   const [show, setShow] = useState(false);
   const nav = useRef<HTMLElement>(null);
   const dots = useRef<(HTMLSpanElement | null)[]>([]);
+  // Die farbige Pille, die zwischen den Punkten springt
+  const blob = useRef<HTMLSpanElement>(null);
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   // Nach dem Wischen den Klick beim Loslassen ignorieren
   const suppressClick = useRef(false);
@@ -74,12 +79,29 @@ export function SectionRail({ sections }: { sections: RailSection[] }) {
 
     const paint = () => {
       const p = Math.min(sections.length - 1, Math.max(0, pos));
-      dots.current.forEach((el, i) => {
-        if (!el) return;
-        const w = smooth(Math.max(0, 1 - Math.abs(p - i)));
-        el.style.height = `${DOT + (PILL - DOT) * w}px`;
-        el.style.setProperty("--on", String(w));
+      // Graue Punkte: der aktuelle wächst, der vorige schrumpft im Gleichtakt (Gesamtlänge bleibt gleich)
+      const heights = sections.map((_, i) => DOT + (PILL - DOT) * smooth(Math.max(0, 1 - Math.abs(p - i))));
+      const tops: number[] = [];
+      let y = 0;
+      heights.forEach((h, i) => {
+        tops.push(y + PAD);
+        y += h + 2 * PAD;
+        const el = dots.current[i];
+        if (el) el.style.height = `${h}px`;
       });
+      // Farbige Pille: in der ersten Hälfte des Wechsels wandert die vordere Kante zum nächsten Punkt, in der zweiten
+      // zieht die hintere nach. Rückwärts läuft es spiegelbildlich, weil beides nur von p abhängt.
+      const a = Math.floor(p);
+      const b = Math.min(sections.length - 1, a + 1);
+      const f = p - a;
+      const lead = smooth(Math.min(1, f * 2));
+      const lag = smooth(Math.max(0, f * 2 - 1));
+      const top = tops[a] + (tops[b] - tops[a]) * lag;
+      const bottom = tops[a] + heights[a] + (tops[b] + heights[b] - tops[a] - heights[a]) * lead;
+      if (blob.current) {
+        blob.current.style.transform = `translateY(${top}px)`;
+        blob.current.style.height = `${bottom - top}px`;
+      }
       const idx = Math.round(p);
       if (idx !== shown) {
         // Beim ersten Zeichnen keinen Namen einblenden, nur bei echten Wechseln
@@ -204,6 +226,13 @@ export function SectionRail({ sections }: { sections: RailSection[] }) {
       aria-label="Zu Kategorie springen"
       className="fixed right-0 top-1/2 z-30 flex -translate-y-1/2 touch-none select-none flex-col items-end [-webkit-touch-callout:none] sm:right-3"
     >
+      {/* Lage und Länge setzt die Animation direkt */}
+      <span
+        ref={blob}
+        aria-hidden
+        className="pointer-events-none absolute right-[10px] top-0 z-10 w-2 rounded-full bg-accent sm:right-[2px]"
+        style={{ height: PILL }}
+      />
       {sections.map((s, i) => {
         const on = i === active;
         return (
@@ -220,11 +249,12 @@ export function SectionRail({ sections }: { sections: RailSection[] }) {
               if (suppressClick.current) return;
               document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
             }}
-            // Am Handy eine große, unsichtbare Tippfläche (≈ 44 × 32 px) bis an den Rand
-            className="group relative flex items-center gap-2 py-3 pl-6 pr-2 sm:py-2 sm:pl-3 sm:pr-0"
+            // Unsichtbare Tippfläche nach links und bis an den Rand; nach oben und unten dicht, damit die Punkte eng stehen
+            className="group relative flex items-center pl-6 pr-2 sm:pl-3 sm:pr-0"
+            style={{ paddingTop: PAD, paddingBottom: PAD }}
           >
             <span
-              className={`pointer-events-none absolute right-full top-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-surface px-3 py-1 text-sm shadow ring-1 ring-line transition-opacity duration-300 sm:pointer-events-auto sm:static sm:translate-y-0 sm:px-2 sm:py-0.5 sm:text-xs ${
+              className={`pointer-events-none absolute right-full top-1/2 mr-1 -translate-y-1/2 whitespace-nowrap rounded-full bg-surface px-3 py-1 text-sm shadow ring-1 ring-line transition-opacity duration-300 sm:mr-2 sm:px-2 sm:py-0.5 sm:text-xs ${
                 on && show ? "opacity-100" : "opacity-0"
               } ${on ? "sm:opacity-100" : "sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-visible:opacity-100"}`}
             >
@@ -232,16 +262,14 @@ export function SectionRail({ sections }: { sections: RailSection[] }) {
               {s.count != null && <span className="ml-1.5 text-muted">{s.count}</span>}
             </span>
             <span className="flex w-3 justify-center">
-              {/* Höhe und Anteil Akzentfarbe (--on, 0–1) setzt die Animation direkt */}
+              {/* Höhe setzt die Animation direkt */}
               <span
                 ref={(el) => {
                   dots.current[i] = el;
                 }}
-                className="relative block w-2 overflow-hidden rounded-full bg-muted/50 transition-colors group-hover:bg-muted"
+                className="block w-2 rounded-full bg-muted/50 transition-colors group-hover:bg-muted"
                 style={{ height: DOT }}
-              >
-                <span className="absolute inset-0 rounded-full bg-accent" style={{ opacity: "var(--on, 0)" }} />
-              </span>
+              />
             </span>
           </button>
         );
