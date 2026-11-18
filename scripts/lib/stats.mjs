@@ -58,7 +58,7 @@ export function computeStats(items, outfits, wishlist) {
 }
 
 /**
- * Zugänge und Ausgaben pro Tag, chronologisch (alle Teile, auch aussortierte). Nur Tage mit Zugängen.
+ * Zugänge und Ausgaben pro Tag, chronologisch (alle Teile, auch aussortierte). Nur Tage mit Zugängen; `ids` sind die Teile.
  * Datum ist das Kaufdatum, sonst der Tag der Erfassung aus der ID (`JJJJ-MM-TT-slug`).
  */
 function timeline(items) {
@@ -66,13 +66,14 @@ function timeline(items) {
   for (const i of items) {
     const date = String(i.data.purchase?.date ?? i.id).match(/^\d{4}-\d{2}-\d{2}/)?.[0];
     if (!date) continue;
-    const d = (days[date] ??= { count: 0, spend: 0 });
+    const d = (days[date] ??= { count: 0, spend: 0, ids: [] });
     d.count += 1;
+    d.ids.push(i.id);
     if (typeof i.data.purchase?.price === 'number') d.spend += i.data.purchase.price;
   }
   return Object.keys(days)
     .sort()
-    .map((date) => ({ date, count: days[date].count, spend: round(days[date].spend) }));
+    .map((date) => ({ date, count: days[date].count, spend: round(days[date].spend), ids: days[date].ids }));
 }
 
 const round = (n) => Math.round(n * 100) / 100;
