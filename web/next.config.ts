@@ -44,6 +44,8 @@ const nextConfig: NextConfig = {
   // Unten links verdeckt das Symbol sonst die mobile Navigationsleiste
   devIndicators: { position: "top-right" },
   experimental: {
+    // `next dev`/`next build` erinnern an Sicherheitsupdates; `npx next upgrade --agent` übernimmt diese Policy
+    agentUpgrade: "security",
     serverActions: {
       // Handy-Fotos werden im Browser auf 2048px verkleinert, mehrere pro Teil passen so locker rein
       bodySizeLimit: "25mb",
