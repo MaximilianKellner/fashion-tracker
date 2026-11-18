@@ -144,7 +144,9 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
           ))}
         </div>
       )}
-      {view === "liste" && <SectionRail sections={groups.map((g) => ({ id: `kat-${g.category}`, label: groupTitle(g.category) }))} />}
+      {view === "liste" && (
+        <SectionRail sections={groups.map((g) => ({ id: `kat-${g.category}`, label: groupTitle(g.category), count: g.items.length }))} />
+      )}
     </div>
   );
 }
