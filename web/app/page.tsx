@@ -4,7 +4,9 @@ import { label } from "@/lib/labels";
 import { CATEGORIES, SEASONS } from "@lib/schema.mjs";
 import { ColorDot, ItemCard } from "@/components/item-card";
 import { SectionRail } from "@/components/section-rail";
+import { CATEGORY_VIEWS, categoryRank as rank, groupTitle, pickView } from "@/lib/categories";
 import { SortSelect } from "@/components/sort-select";
+import { ViewToggle } from "@/components/view-toggle";
 import { basicSorts, byId, byNumber, pickSort, sortChoices, type SortOption } from "@/lib/sort";
 import type { Item } from "@/lib/types";
 
@@ -15,25 +17,8 @@ const ITEM_SORTS: SortOption<Item>[] = [
   { id: "preis-auf", label: "Günstigste zuerst", compare: (a, b) => byNumber(a.data.purchase?.price, b.data.purchase?.price, 1) || byId(a, b) },
 ];
 
-// Reihenfolge im Kleiderschrank: von oben nach unten wie ein Outfit, dann der Rest
-const CATEGORY_ORDER = ["jacke", "oberteil", "kleid", "hose", "schuhe", "accessoire", "sport", "unterwaesche"];
-const GROUP_TITLES: Record<string, string> = {
-  jacke: "Jacken & Mäntel",
-  oberteil: "Oberteile",
-  kleid: "Kleider",
-  hose: "Hosen",
-  schuhe: "Schuhe",
-  accessoire: "Accessoires",
-  sport: "Sport",
-  unterwaesche: "Unterwäsche",
-};
-const rank = (c: string) => {
-  const i = CATEGORY_ORDER.indexOf(c);
-  return i < 0 ? CATEGORY_ORDER.length : i;
-};
-
-// sort gehört dazu, damit Filter-Links die gewählte Sortierung behalten
-type Filters = { category?: string; color?: string; season?: string; status?: string; sort?: string };
+// sort und view gehören dazu, damit Filter-Links die gewählte Sortierung und Ansicht behalten
+type Filters = { category?: string; color?: string; season?: string; status?: string; sort?: string; view?: string };
 
 /** Link, der einen Filter setzt bzw. beim erneuten Klick wieder entfernt */
 function filterHref(current: Filters, key: keyof Filters, value: string) {
@@ -51,9 +36,11 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
     season: one(sp.season),
     status: one(sp.status),
     sort: one(sp.sort),
+    view: one(sp.view),
   };
   const status = filters.status ?? "aktiv";
   const sort = pickSort(ITEM_SORTS, filters.sort);
+  const view = pickView(filters.view);
 
   const all = await getItems();
   const items = all.filter(
@@ -90,14 +77,19 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
 
   return (
     <div>
-      <div className="flex items-start justify-between gap-3">
+      {/* flex-wrap: am Handy rutschen Sortierung und Ansicht unter den Titel */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Kleiderschrank</h1>
           <p className="mt-1 text-sm text-muted">
             {items.length} von {all.length} Teilen
           </p>
         </div>
-        <SortSelect options={sortChoices(ITEM_SORTS)} value={sort.id} />
+        {/* items-stretch: der Umschalter übernimmt die Höhe der Sortierung */}
+        <div className="ml-auto flex items-stretch gap-2">
+          <SortSelect options={sortChoices(ITEM_SORTS)} value={sort.id} />
+          <ViewToggle options={[...CATEGORY_VIEWS]} value={view} />
+        </div>
       </div>
 
       <div className="mt-4 space-y-2">
@@ -129,12 +121,18 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
 
       {items.length === 0 ? (
         <p className="py-12 text-center text-muted">Keine Teile für diese Filter.</p>
+      ) : view === "raster" ? (
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {items.map((i) => (
+            <ItemCard key={i.id} item={i} />
+          ))}
+        </div>
       ) : (
         <div className="mt-4 space-y-6">
           {groups.map((g) => (
             <section key={g.category} id={`kat-${g.category}`} className="scroll-mt-20">
               <h2 className="mb-2 flex items-baseline gap-2 text-lg font-semibold">
-                {GROUP_TITLES[g.category] ?? label(g.category)}
+                {groupTitle(g.category)}
                 <span className="text-sm font-normal text-muted">{g.items.length}</span>
               </h2>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -146,7 +144,9 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
           ))}
         </div>
       )}
-      <SectionRail sections={groups.map((g) => ({ id: `kat-${g.category}`, label: GROUP_TITLES[g.category] ?? label(g.category), count: g.items.length }))} />
+      {view === "liste" && (
+        <SectionRail sections={groups.map((g) => ({ id: `kat-${g.category}`, label: groupTitle(g.category), count: g.items.length }))} />
+      )}
     </div>
   );
 }
