@@ -1,9 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { euro } from "@/lib/labels";
+import { Photo } from "./photo";
 
-type Point = { date: string; count: number; spend: number };
+type Point = { date: string; count: number; spend: number; ids?: string[] };
+type ItemInfo = { name: string; price?: number; photo: string | null };
+// So viele Teile zeigt die Liste unter dem Diagramm, bevor sie aufklappt
+const LIST_LIMIT = 5;
 type Key = "count" | "spend";
 
 const MONTHS = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
@@ -126,7 +131,16 @@ function useTween(target: number[], ms: number) {
  * (0–100 %). So liegen sie auf derselben Skala – laufen sie parallel, kamen Teile und Ausgaben gleichmäßig.
  * Die Kurve bleibt bis kurz vor einem Zugang flach und steigt dann weich an.
  */
-export function TimelineChart({ data, today }: { data: Point[]; today: string }) {
+export function TimelineChart({
+  data,
+  items = {},
+  today,
+}: {
+  data: Point[];
+  items?: Record<string, ItemInfo>;
+  today: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
   const [range, setRange] = useState<RangeId>("alles");
   // Zeitpunkt unter dem Zeiger; bleibt beim Verlassen stehen, damit das Fadenkreuz ausblendet statt zu springen
   const [hoverT, setHoverT] = useState<number | null>(null);
@@ -214,10 +228,21 @@ export function TimelineChart({ data, today }: { data: Point[]; today: string })
     // An den nächstgelegenen echten Zugang andocken
     const events = series.length > 1 ? series.slice(1) : series;
     const near = events.reduce((a, b) => (Math.abs(b.t - t) < Math.abs(a.t - t) ? b : a));
-    if (near.t !== hoverT) setHoverT(near.t);
+    if (near.t !== hoverT) {
+      setHoverT(near.t);
+      setExpanded(false);
+    }
     setHover(true);
   };
   const crossT = hoverT ?? end;
+  // Zugang für Beschriftung und Liste: der angedockte, sonst der letzte im Zeitraum
+  const eventIndex = active ?? series.length - 1;
+  const event = eventIndex > 0 ? inRange[eventIndex - 1] : undefined;
+  // Teure Teile zuerst
+  const eventItems = (event?.ids ?? [])
+    .map((id) => ({ id, info: items[id] }))
+    .filter((e) => e.info)
+    .sort((a, b) => (b.info.price ?? -1) - (a.info.price ?? -1));
   const pct = (t: number) => `${(x(t) / W) * 100}%`;
 
   return (
@@ -251,6 +276,7 @@ export function TimelineChart({ data, today }: { data: Point[]; today: string })
                 onClick={() => {
                   setRange(r.id);
                   setHoverT(null);
+                  setExpanded(false);
                   setHover(false);
                 }}
                 className={`chip justify-center px-0! text-xs! transition-colors sm:px-3! sm:text-sm! ${range === r.id ? "chip-active" : ""}`}
@@ -351,18 +377,51 @@ export function TimelineChart({ data, today }: { data: Point[]; today: string })
         </div>
       </div>
 
-      <figcaption className="mt-2 min-h-5 text-sm text-muted">
-        {hover && active !== null && active > 0 ? (
+      <figcaption className="mt-2 text-sm text-muted">
+        {event ? (
           <>
-            <span className="text-ink">{fmtDate(crossT)}</span> ·{" "}
-            {fmtDate(crossT) === fmtDate(series[active].t) ? "Zugang" : `letzter Zugang ${fmtDate(series[active].t)}`}: +
-            {inRange[active - 1].count} {inRange[active - 1].count === 1 ? "Teil" : "Teile"} für{" "}
-            {euro(inRange[active - 1].spend)}
+            {hover && fmtDate(crossT) !== fmtDate(series[eventIndex].t) && (
+              <>
+                <span className="text-ink">{fmtDate(crossT)}</span> · letzter{" "}
+              </>
+            )}
+            {active !== null ? "Zugang" : "Letzter Zugang"} <span className="text-ink">{fmtDate(series[eventIndex].t)}</span>: +
+            {event.count} {event.count === 1 ? "Teil" : "Teile"} für {euro(event.spend)}
           </>
         ) : (
-          "Kumuliert, je Linie in Prozent vom Endwert. Datum = Kaufdatum, sonst Tag der Erfassung."
+          "Keine Zugänge in diesem Zeitraum."
         )}
       </figcaption>
+
+      {/* Die Teile dieses Zugangs: Foto, Name, Preis. Bleibt beim Verlassen des Diagramms stehen, damit man klicken kann */}
+      {eventItems.length > 0 && (
+        <ul className="mt-2 divide-y divide-line">
+          {(expanded ? eventItems : eventItems.slice(0, LIST_LIMIT)).map(({ id, info }) => (
+            <li key={id}>
+              <Link href={`/items/${id}`} className="-mx-2 flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-surface-2">
+                {info.photo ? (
+                  <Photo src={info.photo} alt="" className="aspect-[3/4] w-9 shrink-0 rounded" />
+                ) : (
+                  <span className="aspect-[3/4] w-9 shrink-0 rounded bg-surface-2" />
+                )}
+                {/* Lange Namen blenden am Ende aus, der Preis bleibt immer sichtbar */}
+                <span className="min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm [mask-image:linear-gradient(to_right,black_calc(100%-2.5rem),transparent)]">
+                  {info.name}
+                </span>
+                <span className="shrink-0 text-sm tabular-nums text-muted">
+                  {typeof info.price === "number" ? euro(info.price) : "ohne Preis"}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+      {eventItems.length > LIST_LIMIT && (
+        <button type="button" onClick={() => setExpanded((e) => !e)} className="mt-1 text-sm text-muted hover:text-ink">
+          {expanded ? "Weniger anzeigen" : `${eventItems.length - LIST_LIMIT} weitere anzeigen`}
+        </button>
+      )}
+      <p className="mt-3 text-xs text-muted">Kumuliert, je Linie in Prozent vom Endwert. Datum = Kaufdatum, sonst Tag der Erfassung.</p>
     </figure>
   );
 }

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { getItems, getOutfits, getWishlist } from "@/lib/data";
+import { getItems, getOutfits, getWishlist, photoUrl } from "@/lib/data";
 import { computeStats } from "@lib/stats.mjs";
 import { euro, label } from "@/lib/labels";
 import { ColorDot } from "@/components/item-card";
@@ -17,10 +17,10 @@ function Tile({ label, value, sub }: { label: string; value: string; sub?: React
   );
 }
 
-/** Kachel im Bento-Raster. `className` legt die Spannweite fest. */
+/** Kachel im Bento-Raster. `className` legt die Spannweite fest; min-w-0, damit lange Inhalte die Spalte nicht verbreitern. */
 function Card({ title, className = "", children }: { title: string; className?: string; children: ReactNode }) {
   return (
-    <section className={`rounded-xl border border-line bg-surface p-4 ${className}`}>
+    <section className={`min-w-0 rounded-xl border border-line bg-surface p-4 ${className}`}>
       <h2 className="mb-3 font-semibold">{title}</h2>
       {children}
     </section>
@@ -108,6 +108,15 @@ export default async function StatsPage() {
   const noPrice = stats.value.idsWithoutPrice as string[];
   const byId = new Map(items.map((i) => [i.id, i]));
 
+  // Name, Preis und Foto der Teile, die im Verlauf als Zugänge auftauchen (Liste unter dem Diagramm)
+  const timelineItems = Object.fromEntries(
+    (stats.timeline as { ids: string[] }[])
+      .flatMap((d) => d.ids)
+      .map((id) => byId.get(id))
+      .filter((i) => i !== undefined)
+      .map((i) => [i.id, { name: i.data.name, price: i.data.purchase?.price, photo: photoUrl(i) }]),
+  );
+
   // Jahre chronologisch statt nach Wert sortieren
   const spendByYear = Object.fromEntries(
     Object.entries(stats.value.spendByYear as Record<string, number>).sort(([a], [b]) => b.localeCompare(a)),
@@ -184,7 +193,7 @@ export default async function StatsPage() {
         </Card>
         <BarList title="Marken" data={stats.byBrand} twoCol limit={8} className="md:col-span-2" />
         <Card title="Bestand und Ausgaben" className="md:col-span-2 lg:col-span-4">
-          <TimelineChart data={stats.timeline} today={new Date().toISOString().slice(0, 10)} />
+          <TimelineChart data={stats.timeline} items={timelineItems} today={new Date().toISOString().slice(0, 10)} />
         </Card>
       </div>
 
