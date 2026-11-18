@@ -24,7 +24,7 @@ export function SortSelect({ options, value }: { options: { id: string; label: s
         onChange={(e) => change(e.target.value)}
         aria-label="Sortieren"
         // text-base: kleinere Schrift lässt iOS beim Antippen hineinzoomen
-        className={`field w-auto py-1.5 pl-2.5 ${pending ? "opacity-60" : ""}`}
+        className={`field w-auto py-1.5 pl-2.5 pr-4 ${pending ? "opacity-60" : ""}`}
       >
         {options.map((o) => (
           <option key={o.id} value={o.id}>

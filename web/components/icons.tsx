@@ -39,3 +39,20 @@ export const Trash2 = (props: SVGProps<SVGSVGElement>) => (
     <path d="M10 11v6M14 11v6" />
   </Icon>
 );
+
+export const LayoutGrid = (props: SVGProps<SVGSVGElement>) => (
+  <Icon {...props}>
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="14" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+  </Icon>
+);
+
+export const Rows = (props: SVGProps<SVGSVGElement>) => (
+  <Icon {...props}>
+    <path d="M3 5h18" />
+    <path d="M3 12h18" />
+    <path d="M3 19h18" />
+  </Icon>
+);

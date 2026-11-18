@@ -18,6 +18,9 @@ Am PC alles in der oberen Leiste.
 - **Sortieren** oben rechts (innerhalb jeder Kategorie): älteste/neueste zuerst, Name A–Z/Z–A, teuerste/günstigste zuerst.
   Steht als `?sort=` in der URL und bleibt beim Filtern erhalten. Dieselbe Auswahl gibt es bei Outfits und Wunschliste
   (`web/lib/sort.ts`, `web/components/sort-select.tsx`).
+- **Ansicht** daneben: „Nach Kategorie“ (Standard, gruppiert) oder „Alle in einem Raster“ ohne Gruppen und Sprungleiste.
+  Steht als `?view=raster` in der URL und bleibt beim Filtern erhalten; dieselbe Umschaltung hat die Wunschliste
+  (`web/components/view-toggle.tsx`, Ansichten in `web/lib/categories.ts`).
 - Unter jedem Teil: Farbpunkte, Marke und Unterkategorie.
 - Fotos werden nie abgeschnitten. Schmale Hochkant-Fotos (z. B. Hosen) bekommen einen unscharf gestreckten Hintergrund aus ihren
   eigenen Rändern, damit sie ins Raster passen.
@@ -132,6 +135,9 @@ Wie die Bewertung rechnet: [outfit-builder.md](outfit-builder.md)
 ![Wunschliste](screenshots/wunschliste.webp)
 
 - Wünsche mit Bild, Priorität, Preis, Shop-Link, welche Lücke sie schließen und warum.
+- Offene Wünsche stehen wie im Kleiderschrank nach Kategorie gruppiert (gleiche Reihenfolge, gleiches Raster, Sprungleiste
+  am Rand); Wünsche ohne Kategorie kommen als letzte Gruppe „Ohne Kategorie“.
+  Der Umschalter neben der Sortierung wechselt auf ein Raster mit allen Wünschen ohne Gruppen (`?view=raster`).
 - Bilder per Upload, Drag & Drop oder automatisch beim Shop-Import.
 - **Gekauft – erfassen** öffnet das Formular für ein neues Teil, vorausgefüllt mit den Daten des Wunsches; die Bilder lassen
   sich übernehmen. Danach steht der Wunsch auf „gekauft“.
