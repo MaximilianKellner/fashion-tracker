@@ -21,7 +21,7 @@ const TEXT: Partial<Record<State, string>> = {
 };
 
 /** Läuft auf dem Server schon eine andere Version als die, mit der diese Seite geladen wurde? */
-async function serverIsNewer() {
+export async function serverIsNewer() {
   try {
     const res = await fetch("/api/version", { cache: "no-store" });
     if (!res.ok) return false; // Server startet gerade neu

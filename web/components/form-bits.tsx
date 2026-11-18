@@ -1,4 +1,14 @@
 import type { ReactNode } from "react";
+import { label } from "@/lib/labels";
+
+/** <option>s für Schema-Werte mit ihrem Anzeigenamen */
+export function LabelOptions({ values }: { values: readonly string[] }) {
+  return values.map((v) => (
+    <option key={v} value={v}>
+      {label(v)}
+    </option>
+  ));
+}
 
 export function Field({ label, children, hint, auto }: { label: string; children: ReactNode; hint?: string; auto?: boolean }) {
   return (

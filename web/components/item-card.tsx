@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { photoUrl } from "@/lib/data";
 import { label, swatch } from "@/lib/labels";
 import type { Item } from "@/lib/types";
 import { Photo } from "./photo";
+
+/** Erstes Foto eines Teils oder null (ohne Serverimport, damit auch Client-Komponenten es nutzen können) */
+export const photoUrl = (item: Item) => (item.data.photos?.[0] ? `/photos/${item.id}/${item.data.photos[0]}` : null);
 
 export function ColorDot({ color, size = "h-3 w-3" }: { color: string; size?: string }) {
   return (

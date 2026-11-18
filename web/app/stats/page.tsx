@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { getItems, getOutfits, getWishlist, photoUrl } from "@/lib/data";
+import { getItems, getOutfits, getWishlist } from "@/lib/data";
 import { computeStats } from "@lib/stats.mjs";
 import { euro, label } from "@/lib/labels";
-import { ColorDot } from "@/components/item-card";
+import { ColorDot, photoUrl } from "@/components/item-card";
 import { ColorTreemap } from "@/components/color-treemap";
 import { TimelineChart } from "@/components/timeline-chart";
 
@@ -150,7 +150,7 @@ export default async function StatsPage() {
                 {unused.length} {unused.length === 1 ? "Teil" : "Teile"} in keinem Outfit
               </a>
             ) : (
-              `${unused.length} ${unused.length === 1 ? "Teil" : "Teile"} in keinem Outfit`
+              `${unused.length} Teile in keinem Outfit`
             )
           }
         />
@@ -197,32 +197,24 @@ export default async function StatsPage() {
         </Card>
       </div>
 
-      {noPrice.length > 0 && (
-        <section id="ohne-preis" className="mt-4 scroll-mt-20 rounded-xl border border-line bg-surface p-4">
-          <h2 className="font-semibold">Ohne Preis</h2>
-          <p className="mt-1 text-sm text-muted">Fehlen im Wert und in den Ausgaben pro Jahr.</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {noPrice.map((id) => (
-              <Link key={id} href={`/items/${id}`} className="chip">
-                {byId.get(id)?.data.name ?? id}
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {unused.length > 0 && stats.outfits.total > 0 && (
-        <section id="kein-outfit" className="mt-4 scroll-mt-20 rounded-xl border border-line bg-surface p-4">
-          <h2 className="font-semibold">In keinem Outfit</h2>
-          <p className="mt-1 text-sm text-muted">Kandidaten für neue Kombinationen oder fürs Aussortieren.</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {unused.map((id) => (
-              <Link key={id} href={`/items/${id}`} className="chip">
-                {byId.get(id)?.data.name ?? id}
-              </Link>
-            ))}
-          </div>
-        </section>
+      {[
+        { id: "ohne-preis", title: "Ohne Preis", text: "Fehlen im Wert und in den Ausgaben pro Jahr.", ids: noPrice },
+        { id: "kein-outfit", title: "In keinem Outfit", text: "Kandidaten für neue Kombinationen oder fürs Aussortieren.", ids: stats.outfits.total > 0 ? unused : [] },
+      ].map(
+        (s) =>
+          s.ids.length > 0 && (
+            <section key={s.id} id={s.id} className="mt-4 scroll-mt-20 rounded-xl border border-line bg-surface p-4">
+              <h2 className="font-semibold">{s.title}</h2>
+              <p className="mt-1 text-sm text-muted">{s.text}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {s.ids.map((id) => (
+                  <Link key={id} href={`/items/${id}`} className="chip">
+                    {byId.get(id)?.data.name ?? id}
+                  </Link>
+                ))}
+              </div>
+            </section>
+          ),
       )}
     </div>
   );

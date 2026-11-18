@@ -3,10 +3,11 @@
 import { startTransition, useActionState, useMemo, useState, type FormEvent } from "react";
 import { saveOutfit } from "@/app/actions";
 import { SEASONS } from "@lib/schema.mjs";
-import { SLOTS, completeOutfit, layerOf, oftenPenalty, scoreCandidate, scoreOutfit, slotsFor, suggestPenalty, wearFactor } from "@lib/outfit-match.mjs";
-import { label, scoreTone, swatch } from "@/lib/labels";
+import { SLOTS, completeOutfit, layerOf, outfitSlots, oftenPenalty, scoreCandidate, scoreOutfit, slotsFor, suggestPenalty, wearFactor } from "@lib/outfit-match.mjs";
+import { label, scoreTone } from "@/lib/labels";
 import type { Item, OutfitData } from "@/lib/types";
 import { Errors, Field } from "./form-bits";
+import { ColorDot, photoUrl } from "./item-card";
 import { Photo } from "./photo";
 
 type Props = {
@@ -52,13 +53,6 @@ const slotName = (key: SlotKey) => {
   const name = SLOTS.find((s) => s.id === baseSlot(key))!.label;
   return accIndex(key) > 1 ? `${name} ${accIndex(key)}` : name;
 };
-
-// Eigener Farbpunkt statt dem aus item-card (das lädt serverseitigen Code)
-function ColorDot({ color, size = "h-3 w-3" }: { color: string; size?: string }) {
-  return <span title={label(color)} className={`inline-block shrink-0 rounded-full border border-black/15 ${size}`} style={{ backgroundColor: swatch(color) }} />;
-}
-
-const photoSrc = (item: Item) => (item.data.photos?.[0] ? `/photos/${item.id}/${item.data.photos[0]}` : null);
 
 /** Verteilt Teile auf die Plätze: jedes in den ersten freien passenden Platz, äußere Schichten zuerst (Pulli vor Shirt) */
 function assign(ids: string[], items: Item[]): Chosen {
@@ -175,10 +169,8 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
   }
 
   function fill(random: boolean) {
-    const cold = seasons.includes("herbst") || seasons.includes("winter");
-    const slots = ["oberteil", "hose", "schuhe", ...(cold ? ["jacke"] : [])];
     const pool = items.filter((i) => i.data.status === "aktiv");
-    setChosen(completeOutfit(chosen, pool, context, { slots, random: random ? 1 : 0 }) as Chosen);
+    setChosen(completeOutfit(chosen, pool, context, { slots: outfitSlots(seasons), random: random ? 1 : 0 }) as Chosen);
   }
 
   // Name aus den Hauptfarben von Oberteil und Hose als Vorschlag
@@ -375,7 +367,7 @@ export function OutfitBuilder({ items, outfits, palette, initialItems, initialSe
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 xl:grid-cols-5">
             {suggestions.map(({ item, score, reasons }) => {
               const on = chosen[active]?.id === item.id;
-              const src = photoSrc(item);
+              const src = photoUrl(item);
               return (
                 <button
                   key={item.id}
@@ -435,7 +427,7 @@ function Slot({
   highlighted: Set<string>;
 }) {
   const item = chosen[id];
-  const src = item && photoSrc(item);
+  const src = item && photoUrl(item);
   const isActive = active === id;
   const name = slotName(id);
   const problems = (item && problemsBy.get(item.id)) || [];

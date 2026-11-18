@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const LINKS = [
+type NavLink = { href: string; label: string; icon: string; desktopLabel?: string; primary?: boolean };
+
+const LINKS: NavLink[] = [
   { href: "/", label: "Schrank", icon: "M4 4h16v16H4zM12 4v16M9 11v2M15 11v2" },
   {
     href: "/outfits",
@@ -25,7 +27,7 @@ const LINKS = [
 ];
 
 // Am Handy oben rechts, am Desktop in der Leiste
-const SECONDARY = [
+const SECONDARY: NavLink[] = [
   { href: "/stats", label: "Statistik", icon: "M5 20V10M12 20V4M19 20v-7" },
   {
     href: "/profile",
@@ -67,7 +69,7 @@ export function Nav() {
           <Link href="/" className="mr-4 rounded-lg font-semibold tracking-tight hover:text-accent">
             Kleiderschrank
           </Link>
-          {LINKS.map((l) =>
+          {[...LINKS, ...SECONDARY].map((l) =>
             l.primary ? (
               <Link key={l.href} href={l.href} className="btn-primary ml-auto order-last py-1.5">
                 <Icon d={l.icon} /> Neues Teil
@@ -82,15 +84,6 @@ export function Nav() {
               </Link>
             ),
           )}
-          {SECONDARY.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className={`rounded-lg px-3 py-1.5 text-sm ${isActive(pathname, l.href) ? "bg-surface-2 font-medium text-ink" : "text-muted hover:text-ink"}`}
-            >
-              {l.label}
-            </Link>
-          ))}
         </nav>
       </header>
 
@@ -117,7 +110,7 @@ export function Nav() {
       {/* Mobil: Tab-Leiste unten */}
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden">
         <ul className="grid grid-cols-5">
-          {LINKS.map((l) => (
+          {[...LINKS, ...SECONDARY].map((l) => (
             <li key={l.href}>
               <Link
                 href={l.href}

@@ -168,18 +168,14 @@ export function usePhotoPicker({
         addFilesRef.current(pasted);
       }
     };
-    window.addEventListener("dragenter", onEnter);
-    window.addEventListener("dragleave", onLeave);
-    window.addEventListener("dragover", onOver);
-    window.addEventListener("drop", onDrop);
-    window.addEventListener("paste", onPaste);
-    return () => {
-      window.removeEventListener("dragenter", onEnter);
-      window.removeEventListener("dragleave", onLeave);
-      window.removeEventListener("dragover", onOver);
-      window.removeEventListener("drop", onDrop);
-      window.removeEventListener("paste", onPaste);
-    };
+    const stop = new AbortController();
+    const { signal } = stop;
+    window.addEventListener("dragenter", onEnter, { signal });
+    window.addEventListener("dragleave", onLeave, { signal });
+    window.addEventListener("dragover", onOver, { signal });
+    window.addEventListener("drop", onDrop, { signal });
+    window.addEventListener("paste", onPaste, { signal });
+    return () => stop.abort();
   }, []);
   const addUrlRef = useRef(addUrl);
   useEffect(() => {

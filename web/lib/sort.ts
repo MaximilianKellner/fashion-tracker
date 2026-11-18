@@ -31,3 +31,13 @@ export function pickSort<T>(options: SortOption<T>[], value: string | string[] |
 
 /** Für die Auswahl im Browser: ohne Vergleichsfunktionen, die nicht zum Client übertragen werden können */
 export const sortChoices = <T,>(options: SortOption<T>[]) => options.map(({ id, label }) => ({ id, label }));
+
+/** Zufällige Reihenfolge (Fisher-Yates) */
+export function shuffle<T>(list: T[], rand: () => number = Math.random): T[] {
+  const copy = [...list];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}

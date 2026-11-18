@@ -199,21 +199,18 @@ export function SectionRail({ sections }: { sections: RailSection[] }) {
     target = pos = measure();
     paint();
     const el = nav.current;
-    el?.addEventListener("pointerdown", onPointerDown);
-    el?.addEventListener("pointermove", onPointerMove);
-    el?.addEventListener("pointerup", onPointerEnd);
-    el?.addEventListener("pointercancel", onPointerEnd);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    const stop = new AbortController();
+    const { signal } = stop;
+    el?.addEventListener("pointerdown", onPointerDown, { signal });
+    el?.addEventListener("pointermove", onPointerMove, { signal });
+    el?.addEventListener("pointerup", onPointerEnd, { signal });
+    el?.addEventListener("pointercancel", onPointerEnd, { signal });
+    window.addEventListener("scroll", onScroll, { passive: true, signal });
+    window.addEventListener("resize", onScroll, { signal });
     return () => {
       cancelAnimationFrame(frame);
       clearTimeout(hideTimer);
-      el?.removeEventListener("pointerdown", onPointerDown);
-      el?.removeEventListener("pointermove", onPointerMove);
-      el?.removeEventListener("pointerup", onPointerEnd);
-      el?.removeEventListener("pointercancel", onPointerEnd);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      stop.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- sections wird bei jedem Render neu gebaut, der Inhalt steckt im Schlüssel
   }, [key]);

@@ -10,35 +10,30 @@ async function fresh() {
   syncIfStale();
 }
 
+/** Ein Eintrag per ID, null bei unsicherer oder unbekannter ID */
+async function getOne<T>(read: (id: string) => Promise<unknown>, id: string): Promise<T | null> {
+  await fresh();
+  if (!isSafeId(id)) return null;
+  try {
+    return (await read(id)) as T;
+  } catch {
+    return null;
+  }
+}
+
 export async function getItems(): Promise<Item[]> {
   await fresh();
   return (await lib.readItems()) as Item[];
 }
 
-export async function getItem(id: string): Promise<Item | null> {
-  await fresh();
-  if (!isSafeId(id)) return null;
-  try {
-    return (await lib.readItem(id)) as Item;
-  } catch {
-    return null;
-  }
-}
+export const getItem = (id: string) => getOne<Item>(lib.readItem, id);
 
 export async function getOutfits(): Promise<Outfit[]> {
   await fresh();
   return (await lib.readOutfits()) as Outfit[];
 }
 
-export async function getOutfit(id: string): Promise<Outfit | null> {
-  await fresh();
-  if (!isSafeId(id)) return null;
-  try {
-    return (await lib.readOutfit(id)) as Outfit;
-  } catch {
-    return null;
-  }
-}
+export const getOutfit = (id: string) => getOne<Outfit>(lib.readOutfit, id);
 
 /** Wunschliste ohne die Wünsche im Papierkorb */
 export async function getWishlist(): Promise<Wish[]> {
@@ -51,30 +46,14 @@ export async function getTrashedWishes(): Promise<Wish[]> {
   return ((await lib.readWishlist()) as Wish[]).filter((w) => w.data.trashed_at);
 }
 
-export async function getWish(id: string): Promise<Wish | null> {
-  await fresh();
-  if (!isSafeId(id)) return null;
-  try {
-    return (await lib.readWish(id)) as Wish;
-  } catch {
-    return null;
-  }
-}
+export const getWish = (id: string) => getOne<Wish>(lib.readWish, id);
 
 export async function getRecommendations(): Promise<Recommendation[]> {
   await fresh();
   return (await lib.readRecommendations()) as Recommendation[];
 }
 
-export async function getRecommendation(id: string): Promise<Recommendation | null> {
-  await fresh();
-  if (!isSafeId(id)) return null;
-  try {
-    return (await lib.readRecommendation(id)) as Recommendation;
-  } catch {
-    return null;
-  }
-}
+export const getRecommendation = (id: string) => getOne<Recommendation>(lib.readRecommendation, id);
 
 export async function getProfile(): Promise<Profile> {
   await fresh();
@@ -84,9 +63,4 @@ export async function getProfile(): Promise<Profile> {
 /** Schützt vor Pfaden wie "../../etc" in IDs aus URLs und Formularen. */
 export function isSafeId(id: unknown): id is string {
   return typeof id === "string" && /^[a-z0-9][a-z0-9-]{0,80}$/.test(id);
-}
-
-export function photoUrl(item: Item, index = 0): string | null {
-  const photo = item.data.photos?.[index];
-  return photo ? `/photos/${item.id}/${photo}` : null;
 }

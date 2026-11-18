@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { saveWear } from "@/app/actions";
-import { completeOutfit, scoreOutfit, seasonsOf, slotsFor } from "@lib/outfit-match.mjs";
-import { label, scoreTone, swatch } from "@/lib/labels";
+import { completeOutfit, outfitSlots, scoreOutfit, seasonsOf, slotsFor } from "@lib/outfit-match.mjs";
+import { label, scoreTone } from "@/lib/labels";
+import { shuffle } from "@/lib/sort";
 import type { Item } from "@/lib/types";
+import { ColorDot, photoUrl } from "./item-card";
 import { Photo } from "./photo";
 
 type Props = {
@@ -41,19 +43,6 @@ function seeded(seed: number): Rand {
   };
 }
 
-/** Zufällige Reihenfolge (Fisher-Yates) */
-function shuffle<T>(list: T[], rand: Rand = Math.random): T[] {
-  const copy = [...list];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
-const photoSrc = (item: Item) => (item.data.photos?.[0] ? `/photos/${item.id}/${item.data.photos[0]}` : null);
-const coldSeason = (season: string) => season === "herbst" || season === "winter";
-const outfitSlots = (season: string) => ["oberteil", "hose", "schuhe", ...(coldSeason(season) ? ["jacke"] : [])];
 
 /** Vorlieben-Modus: noch nicht bewertete Teile zuerst, dann die schon bewerteten (zum Nachjustieren) */
 function preferenceDeck(items: Item[], rand?: Rand) {
@@ -62,7 +51,7 @@ function preferenceDeck(items: Item[], rand?: Rand) {
 
 /** Outfit-Modus: Teile für Oberteil, Hose, Schuhe (und Jacke, wenn es kalt ist), passend zur Saison, abwechselnd gemischt */
 function outfitDeck(items: Item[], season: string, size: number, rand?: Rand) {
-  const groups = outfitSlots(season)
+  const groups = outfitSlots([season])
     .map((slot) => shuffle(items.filter((i) => slotsFor(i)[0] === slot && (seasonsOf(i)?.includes(season) ?? true)), rand))
     .filter((g) => g.length);
   const deck: Item[] = [];
@@ -262,7 +251,7 @@ function OutfitMode({ items, outfits, palette, season, rounds, setRounds }: Outf
   const results = useMemo(() => {
     if (!done) return [];
     const context = { palette, outfits, seasons: [season], liked, disliked };
-    const slots = outfitSlots(season);
+    const slots = outfitSlots([season]);
     // Was heute nicht gefällt, kommt gar nicht erst in Frage
     const pool = items.filter((i) => !disliked.includes(i.id));
     const make = (from: Item[]) => {
@@ -325,8 +314,8 @@ function OutfitMode({ items, outfits, palette, season, rounds, setRounds }: Outf
               <div className={`grid gap-0.5 bg-line ${r.parts.length === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
                 {r.parts.map((item) => (
                   <div key={item.id} className="relative bg-surface-2">
-                    {photoSrc(item) ? (
-                      <Photo src={photoSrc(item)!} alt={item.data.name} className="aspect-square w-full" />
+                    {photoUrl(item) ? (
+                      <Photo src={photoUrl(item)!} alt={item.data.name} className="aspect-square w-full" />
                     ) : (
                       <div className="flex aspect-square items-center justify-center p-2 text-center text-sm text-muted">{item.data.name}</div>
                     )}
@@ -346,7 +335,7 @@ function OutfitMode({ items, outfits, palette, season, rounds, setRounds }: Outf
                 <ul className="text-sm text-muted">
                   {r.parts.map((p) => (
                     <li key={p.id} className="flex items-center gap-1.5">
-                      <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full border border-black/15" style={{ backgroundColor: swatch(p.data.colors?.[0] ?? "") }} />
+                      <ColorDot color={p.data.colors?.[0] ?? ""} size="h-2.5 w-2.5" />
                       <Link href={`/items/${p.id}`} className="truncate hover:text-ink">
                         {p.data.name}
                       </Link>
@@ -522,7 +511,7 @@ function SwipeStack({
 }
 
 function CardFace({ item, badge }: { item: Item; badge?: string }) {
-  const src = photoSrc(item);
+  const src = photoUrl(item);
   return (
     <div className="pointer-events-none flex h-full flex-col">
       <div className="relative min-h-0 flex-1 bg-surface-2">
@@ -537,7 +526,7 @@ function CardFace({ item, badge }: { item: Item; badge?: string }) {
         <div className="truncate font-medium">{item.data.name}</div>
         <div className="mt-1 flex items-center gap-1.5 text-xs text-muted">
           {(item.data.colors ?? []).map((c) => (
-            <span key={c} title={label(c)} className="inline-block h-3 w-3 rounded-full border border-black/15" style={{ backgroundColor: swatch(c) }} />
+            <ColorDot key={c} color={c} />
           ))}
           <span className="truncate">{[label(item.data.subcategory) || label(item.data.category), item.data.brand].filter(Boolean).join(" · ")}</span>
         </div>

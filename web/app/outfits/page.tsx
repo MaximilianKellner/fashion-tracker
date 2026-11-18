@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { getItems, getOutfits, getProfile } from "@/lib/data";
 import { currentSeason, label, scoreTone } from "@/lib/labels";
-import { completeOutfit, differentParts, scoreOutfit } from "@lib/outfit-match.mjs";
+import { completeOutfit, differentParts, outfitSlots, scoreOutfit } from "@lib/outfit-match.mjs";
 import { OutfitCollage } from "@/components/outfit-collage";
 import { SortSelect } from "@/components/sort-select";
-import { basicSorts, byId as byAge, byNumber, pickSort, sortChoices, type SortOption } from "@/lib/sort";
+import { basicSorts, byId as byAge, byNumber, pickSort, shuffle, sortChoices, type SortOption } from "@/lib/sort";
 import type { Item, Outfit } from "@/lib/types";
 
 type Card = Outfit & { parts: Item[]; score: ReturnType<typeof scoreOutfit> };
@@ -27,16 +27,6 @@ const ONLY_FROM = ["", "hidden sm:block", "", "hidden lg:block"];
 const MIN_NEW = 2;
 const MAX_TRIES = 30;
 
-/** Zufällige Reihenfolge (Fisher-Yates) */
-function shuffle<T>(list: T[]): T[] {
-  const copy = [...list];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
 export default async function OutfitsPage({ searchParams }: PageProps<"/outfits">) {
   const sort = pickSort(OUTFIT_SORTS, (await searchParams).sort);
   const [outfits, items, profile] = await Promise.all([getOutfits(), getItems(), getProfile()]);
@@ -58,7 +48,7 @@ export default async function OutfitsPage({ searchParams }: PageProps<"/outfits"
   // Findet sich das nicht, lieber weniger neue Vorschläge als Fast-Duplikate.
   const season = currentSeason();
   const context = { palette: profile.data.palette, outfits: saved, seasons: [season] };
-  const slots = ["oberteil", "hose", "schuhe", ...(season === "herbst" || season === "winter" ? ["jacke"] : [])];
+  const slots = outfitSlots([season]);
   const pool = items.filter((i) => i.data.status === "aktiv");
   const fresh: { ids: string[]; parts: Item[]; name: string; score: ReturnType<typeof scoreOutfit> }[] = [];
   for (let tries = 0; fresh.length < 2 && tries < MAX_TRIES && pool.length; tries++) {
