@@ -97,7 +97,8 @@ Läuft komplett lokal, ohne KI. Getestet mit Zara, H&M und About You; Zalando bl
 Teile wie bei Tinder wischen (oder ✕/♥ antippen, am PC Pfeiltasten ←/→, ↶ macht den letzten Swipe rückgängig). Zwei Modi:
 
 - **Öfter / seltener**: alle aktiven Teile (ohne Unterwäsche), noch nicht bewertete zuerst. Rechts = öfter tragen, links =
-  seltener, *Egal* setzt zurück. Wird am Teil als `wear: mehr` bzw. `weniger` gespeichert, gesammelt alle paar Sekunden
+  seltener, *Egal* setzt zurück. Wird am Teil als `wear: mehr` bzw. `weniger` gespeichert (auch per Regler
+  „In Outfits vorschlagen“ beim Bearbeiten eines Teils einstellbar), gesammelt alle paar Sekunden
   (ein Commit statt einem pro Swipe). Wirkt auf Würfeln, „Vorschläge für heute“ und die Vorschlagsliste im Builder
   (siehe [outfit-builder.md](outfit-builder.md)).
 - **Outfit finden**: 6, 10 oder 16 Teile für Oberteil, Hose, Schuhe (im Herbst und Winter auch Jacke), passend zur

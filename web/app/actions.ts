@@ -162,8 +162,8 @@ export async function saveItem(_prev: FormState, fd: FormData): Promise<FormStat
     purchase: Object.values(purchase).some((v) => v !== undefined) ? purchase : undefined,
     tags: list(fd, "tags"),
     link: text(fd, "link"),
-    // Swipe-Vorliebe steht nicht im Formular und bleibt beim Bearbeiten erhalten
-    wear: previous?.data.wear as ItemData["wear"],
+    // Regler im Formular, dasselbe Feld wie beim Swipen
+    wear: ({ "0": "weniger", "2": "mehr" } as const)[text(fd, "wear") as "0" | "2"],
   };
 
   const errors = validateFields(data, ITEM_FIELDS);
