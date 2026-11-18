@@ -1,7 +1,7 @@
 // Lesen und Schreiben der Daten, egal ob als Markdown-Dateien (STORAGE=files) oder in SQLite (STORAGE=sqlite).
 // Wird von der Website (web/lib/data.ts, web/app/actions.ts) und den Kommandozeilen-Skripten genutzt.
 // Einträge haben immer die Form { id, data, body }: data sind die Frontmatter-Felder, body der Markdown-Text.
-import path from 'node:path';
+import { translit } from './colors.mjs';
 import { dataRoot, databaseFile, loadEnv, storageMode } from './config.mjs';
 import { NotFoundError } from './store/common.mjs';
 import { createFileStore } from './store/files.mjs';
@@ -26,21 +26,12 @@ export function store() {
   return current.store;
 }
 
-export const dirs = {
-  inbox: () => path.join(dataRoot(), 'inbox'),
-};
-
 /** Ordner mit den Fotos eines Teils (kind "items") oder Wunsches (kind "wishlist") */
 export const photoDir = (kind, id) => store().photoDir(kind, id);
 
 /** "Navy Chino!" -> "navy-chino" (Umlaute werden ausgeschrieben). */
 export function slugify(text) {
-  return text
-    .toLowerCase()
-    .replace(/ä/g, 'ae')
-    .replace(/ö/g, 'oe')
-    .replace(/ü/g, 'ue')
-    .replace(/ß/g, 'ss')
+  return translit(text)
     .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-')

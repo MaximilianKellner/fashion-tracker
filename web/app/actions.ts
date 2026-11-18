@@ -5,6 +5,7 @@ import path from "node:path";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import * as lib from "@lib/data.mjs";
+import { translit } from "@lib/colors.mjs";
 import { processPhoto } from "@lib/photo.mjs";
 import { checkForUpdate as checkCode, commitAndPush } from "@lib/git-sync.mjs";
 import { downloadImage } from "@lib/product-import.mjs";
@@ -57,7 +58,7 @@ const all = (fd: FormData, key: string) =>
 const list = (fd: FormData, key: string) =>
   (text(fd, key) ?? "")
     .split(",")
-    .map((s) => s.trim().toLowerCase().replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss"))
+    .map(translit)
     .filter(Boolean);
 
 const PHOTO_FILE = /^photo-\d+\.webp$/;

@@ -145,9 +145,3 @@ export function guessDefaults({ category, subcategory, material, name = '', patt
 
   return { formality, seasons: [...seasons], pattern: pattern || 'uni' };
 }
-
-/** Alles zusammen: was der Text hergibt, darauf aufbauend Formalität und Saison */
-export function guessItem(text, fallback = '') {
-  const found = guessFromText(text, fallback);
-  return { ...found, ...guessDefaults({ ...found, name: text }) };
-}

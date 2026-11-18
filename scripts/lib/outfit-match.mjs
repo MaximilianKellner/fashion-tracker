@@ -459,6 +459,10 @@ export function differentParts(ids, other) {
   return new Set(ids.filter((id) => !set.has(id))).size;
 }
 
+/** Plätze, die ein Outfit für diese Saisons braucht: in Herbst und Winter auch eine Jacke */
+export const outfitSlots = (seasons = []) =>
+  ['oberteil', 'hose', 'schuhe', ...(seasons.includes('herbst') || seasons.includes('winter') ? ['jacke'] : [])];
+
 /**
  * Füllt leere Plätze (standardmäßig Oberteil, Hose, Schuhe) so, dass das ganze Outfit möglichst stimmig ist.
  * Statt Platz für Platz das gerade beste Teil zu nehmen, werden mehrere Kombinationen parallel verfolgt

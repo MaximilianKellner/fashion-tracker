@@ -8,7 +8,7 @@ import { FORMALITY, formatPriceInput, label } from "@/lib/labels";
 import type { ItemData } from "@/lib/types";
 import { ColorPicker } from "./color-picker";
 import { PhotoPicker, usePhotoPicker } from "./photo-picker";
-import { AutoBadge, Errors, Field, Section } from "./form-bits";
+import { AutoBadge, Errors, Field, LabelOptions, Section } from "./form-bits";
 
 type Props = {
   id?: string;
@@ -148,11 +148,7 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
               <option value="" disabled>
                 wählen …
               </option>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {label(c)}
-                </option>
-              ))}
+              <LabelOptions values={CATEGORIES} />
             </select>
           </Field>
           <Field label="Unterkategorie" auto={auto.has("subcategory")}>
@@ -185,11 +181,7 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
           <Field label="Muster" auto={auto.has("pattern")}>
             <select name="pattern" value={shown.pattern} onChange={(e) => set("pattern", e.target.value)} className="field">
               <option value="">–</option>
-              {PATTERNS.map((p) => (
-                <option key={p} value={p}>
-                  {label(p)}
-                </option>
-              ))}
+              <LabelOptions values={PATTERNS} />
             </select>
           </Field>
           <Field label="Material" auto={auto.has("material")}>
@@ -245,11 +237,7 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
           </Field>
           <Field label="Status">
             <select name="status" defaultValue={data.status ?? "aktiv"} className="field">
-              {ITEM_STATUS.map((s) => (
-                <option key={s} value={s}>
-                  {label(s)}
-                </option>
-              ))}
+              <LabelOptions values={ITEM_STATUS} />
             </select>
           </Field>
         </div>

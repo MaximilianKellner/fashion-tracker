@@ -5,7 +5,7 @@ import { saveOutfit } from "@/app/actions";
 import { CATEGORIES, OUTFIT_SOURCES, SEASONS } from "@lib/schema.mjs";
 import { label } from "@/lib/labels";
 import type { Item, OutfitData } from "@/lib/types";
-import { Errors, Field, Section } from "./form-bits";
+import { Errors, Field, LabelOptions, Section } from "./form-bits";
 import { Photo } from "./photo";
 
 type Props = { id?: string; data?: Partial<OutfitData>; body?: string; items: Item[] };
@@ -113,11 +113,7 @@ export function OutfitForm({ id, data = {}, body = "", items }: Props) {
         </div>
         <Field label="Zusammengestellt von">
           <select name="source" defaultValue={data.source ?? "ich"} className="field">
-            {OUTFIT_SOURCES.map((s) => (
-              <option key={s} value={s}>
-                {label(s)}
-              </option>
-            ))}
+            <LabelOptions values={OUTFIT_SOURCES} />
           </select>
         </Field>
         <Field label="Notizen">

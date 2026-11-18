@@ -3,9 +3,9 @@
 import { startTransition, useActionState, type FormEvent } from "react";
 import { saveWish } from "@/app/actions";
 import { CATEGORIES, WISHLIST_STATUS } from "@lib/schema.mjs";
-import { formatPriceInput, label, PRIORITY } from "@/lib/labels";
+import { formatPriceInput, PRIORITY } from "@/lib/labels";
 import type { WishData } from "@/lib/types";
-import { Errors, Field, Section } from "./form-bits";
+import { Errors, Field, LabelOptions, Section } from "./form-bits";
 import { PhotoPicker, usePhotoPicker } from "./photo-picker";
 
 export function WishForm({
@@ -52,11 +52,7 @@ export function WishForm({
           <Field label="Kategorie">
             <select name="category" defaultValue={data.category ?? ""} className="field">
               <option value="">–</option>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {label(c)}
-                </option>
-              ))}
+              <LabelOptions values={CATEGORIES} />
             </select>
           </Field>
           <Field label="Preis (€)">
@@ -78,11 +74,7 @@ export function WishForm({
           </Field>
           <Field label="Status">
             <select name="status" defaultValue={data.status ?? "offen"} className="field">
-              {WISHLIST_STATUS.map((s) => (
-                <option key={s} value={s}>
-                  {label(s)}
-                </option>
-              ))}
+              <LabelOptions values={WISHLIST_STATUS} />
             </select>
           </Field>
         </div>

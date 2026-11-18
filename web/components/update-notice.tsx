@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { serverIsNewer } from "./update-check";
 
 // Version, mit der diese Seite gebaut wurde (next.config.ts)
 const LOADED = process.env.APP_VERSION;
@@ -42,29 +43,18 @@ export function UpdateNotice() {
       if (busy || document.visibilityState !== "visible" || Date.now() - lastCheck < CHECK_GAP_MS || shownToday()) return;
       busy = true;
       lastCheck = Date.now();
-      try {
-        const res = await fetch("/api/version", { cache: "no-store" });
-        // Während des Neustarts antwortet der Server kurz nicht; dann beim nächsten Mal wieder versuchen
-        if (res.ok) {
-          const { version } = await res.json();
-          if (version && version !== LOADED) {
-            markShown();
-            setOutdated(true);
-          }
-        }
-      } catch {
-        // offline oder Server startet neu
-      } finally {
-        busy = false;
+      // Offline oder Server startet neu: dann beim nächsten Mal wieder versuchen
+      if (await serverIsNewer()) {
+        markShown();
+        setOutdated(true);
       }
+      busy = false;
     }
     // Wenn der Tab wieder in den Vordergrund kommt (z.B. Handy entsperrt)
-    document.addEventListener("visibilitychange", check);
-    window.addEventListener("focus", check);
-    return () => {
-      document.removeEventListener("visibilitychange", check);
-      window.removeEventListener("focus", check);
-    };
+    const stop = new AbortController();
+    document.addEventListener("visibilitychange", check, { signal: stop.signal });
+    window.addEventListener("focus", check, { signal: stop.signal });
+    return () => stop.abort();
   }, [outdated]);
 
   if (!outdated || hidden) return null;
