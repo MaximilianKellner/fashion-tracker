@@ -63,7 +63,10 @@ export function Nav() {
       {/* Desktop: Leiste oben */}
       <header className="sticky top-0 z-20 hidden border-b border-line bg-bg/90 backdrop-blur sm:block">
         <nav className="mx-auto flex max-w-5xl items-center gap-1 px-4 py-3">
-          <span className="mr-4 font-semibold tracking-tight">Kleiderschrank</span>
+          {/* Führt immer zur Startseite zurück, ohne Filter */}
+          <Link href="/" className="mr-4 rounded-lg font-semibold tracking-tight hover:text-accent">
+            Kleiderschrank
+          </Link>
           {LINKS.map((l) =>
             l.primary ? (
               <Link key={l.href} href={l.href} className="btn-primary ml-auto order-last py-1.5">
@@ -93,7 +96,9 @@ export function Nav() {
 
       {/* Mobil: Statistik und Profil oben rechts */}
       <div className="flex items-center justify-between px-4 pt-2 sm:hidden">
-        <span className="text-sm font-semibold tracking-tight text-muted">Kleiderschrank</span>
+        <Link href="/" className="-ml-2 rounded-lg px-2 py-2 text-sm font-semibold tracking-tight text-muted hover:text-ink">
+          Kleiderschrank
+        </Link>
         <div className="-mr-2 flex gap-1">
           {SECONDARY.map((l) => (
             <Link
