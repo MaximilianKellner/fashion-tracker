@@ -86,7 +86,7 @@ export function SearchField({ defaultValue = "", suggestions }: { defaultValue?:
         </button>
       )}
       {shown && (
-        <ul id="search-suggestions" role="listbox" className="absolute inset-x-0 top-full z-20 mt-1 overflow-hidden rounded-lg border border-line bg-surface shadow-lg">
+        <ul id="search-suggestions" role="listbox" className="animate-pop absolute inset-x-0 top-full z-20 mt-1 origin-top overflow-hidden rounded-lg border border-line bg-surface shadow-lg">
           {matches.map((s, i) => (
             <li key={s} role="option" aria-selected={i === active}>
               <button

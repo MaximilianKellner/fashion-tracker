@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ViewTransition } from "react";
 import { deleteItem } from "@/app/actions";
 import { getItem, getItems, getOutfits } from "@/lib/data";
 import { euro, FORMALITY, label } from "@/lib/labels";
-import { ColorDot, ItemThumb } from "@/components/item-card";
+import { ColorDot, ItemThumb, itemTransition } from "@/components/item-card";
 import { ConfirmButton } from "@/components/confirm-button";
 
 function Row({ k, v }: { k: string; v?: React.ReactNode }) {
@@ -30,14 +31,24 @@ export default async function ItemPage({ params }: PageProps<"/items/[id]">) {
     <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <div className="space-y-3">
         {data.photos?.length ? (
-          data.photos.map((p) => (
+          data.photos.map((p, i) => {
             // eslint-disable-next-line @next/next/no-img-element
-            <img key={p} src={`/photos/${id}/${p}`} alt={data.name} className="w-full rounded-xl border border-line" />
-          ))
+            const img = <img key={p} src={`/photos/${id}/${p}`} alt={data.name} className="w-full rounded-xl border border-line" />;
+            // Das erste Foto ist dasselbe wie auf der Karte und wandert beim Öffnen von dort hierher
+            return i === 0 ? (
+              <ViewTransition key={p} name={itemTransition(id)} share="morph" default="none">
+                {img}
+              </ViewTransition>
+            ) : (
+              img
+            );
+          })
         ) : (
-          <div className="aspect-[3/4] overflow-hidden rounded-xl border border-line">
-            <ItemThumb item={item} />
-          </div>
+          <ViewTransition name={itemTransition(id)} share="morph" default="none">
+            <div className="aspect-[3/4] overflow-hidden rounded-xl border border-line">
+              <ItemThumb item={item} />
+            </div>
+          </ViewTransition>
         )}
       </div>
 
@@ -101,7 +112,7 @@ export default async function ItemPage({ params }: PageProps<"/items/[id]">) {
             <ul className="space-y-2">
               {inOutfits.map((o) => (
                 <li key={o.id}>
-                  <Link href={`/outfits/${o.id}`} className="flex items-center gap-3 rounded-xl border border-line bg-surface p-2">
+                  <Link href={`/outfits/${o.id}`} className="card-lift flex items-center gap-3 rounded-xl border border-line bg-surface p-2">
                     <div className="flex -space-x-3">
                       {o.data.items.slice(0, 4).map((ref) => {
                         const other = byId.get(ref);

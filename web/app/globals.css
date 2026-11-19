@@ -53,10 +53,10 @@ body {
 
 /* Wiederverwendbare Bausteine für Formulare, Buttons und Filter-Chips */
 @utility field {
-  @apply w-full rounded-lg border border-line bg-surface px-3 py-2 text-base text-ink outline-none focus:border-accent;
+  @apply w-full rounded-lg border border-line bg-surface px-3 py-2 text-base text-ink outline-none transition-[border-color,box-shadow] duration-200 focus:border-accent focus:ring-3 focus:ring-accent/15;
 }
 @utility btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium transition-opacity disabled:opacity-50;
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium transition-[opacity,background-color,scale] duration-150 ease-out not-disabled:active:scale-[0.97] disabled:opacity-50;
 }
 @utility btn-primary {
   @apply btn bg-accent text-accent-ink hover:opacity-90;
@@ -65,10 +65,163 @@ body {
   @apply btn border border-line bg-surface text-ink hover:bg-surface-2;
 }
 @utility chip {
-  @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 text-sm text-ink;
+  @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 text-sm text-ink transition-[background-color,border-color,color,scale] duration-200 ease-out active:scale-95;
 }
 @utility chip-active {
   @apply border-accent bg-accent text-accent-ink;
+}
+
+/* Karten heben sich beim Überfahren leicht an */
+@utility card-lift {
+  @apply transition-[translate,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_10px_28px_-14px_rgb(0_0_0/0.3)] active:translate-y-0;
+}
+/* Hinweise und Inhalte, die neu erscheinen */
+@utility animate-rise {
+  animation: rise-in 380ms var(--ease-out) both;
+}
+/* Kleine Menüs (Suchvorschläge): kurz einblenden und aufklappen */
+@utility animate-pop {
+  animation: pop-in 160ms var(--ease-out) both;
+}
+
+/* ---------- Animationen ----------
+ * Seitenwechsel und gemeinsame Elemente laufen über React <ViewTransition> (components/page-transition.tsx,
+ * item-card.tsx, nav.tsx). Ohne Browser-Unterstützung wechselt die Seite einfach ohne Animation.
+ */
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  /* <details> klappt mit echter Höhe auf */
+  interpolate-size: allow-keywords;
+}
+
+@keyframes vt-fade-in {
+  from { opacity: 0; }
+}
+@keyframes vt-fade-out {
+  to { opacity: 0; }
+}
+@keyframes vt-rise {
+  from { translate: 0 12px; }
+}
+@keyframes vt-sink {
+  to { translate: 0 -6px; }
+}
+@keyframes rise-in {
+  from { opacity: 0; translate: 0 12px; }
+}
+@keyframes pop-in {
+  from { opacity: 0; scale: 1 0.96; translate: 0 -4px; }
+}
+
+/* Klicks während der Animation gehen an die neue Seite */
+::view-transition {
+  pointer-events: none;
+}
+/* Alles ohne eigenen Übergang (Kopfleiste, Navigation) wechselt sofort und bleibt live, statt als Standbild
+   überzublenden. So sieht man die Markierung der Navigation (components/sliding-pill.ts) hinter dem Text gleiten. */
+::view-transition-old(root) {
+  display: none;
+}
+::view-transition-new(root) {
+  animation: none;
+}
+
+/* Seitenwechsel: alte Seite blendet schnell aus, neue gleitet von unten herein */
+::view-transition-old(.page) {
+  animation: 120ms ease-in both vt-fade-out, 120ms ease-in both vt-sink;
+}
+::view-transition-new(.page) {
+  animation: 260ms var(--ease-out) 60ms both vt-fade-in, 400ms var(--ease-out) both vt-rise;
+}
+
+/* Gleiche Seite, andere Filter oder Ansicht: kurzes Überblenden */
+::view-transition-old(.swap) {
+  animation: 120ms ease-in both vt-fade-out;
+}
+::view-transition-new(.swap) {
+  animation: 240ms ease-out 40ms both vt-fade-in;
+}
+
+/* Karte gleitet als Ganzes an ihren neuen Platz (neue Ansicht, Filter, Sortierung) bzw. wird zum großen Foto der
+   Detailseite. Die Karte wird samt runden Ecken als ein Bild bewegt. */
+::view-transition-group(.morph) {
+  animation-duration: 450ms;
+  animation-timing-function: var(--ease-out);
+}
+::view-transition-old(.morph),
+::view-transition-new(.morph) {
+  /* Nicht verzerren, wenn sich das Seitenverhältnis ändert (Karte ↔ Foto): oben bündig, der Textstreifen der
+     Karte wird unten abgeschnitten */
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+
+/* Markierung des aktiven Menüpunkts bzw. der Ansicht gleitet zum neuen Punkt */
+::view-transition-group(.indicator) {
+  animation-duration: 340ms;
+  animation-timing-function: var(--ease-out);
+}
+
+/* <details> klappt animiert auf (Chromium; sonst wie bisher sofort) */
+details::details-content {
+  block-size: 0;
+  overflow: clip;
+  transition:
+    block-size 300ms var(--ease-out),
+    content-visibility 300ms allow-discrete;
+}
+details[open]::details-content {
+  block-size: auto;
+}
+
+/* <dialog> blendet ein und wächst leicht */
+dialog {
+  opacity: 0;
+  scale: 0.96;
+  transition:
+    opacity 200ms ease-out,
+    scale 200ms var(--ease-out),
+    overlay 200ms allow-discrete,
+    display 200ms allow-discrete;
+}
+dialog[open] {
+  opacity: 1;
+  scale: 1;
+}
+@starting-style {
+  dialog[open] {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+dialog::backdrop {
+  transition:
+    background-color 200ms ease-out,
+    overlay 200ms allow-discrete,
+    display 200ms allow-discrete;
+}
+@starting-style {
+  dialog[open]::backdrop {
+    background-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*),
+  ::view-transition-image-pair(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+  *,
+  *::before,
+  *::after,
+  ::details-content {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Formatierter Markdown-Text (Profil, Empfehlungen) */

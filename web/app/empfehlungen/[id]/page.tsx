@@ -61,7 +61,7 @@ export default async function RecommendationPage({ params }: PageProps<"/empfehl
           <ul className="space-y-2">
             {answers.map((a) => (
               <li key={a.id}>
-                <Link href={`/empfehlungen/${a.id}`} className="block rounded-xl border border-line bg-surface p-3 hover:bg-surface-2">
+                <Link href={`/empfehlungen/${a.id}`} className="card-lift block rounded-xl border border-line bg-surface p-3 hover:bg-surface-2">
                   {a.data.title}
                 </Link>
               </li>
@@ -86,7 +86,7 @@ export default async function RecommendationPage({ params }: PageProps<"/empfehl
           <h2 className="mb-2 font-semibold">Outfits</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {linkedOutfits.map((o) => (
-              <Link key={o.id} href={`/outfits/${o.id}`} className="block overflow-hidden rounded-xl border border-line bg-surface">
+              <Link key={o.id} href={`/outfits/${o.id}`} className="card-lift block overflow-hidden rounded-xl border border-line bg-surface">
                 <OutfitCollage items={items.filter((i) => o.data.items.includes(i.id))} />
                 <div className="truncate p-2.5 text-sm font-medium">{o.data.name}</div>
               </Link>

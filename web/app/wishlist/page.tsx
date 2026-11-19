@@ -25,7 +25,7 @@ function WishCard({ wish }: { wish: Wish }) {
   const { data } = wish;
   const open = data.status === "offen";
   return (
-    <div className={`flex h-full flex-col overflow-hidden rounded-xl border border-line bg-surface ${open ? "" : "opacity-70"}`}>
+    <div className={`card-lift flex h-full flex-col overflow-hidden rounded-xl border border-line bg-surface ${open ? "" : "opacity-70"}`}>
       <Link href={`/wishlist/${wish.id}/edit`} className="group block aspect-[3/4] overflow-hidden">
         {data.photos?.[0] ? (
           <Photo
