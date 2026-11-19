@@ -26,17 +26,33 @@ export function FilterKeepOpen() {
 
   return (
     <label className="flex cursor-pointer items-center gap-2 text-sm text-muted select-none hover:text-ink">
-      <input
-        ref={ref}
-        type="checkbox"
-        className="size-4 accent-accent"
-        onChange={(e) => {
-          try {
-            if (e.target.checked) localStorage.setItem(FILTER_OPEN_KEY, "1");
-            else localStorage.removeItem(FILTER_OPEN_KEY);
-          } catch {}
-        }}
-      />
+      {/* Eigene Checkbox statt der nativen (die ist im Dunkelmodus grell weiß): Rahmen in der Linienfarbe,
+          gesetzt mit Haken und Rahmen in der Akzentfarbe */}
+      <span className="grid size-4 shrink-0 place-items-center">
+        <input
+          ref={ref}
+          type="checkbox"
+          className="peer col-start-1 row-start-1 size-4 cursor-pointer appearance-none rounded border border-line bg-surface-2 outline-none transition-colors checked:border-accent focus-visible:ring-2 focus-visible:ring-accent/40"
+          onChange={(e) => {
+            try {
+              if (e.target.checked) localStorage.setItem(FILTER_OPEN_KEY, "1");
+              else localStorage.removeItem(FILTER_OPEN_KEY);
+            } catch {}
+          }}
+        />
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+          className="pointer-events-none col-start-1 row-start-1 size-3 text-accent opacity-0 transition-opacity peer-checked:opacity-100"
+        >
+          <path d="M5 12.5l4.5 4.5L19 7.5" />
+        </svg>
+      </span>
       aufgeklappt lassen
     </label>
   );
