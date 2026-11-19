@@ -2,6 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ViewTransition } from "react";
+import { PILL_CLASS, useSlidingPill } from "./sliding-pill";
+
+/**
+ * Strich über dem aktiven Tab am Handy; gleitet beim Seitenwechsel zum neuen Tab (globals.css `.indicator`).
+ * Er überdeckt keinen Text und darf deshalb als eigenes Bild über der Seite liegen.
+ */
+function Indicator({ name, className }: { name: string; className: string }) {
+  return (
+    <ViewTransition name={name} share="indicator" default="none">
+      <span aria-hidden className={`pointer-events-none absolute ${className}`} />
+    </ViewTransition>
+  );
+}
 
 type NavLink = { href: string; label: string; icon: string; desktopLabel?: string; primary?: boolean };
 
@@ -60,11 +74,14 @@ function Icon({ d }: { d: string }) {
 
 export function Nav() {
   const pathname = usePathname();
+  // Hintergrund des aktiven Punkts gleitet hinter dem Text zum neuen Punkt
+  const { container, pill } = useSlidingPill<HTMLElement>(pathname);
   return (
     <>
       {/* Desktop: Leiste oben */}
       <header className="sticky top-0 z-20 hidden border-b border-line bg-bg/90 backdrop-blur sm:block">
-        <nav className="mx-auto flex max-w-5xl items-center gap-1 px-4 py-3">
+        <nav ref={container} className="group/pill relative mx-auto flex max-w-5xl items-center gap-1 px-4 py-3">
+          <span ref={pill} aria-hidden className={`${PILL_CLASS} rounded-lg bg-surface-2`} />
           {/* Führt immer zur Startseite zurück, ohne Filter */}
           <Link href="/" className="mr-4 rounded-lg font-semibold tracking-tight hover:text-accent">
             Kleiderschrank
@@ -78,7 +95,8 @@ export function Nav() {
               <Link
                 key={l.href}
                 href={l.href}
-                className={`rounded-lg px-3 py-1.5 text-sm ${isActive(pathname, l.href) ? "bg-surface-2 font-medium text-ink" : "text-muted hover:text-ink"}`}
+                data-active={isActive(pathname, l.href) || undefined}
+                className={`relative rounded-lg px-3 py-1.5 text-sm transition-colors duration-300 ${isActive(pathname, l.href) ? "bg-surface-2 font-medium text-ink group-data-[pill]/pill:bg-transparent" : "text-muted hover:text-ink"}`}
               >
                 {l.desktopLabel ?? l.label}
               </Link>
@@ -114,10 +132,13 @@ export function Nav() {
             <li key={l.href}>
               <Link
                 href={l.href}
-                className={`flex flex-col items-center gap-0.5 py-2 text-[11px] ${isActive(pathname, l.href) ? "text-accent font-medium" : "text-muted"}`}
+                className={`relative flex flex-col items-center gap-0.5 py-2 text-[11px] transition-colors active:scale-95 ${isActive(pathname, l.href) ? "text-accent font-medium" : "text-muted"}`}
               >
+                {isActive(pathname, l.href) && !l.primary && (
+                  <Indicator name="tab-indicator" className="left-1/2 top-0 h-0.5 w-8 -translate-x-1/2 rounded-full bg-accent" />
+                )}
                 {l.primary ? (
-                  <span className="-mt-1 flex h-9 w-9 items-center justify-center rounded-full bg-accent text-accent-ink">
+                  <span className="-mt-1 flex h-9 w-9 items-center justify-center rounded-full bg-accent text-accent-ink shadow-sm transition-transform duration-200 active:scale-90">
                     <Icon d={l.icon} />
                   </span>
                 ) : (

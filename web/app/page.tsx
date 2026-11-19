@@ -1,4 +1,6 @@
+import Form from "next/form";
 import Link from "next/link";
+import { ViewTransition } from "react";
 import { getItems } from "@/lib/data";
 import { label } from "@/lib/labels";
 import { CATEGORIES, SEASONS } from "@lib/schema.mjs";
@@ -111,7 +113,8 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
         resetHref={withParams("/", { q: filters.q, sort: filters.sort, view: filters.view })}
         toolbarClassName="mt-4"
       >
-        <form className="flex basis-full sm:basis-0 sm:flex-1">
+        {/* next/form: Suchen wechselt ohne Neuladen wie die Filter (Liste blendet über, Scrollposition bleibt) */}
+        <Form action="/" scroll={false} className="flex basis-full sm:basis-0 sm:flex-1">
           {Object.entries(filters).map(([k, v]) => v && k !== "q" && <input key={k} type="hidden" name={k} value={v} />)}
           {/* Vorschläge beim Tippen: Namen, Marken, Tags und Farben aller Teile; Enter sucht */}
           <SearchField
@@ -125,13 +128,16 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
               ),
             ].sort()}
           />
-        </form>
+        </Form>
         <FilterButton count={activeFilters} />
         <div className="ml-auto flex">
           <SortSelect options={sortChoices(ITEM_SORTS)} value={sort.id} />
         </div>
       </FilterPanel>
 
+      {/* Neue Filter, Sortierung oder Ansicht: Liste blendet über, Karten, die bleiben, gleiten an ihren neuen Platz */}
+      <ViewTransition key={JSON.stringify(filters)} enter="swap" exit="swap" default="none">
+      <div>
       {items.length === 0 ? (
         <p className="py-12 text-center text-muted">Keine Teile für diese Filter.</p>
       ) : view === "raster" ? (
@@ -157,6 +163,8 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
           ))}
         </div>
       )}
+      </div>
+      </ViewTransition>
       {view === "liste" && (
         <SectionRail sections={groups.map((g) => ({ id: `kat-${g.category}`, label: groupTitle(g.category), count: g.items.length }))} />
       )}

@@ -20,7 +20,7 @@ function RecCard({ rec, answer }: { rec: Recommendation; answer?: Recommendation
   const target = answer ?? rec;
   return (
     <li>
-      <Link href={`/empfehlungen/${target.id}`} className="block rounded-xl border border-line bg-surface p-4 hover:bg-surface-2">
+      <Link href={`/empfehlungen/${target.id}`} className="card-lift block rounded-xl border border-line bg-surface p-4 hover:bg-surface-2">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 font-medium">{target.data.title}</div>
           <span className="shrink-0 text-xs text-muted">{formatDate(target.data.date)}</span>

@@ -17,7 +17,8 @@ Am PC alles in der oberen Leiste.
   erscheint beim Darüberfahren der Name (`web/components/section-rail.tsx`).
 - **Suche** oben (mit Lupe): findet Teile, deren Name, Marke, Unterkategorie, Farben oder Tags alle eingegebenen Wörter enthalten.
   Beim Tippen erscheinen bis zu 6 passende Namen, Marken, Tags und Farben; ein Klick (oder Pfeiltasten + Enter) sucht
-  sofort danach. Das **✕** im Feld leert es und hebt eine Suche auf (`web/components/search-field.tsx`).
+  sofort danach. Das **✕** im Feld leert es und hebt eine Suche auf (`web/components/search-field.tsx`). Das Formular
+  ist ein `next/form`: Suchen lädt die Seite nicht neu, die Liste blendet wie bei den Filtern über.
   Steht als `?q=` in der URL und lässt sich mit den Filtern kombinieren (Enter, kein JavaScript nötig).
 - **Werkzeugleiste**: Suche, Button **Filter** und Sortierung in einer Zeile (am Handy die Suche allein darüber).
 - Filter: Kategorie, Saison und Farbe, frei kombinierbar. Sie sind eingeklappt; der Button **Filter** klappt ein Panel
@@ -240,3 +241,13 @@ Alles ist unter **Bearbeiten** änderbar und landet im Frontmatter von `profile.
 - Footer: Version der geladenen Seite und **Nach Updates suchen** (sucht sofort nach neuem Code und baut ihn mit
   `CODE_AUTOUPDATE=1` im Hintergrund, siehe [home-pc.md](home-pc.md#git-abgleich-scriptslibgit-syncmjs)).
 - Next.js 16 weicht in einigen APIs von älteren Versionen ab; vor Änderungen `web/AGENTS.md` lesen.
+- Animationen: Seitenwechsel, das Foto von der Karte zur Detailseite, der Strich über dem aktiven Tab am Handy und das
+  Überblenden der Liste bei neuer Suche, Filtern oder Sortierung (Kleiderschrank und Outfits) laufen über React
+  `<ViewTransition>` (`web/components/page-transition.tsx`, `item-card.tsx`, `nav.tsx`, `app/page.tsx`,
+  `app/outfits/page.tsx`). Die Abläufe stehen als CSS-Klassen (`.page`, `.swap`, `.morph`, `.indicator`) im Abschnitt
+  „Animationen“ von `web/app/globals.css`, ebenso `card-lift` (Karten heben sich beim Überfahren), `animate-rise`
+  (Update-Hinweis), `animate-pop` (Suchvorschläge), aufklappende `<details>` und das Popup (`<dialog>`). Der
+  Hintergrund des aktiven Punkts in der oberen Leiste und im Ansichts-Umschalter gleitet als normales Element hinter dem
+  Text (`web/components/sliding-pill.ts`); als `<ViewTransition>` läge er während der Animation über der Schrift. Ohne
+  Browser-Unterstützung fehlt nur die Animation, und Listen außerhalb des sichtbaren Bereichs animieren nicht. Bei
+  „Bewegung reduzieren“ im Betriebssystem ist alles aus. Gemeinsame `name`s müssen auf einer Seite eindeutig sein, sonst bricht der Übergang ab.

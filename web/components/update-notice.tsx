@@ -62,7 +62,7 @@ export function UpdateNotice() {
     <div
       role="status"
       // Am Handy über der Navigationsleiste
-      className="fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-30 mx-auto flex max-w-md items-center gap-3 rounded-xl border border-line bg-surface p-3 text-sm shadow-lg sm:bottom-4"
+      className="animate-rise fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-30 mx-auto flex max-w-md items-center gap-3 rounded-xl border border-line bg-surface p-3 text-sm shadow-lg sm:bottom-4"
     >
       <span className="min-w-0 flex-1">
         <span className="font-medium">Neue Version verfügbar.</span> Neu laden, um sie zu nutzen.

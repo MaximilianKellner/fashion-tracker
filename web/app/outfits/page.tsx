@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ViewTransition } from "react";
 import { getItems, getOutfits, getProfile } from "@/lib/data";
 import { currentSeason, label, scoreTone } from "@/lib/labels";
 import { completeOutfit, differentParts, outfitSlots, scoreOutfit } from "@lib/outfit-match.mjs";
@@ -174,7 +175,10 @@ export default async function OutfitsPage({ searchParams }: PageProps<"/outfits"
             Stell eins selbst zusammen oder frag Claude im Repo mit <code>/outfit büro</code> nach Vorschlägen.
           </p>
         </div>
-      ) : shown.length === 0 ? (
+      ) : (
+        // Neue Filter oder Sortierung: Liste blendet über (globals.css `.swap`)
+        <ViewTransition key={JSON.stringify(filters)} enter="swap" exit="swap" default="none">
+        {shown.length === 0 ? (
         <p className="py-12 text-center text-muted">Keine Outfits für diese Filter.</p>
       ) : (
         <div className={`mt-4 ${GRID}`}>
@@ -190,6 +194,8 @@ export default async function OutfitsPage({ searchParams }: PageProps<"/outfits"
             />
           ))}
         </div>
+        )}
+        </ViewTransition>
       )}
     </div>
   );
@@ -220,7 +226,7 @@ function OutfitTile({
   className?: string;
 }) {
   return (
-    <Link href={href} className={`block overflow-hidden rounded-xl border border-line bg-surface ${className}`}>
+    <Link href={href} className={`card-lift block overflow-hidden rounded-xl border border-line bg-surface ${className}`}>
       <div className="relative">
         <OutfitCollage items={parts} />
         {badge && (

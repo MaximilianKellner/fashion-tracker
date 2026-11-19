@@ -1,7 +1,11 @@
 import Link from "next/link";
+import { ViewTransition } from "react";
 import { label, swatch } from "@/lib/labels";
 import type { Item } from "@/lib/types";
 import { Photo } from "./photo";
+
+/** Name für den Übergang des Fotos von der Karte zur Detailseite (globals.css `.morph`) */
+export const itemPhotoTransition = (id: string) => `item-photo-${id}`;
 
 /** Erstes Foto eines Teils oder null (ohne Serverimport, damit auch Client-Komponenten es nutzen können) */
 export const photoUrl = (item: Item) => (item.data.photos?.[0] ? `/photos/${item.id}/${item.data.photos[0]}` : null);
@@ -30,9 +34,13 @@ export function ItemThumb({ item, className = "" }: { item: Item; className?: st
 export function ItemCard({ item }: { item: Item }) {
   const { data } = item;
   return (
-    <Link href={`/items/${item.id}`} className="group block overflow-hidden rounded-xl border border-line bg-surface">
+    <Link href={`/items/${item.id}`} className="card-lift group block overflow-hidden rounded-xl border border-line bg-surface">
       <div className="relative aspect-[3/4] overflow-hidden">
-        <ItemThumb item={item} className="transition-transform group-hover:scale-[1.02]" />
+        <ViewTransition name={itemPhotoTransition(item.id)} share="morph" default="none">
+          <div className="h-full w-full">
+            <ItemThumb item={item} className="transition-transform duration-500 ease-out group-hover:scale-[1.03]" />
+          </div>
+        </ViewTransition>
         {data.status !== "aktiv" && (
           <span className="absolute left-2 top-2 rounded-full bg-surface/90 px-2 py-0.5 text-xs text-muted">{label(data.status)}</span>
         )}

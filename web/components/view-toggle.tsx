@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useOptimistic, useTransition } from "react";
+import { PILL_CLASS, useSlidingPill } from "./sliding-pill";
 import { LayoutGrid, Rows } from "@/components/icons";
 
 // Icons per Name, weil Komponenten nicht vom Server an eine Client-Komponente übergeben werden können
@@ -21,24 +22,31 @@ export function ViewToggle({
   value: string;
 }) {
   const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
+  // Die Markierung springt sofort um, während die neue Ansicht noch lädt
+  const [shown, setShown] = useOptimistic(value);
+  const { container, pill } = useSlidingPill<HTMLDivElement>(shown);
 
   function change(id: string) {
     const url = new URL(window.location.href);
     // Der Standard (erste Option) steht nicht in der URL
     if (id === options[0]?.id) url.searchParams.delete("view");
     else url.searchParams.set("view", id);
-    startTransition(() =>
-      router.replace(url.pathname + url.search, { scroll: false }),
-    );
+    startTransition(() => {
+      setShown(id);
+      router.replace(url.pathname + url.search, { scroll: false });
+    });
   }
 
   return (
     <div
+      ref={container}
       role="group"
       aria-label="Ansicht"
-      className={`flex shrink-0 rounded-lg border border-line bg-surface p-0.5 ${pending ? "opacity-60" : ""}`}
+      className="group/pill relative flex shrink-0 rounded-lg border border-line bg-surface p-0.5"
     >
+      {/* Hintergrund der gewählten Ansicht gleitet hinter dem Symbol zur neuen */}
+      <span ref={pill} aria-hidden className={`${PILL_CLASS} rounded-md bg-surface-2`} />
       {options.map(({ id, label, icon }) => {
         const Icon = ICONS[icon];
         return (
@@ -46,10 +54,12 @@ export function ViewToggle({
             key={id}
             type="button"
             onClick={() => change(id)}
-            aria-pressed={value === id}
+            aria-pressed={shown === id}
+            data-active={shown === id || undefined}
             title={label}
             aria-label={label}
-            className={`flex items-center justify-center rounded-md px-1.5 ${value === id ? "bg-surface-2 text-ink" : "text-muted hover:text-ink"}`}
+            // Quadratisch, unabhängig davon, was daneben steht
+            className={`relative flex size-7 items-center justify-center rounded-md transition-colors duration-300 ${shown === id ? "bg-surface-2 text-ink group-data-[pill]/pill:bg-transparent" : "text-muted hover:text-ink"}`}
           >
             <Icon className="size-4" />
           </button>
