@@ -93,7 +93,8 @@ export default async function OutfitsPage({ searchParams }: PageProps<"/outfits"
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Outfits</h1>
         <div className="flex gap-2">
-          <Link href="/outfits/new" className="btn-ghost">
+          {/* Am Handy ausgeblendet: drei Buttons passen nicht neben den Titel */}
+          <Link href="/outfits/new" className="btn-ghost max-sm:hidden">
             Aus Liste
           </Link>
           <Link href="/outfits/swipen" className="btn-ghost">

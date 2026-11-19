@@ -101,7 +101,7 @@ Läuft komplett lokal, ohne KI. Getestet mit Zara, H&M und About You; Zalando bl
   ein Teil in dieser Farbe; angeboten werden nur Farben aus Outfits), als `?season=` bzw. `?color=` in der URL.
 - Oben rechts auf jeder Karte die Punktzahl des Outfit-Builders (0–100, gleiche Farben wie im Builder); beim Darüberfahren
   Urteil und erkannte Probleme.
-- **Outfit bauen** öffnet den Builder (siehe unten), **Aus Liste** die schlichte Auswahl per Raster, **Swipen** das Swipen.
+- **Outfit bauen** öffnet den Builder (siehe unten), **Aus Liste** die schlichte Auswahl per Raster (nur am PC, am Handy ausgeblendet), **Swipen** das Swipen.
 - Auf der Outfit-Seite: **Im Builder** (visuell bearbeiten) oder **Bearbeiten** (Formular).
 
 ### Swipen (`/outfits/swipen`)
