@@ -79,7 +79,7 @@ export function Nav() {
   return (
     <>
       {/* Desktop: Leiste oben */}
-      <header className="sticky top-0 z-20 hidden border-b border-line bg-bg/90 backdrop-blur sm:block">
+      <header className="nav-bar [view-transition-name:top-nav] sticky top-0 z-20 hidden border-b border-line bg-bg/90 backdrop-blur sm:block">
         <nav ref={container} className="group/pill relative mx-auto flex max-w-5xl items-center gap-1 px-4 py-3">
           <span ref={pill} aria-hidden className={`${PILL_CLASS} rounded-lg bg-surface-2`} />
           {/* Führt immer zur Startseite zurück, ohne Filter */}
@@ -125,8 +125,8 @@ export function Nav() {
         </div>
       </div>
 
-      {/* Mobil: Tab-Leiste unten */}
-      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden">
+      {/* Mobil: Tab-Leiste unten. Eigene Ebene im Seitenwechsel, sonst malt die animierte Seite darüber (globals.css `.nav-bar`) */}
+      <nav className="nav-bar [view-transition-name:bottom-nav] fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden">
         <ul className="grid grid-cols-5">
           {LINKS.map((l) => (
             <li key={l.href}>
