@@ -24,6 +24,9 @@ Am PC alles in der oberen Leiste.
 - Filter: Kategorie, Saison und Farbe, frei kombinierbar. Sie sind eingeklappt; der Button **Filter** klappt ein Panel
   mit beschrifteten Zeilen auf (ohne JavaScript, per CSS). Ist ein Filter aktiv, ist es offen, der Button zeigt die Anzahl
   aktiver Filter und **Filter zurücksetzen** unten im Panel löscht alle (Suche, Sortierung und Ansicht bleiben).
+  Mit der Checkbox **aufgeklappt lassen** unten im Panel ist es beim Aufruf von Kleiderschrank und Outfits immer offen.
+  Das merkt sich der Browser (`localStorage`, `filter-open`); ein Skript im `<head>` öffnet das Panel schon vor dem
+  ersten Zeichnen, also ohne Aufklapp-Animation (`web/components/filter-keep-open.tsx`, `web/lib/filter-open.ts`).
   Die Gruppierung bleibt beim Filtern erhalten. Am PC brechen die Chips um, am Handy scrollen sie seitlich
   (`web/components/filter-panel.tsx`, auch von den Outfits genutzt).
 - **Sortieren** in der Werkzeugleiste (innerhalb jeder Kategorie): älteste/neueste zuerst, Name A–Z/Z–A, teuerste/günstigste zuerst.
