@@ -4,6 +4,8 @@ import { currentSeason, label, scoreTone } from "@/lib/labels";
 import { completeOutfit, differentParts, outfitSlots, scoreOutfit } from "@lib/outfit-match.mjs";
 import { OutfitCollage } from "@/components/outfit-collage";
 import { SortSelect } from "@/components/sort-select";
+import { FilterButton, FilterPanel, toggleHref, withParams } from "@/components/filter-panel";
+import { SEASONS } from "@lib/schema.mjs";
 import { basicSorts, byId as byAge, byNumber, pickSort, shuffle, sortChoices, type SortOption } from "@/lib/sort";
 import type { Item, Outfit } from "@/lib/types";
 
@@ -28,7 +30,10 @@ const MIN_NEW = 2;
 const MAX_TRIES = 30;
 
 export default async function OutfitsPage({ searchParams }: PageProps<"/outfits">) {
-  const sort = pickSort(OUTFIT_SORTS, (await searchParams).sort);
+  const sp = await searchParams;
+  const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
+  const filters = { sort: one(sp.sort), color: one(sp.color), season: one(sp.season) };
+  const sort = pickSort(OUTFIT_SORTS, filters.sort);
   const [outfits, items, profile] = await Promise.all([getOutfits(), getItems(), getProfile()]);
   const byId = new Map(items.map((i) => [i.id, i]));
   const saved = outfits.map((o) => ({ id: o.id, items: o.data.items, rating: o.data.rating }));
@@ -41,6 +46,23 @@ export default async function OutfitsPage({ searchParams }: PageProps<"/outfits"
       return { ...o, parts, score: scoreOf(o.id, parts, o.data.seasons) };
     })
     .sort(sort.compare);
+
+  // Saisons eines Outfits: die gespeicherten, sonst die, zu denen alle Teile passen (Teile ohne Saison passen immer)
+  const seasonsOf = (o: Card) =>
+    o.data.seasons?.length ? o.data.seasons : SEASONS.filter((s) => o.parts.every((p) => !p.data.seasons?.length || p.data.seasons.includes(s)));
+  const shown = cards.filter(
+    (o) =>
+      (!filters.color || o.parts.some((p) => p.data.colors?.includes(filters.color!))) &&
+      (!filters.season || seasonsOf(o).includes(filters.season)),
+  );
+  const colors = [...new Set(cards.flatMap((o) => o.parts.flatMap((p) => p.data.colors ?? [])))].sort();
+  const activeFilters = [filters.color, filters.season].filter(Boolean).length;
+  const chip = (key: "color" | "season", value: string, color?: string) => ({
+    href: toggleHref("/outfits", filters, key, value),
+    text: label(value),
+    color,
+    active: filters[key] === value,
+  });
 
   // Vorschlagszeile: zur Hälfte frisch gewürfelte Outfits (wie „Würfeln“ im Builder, für die aktuelle Jahreszeit),
   // zur Hälfte zufällige gespeicherte; erst die neuen, dann die gespeicherten.
@@ -121,10 +143,28 @@ export default async function OutfitsPage({ searchParams }: PageProps<"/outfits"
       )}
 
       {outfits.length > 1 && (
-        <div className="mt-6 flex items-center justify-between gap-3">
-          <span className="text-sm text-muted">{outfits.length} Outfits</span>
-          <SortSelect options={sortChoices(OUTFIT_SORTS)} value={sort.id} />
-        </div>
+        // Kopf der eigenen Outfits: Titel mit Anzahl, Filter und Sortierung; Zurücksetzen behält die Sortierung
+        <FilterPanel
+          rows={[
+            { title: "Saison", chips: SEASONS.map((x) => chip("season", x)) },
+            { title: "Farbe", chips: colors.map((c) => chip("color", c, c)) },
+          ]}
+          active={activeFilters}
+          resetHref={withParams("/outfits", { sort: filters.sort })}
+          toolbarClassName="mt-8"
+        >
+          {/* Am Handy steht der Titel allein, darunter Filter links und Sortierung rechts */}
+          <h2 className="flex basis-full items-baseline gap-2 self-center text-lg font-semibold sm:mr-auto sm:basis-auto">
+            Deine Outfits
+            <span className="text-sm font-normal text-muted">
+              {shown.length === cards.length ? cards.length : `${shown.length} von ${cards.length}`}
+            </span>
+          </h2>
+          <FilterButton count={activeFilters} />
+          <div className="ml-auto flex sm:ml-0">
+            <SortSelect options={sortChoices(OUTFIT_SORTS)} value={sort.id} />
+          </div>
+        </FilterPanel>
       )}
 
       {outfits.length === 0 ? (
@@ -134,9 +174,11 @@ export default async function OutfitsPage({ searchParams }: PageProps<"/outfits"
             Stell eins selbst zusammen oder frag Claude im Repo mit <code>/outfit büro</code> nach Vorschlägen.
           </p>
         </div>
+      ) : shown.length === 0 ? (
+        <p className="py-12 text-center text-muted">Keine Outfits für diese Filter.</p>
       ) : (
         <div className={`mt-4 ${GRID}`}>
-          {cards.map((o) => (
+          {shown.map((o) => (
             <OutfitTile
               key={o.id}
               href={`/outfits/${o.id}`}

@@ -2,8 +2,8 @@ import Link from "next/link";
 import { getItems } from "@/lib/data";
 import { label } from "@/lib/labels";
 import { CATEGORIES, SEASONS } from "@lib/schema.mjs";
-import { ColorDot, ItemCard } from "@/components/item-card";
-import { SlidersHorizontal } from "@/components/icons";
+import { ItemCard } from "@/components/item-card";
+import { FilterButton, FilterPanel, toggleHref, withParams } from "@/components/filter-panel";
 import { SearchField } from "@/components/search-field";
 import { SectionRail } from "@/components/section-rail";
 import { CATEGORY_VIEWS, categoryRank as rank, groupTitle, pickView } from "@/lib/categories";
@@ -21,13 +21,6 @@ const ITEM_SORTS: SortOption<Item>[] = [
 
 // q, sort und view gehören dazu, damit Filter-Links Suche, Sortierung und Ansicht behalten
 type Filters = { q?: string; category?: string; color?: string; season?: string; status?: string; sort?: string; view?: string };
-
-/** Link, der einen Filter setzt bzw. beim erneuten Klick wieder entfernt */
-function filterHref(current: Filters, key: keyof Filters, value: string) {
-  const next = { ...current, [key]: current[key] === value ? undefined : value };
-  const qs = new URLSearchParams(Object.entries(next).filter(([, v]) => v) as [string, string][]).toString();
-  return qs ? `/?${qs}` : "/";
-}
 
 export default async function WardrobePage({ searchParams }: PageProps<"/">) {
   const sp = await searchParams;
@@ -86,13 +79,17 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
     );
   }
 
-  // Filter-Link ohne alle Filter: Suche, Sortierung und Ansicht bleiben
-  const resetHref = `/?${new URLSearchParams(Object.entries({ q: filters.q, sort: filters.sort, view: filters.view }).filter(([, v]) => v) as [string, string][])}`;
+  const chip = (key: keyof Filters, value: string, text: string, color?: string) => ({
+    href: toggleHref("/", filters, key, value),
+    text,
+    color,
+    active: (key === "status" ? status : filters[key]) === value,
+  });
   const filterRows = [
-    { title: "Kategorie", chips: categories.map((c) => ({ key: "category" as const, value: c, text: label(c) })) },
-    { title: "Saison", chips: SEASONS.map((s) => ({ key: "season" as const, value: s, text: label(s) })) },
-    { title: "Farbe", chips: colors.map((c) => ({ key: "color" as const, value: c, text: label(c), color: c })) },
-    ...(hasOtherStatus ? [{ title: "Status", chips: [{ key: "status" as const, value: "alle", text: "inkl. aussortierte" }] }] : []),
+    { title: "Kategorie", chips: categories.map((c) => chip("category", c, label(c))) },
+    { title: "Saison", chips: SEASONS.map((s) => chip("season", s, label(s))) },
+    { title: "Farbe", chips: colors.map((c) => chip("color", c, label(c), c)) },
+    { title: "Status", chips: hasOtherStatus ? [chip("status", "alle", "inkl. aussortierte")] : [] },
   ];
 
   return (
@@ -107,11 +104,13 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
         <ViewToggle options={[...CATEGORY_VIEWS]} value={view} />
       </div>
 
-      {/* Filter einklappbar: der Filter-Button setzt eine versteckte Checkbox (ohne JavaScript), bei aktiven Filtern offen */}
-      <input type="checkbox" id="filter-toggle" className="peer sr-only" defaultChecked={activeFilters > 0} />
-
-      {/* Werkzeugleiste: am Handy steht die Suche allein in der ersten Zeile */}
-      <div className="mt-4 flex flex-wrap items-stretch gap-2 peer-checked:[&_.filter-btn]:border-accent peer-focus-visible:[&_.filter-btn]:border-accent">
+      {/* Werkzeugleiste: am Handy steht die Suche allein in der ersten Zeile; Zurücksetzen behält Suche, Sortierung und Ansicht */}
+      <FilterPanel
+        rows={filterRows}
+        active={activeFilters}
+        resetHref={withParams("/", { q: filters.q, sort: filters.sort, view: filters.view })}
+        toolbarClassName="mt-4"
+      >
         <form className="flex basis-full sm:basis-0 sm:flex-1">
           {Object.entries(filters).map(([k, v]) => v && k !== "q" && <input key={k} type="hidden" name={k} value={v} />)}
           {/* Vorschläge beim Tippen: Namen, Marken, Tags und Farben aller Teile; Enter sucht */}
@@ -127,47 +126,11 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
             ].sort()}
           />
         </form>
-        <label htmlFor="filter-toggle" className="filter-btn btn-ghost cursor-pointer px-3 py-1.5 text-sm select-none">
-          <SlidersHorizontal className="size-4" />
-          Filter
-          {activeFilters > 0 && (
-            <span className="rounded-full bg-accent px-1.5 text-xs leading-5 text-accent-ink">{activeFilters}</span>
-          )}
-        </label>
-        {/* py-2 wie das Suchfeld, damit alles in der Leiste gleich hoch ist */}
-        <div className="ml-auto flex [&_select]:py-2">
+        <FilterButton count={activeFilters} />
+        <div className="ml-auto flex">
           <SortSelect options={sortChoices(ITEM_SORTS)} value={sort.id} />
         </div>
-      </div>
-
-      <div className="mt-3 hidden rounded-xl border border-line bg-surface p-3 peer-checked:block sm:p-4">
-        <div className="space-y-3">
-          {filterRows.map((row) => (
-            <div key={row.title} className="sm:flex sm:gap-4">
-              <p className="mb-1.5 text-xs font-medium tracking-wide text-muted uppercase sm:mb-0 sm:w-20 sm:shrink-0 sm:pt-1.5">{row.title}</p>
-              {/* Am Handy seitlich scrollen, am Desktop umbrechen */}
-              <div className="-mx-3 flex gap-2 overflow-x-auto px-3 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
-                {row.chips.map((c) => (
-                  <Link
-                    key={c.value}
-                    href={filterHref(filters, c.key, c.value)}
-                    className={`chip shrink-0 ${(c.key === "status" ? status : filters[c.key]) === c.value ? "chip-active" : ""}`}
-                  >
-                    {"color" in c && c.color && <ColorDot color={c.color} />} {c.text}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-        {activeFilters > 0 && (
-          <div className="mt-3 flex justify-end border-t border-line pt-3">
-            <Link href={resetHref} className="text-sm text-muted hover:text-ink">
-              Filter zurücksetzen
-            </Link>
-          </div>
-        )}
-      </div>
+      </FilterPanel>
 
       {items.length === 0 ? (
         <p className="py-12 text-center text-muted">Keine Teile für diese Filter.</p>
