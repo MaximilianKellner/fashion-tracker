@@ -62,7 +62,7 @@ function outfitDeck(items: Item[], season: string, size: number, rand?: Rand) {
 }
 
 export function SwipeDeck({ items, outfits, palette, season, seed }: Props) {
-  const [mode, setMode] = useState<Mode>("vorlieben");
+  const [mode, setMode] = useState<Mode>("outfit");
   const [rounds, setRounds] = useState(10);
 
   return (
@@ -70,8 +70,8 @@ export function SwipeDeck({ items, outfits, palette, season, seed }: Props) {
       <div className="mb-3 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1 text-sm">
         {(
           [
-            ["vorlieben", "Öfter / seltener"],
             ["outfit", "Outfit finden"],
+            ["vorlieben", "Öfter / seltener"],
           ] as const
         ).map(([id, text]) => (
           <button
@@ -87,7 +87,7 @@ export function SwipeDeck({ items, outfits, palette, season, seed }: Props) {
       {mode === "vorlieben" ? (
         <PreferenceMode items={items} seed={seed} />
       ) : (
-        <OutfitMode key={rounds} items={items} outfits={outfits} palette={palette} season={season} rounds={rounds} setRounds={setRounds} />
+        <OutfitMode key={rounds} items={items} outfits={outfits} palette={palette} season={season} rounds={rounds} setRounds={setRounds} seed={seed} />
       )}
     </div>
   );
@@ -215,10 +215,11 @@ function PreferenceMode({ items, seed }: { items: Item[]; seed: number }) {
 
 // ---------- Modus 2: x Swipes, dann zwei Outfits ----------
 
-type OutfitModeProps = Omit<Props, "seed"> & { rounds: number; setRounds: (n: number) => void };
+type OutfitModeProps = Props & { rounds: number; setRounds: (n: number) => void };
 
-function OutfitMode({ items, outfits, palette, season, rounds, setRounds }: OutfitModeProps) {
-  const [deck, setDeck] = useState(() => outfitDeck(items, season, rounds));
+function OutfitMode({ items, outfits, palette, season, rounds, setRounds, seed }: OutfitModeProps) {
+  // Erster Stapel mit dem Seed vom Server (gleich auf Server und im Browser), „Neu mischen“ dann frei
+  const [deck, setDeck] = useState(() => outfitDeck(items, season, rounds, seeded(seed)));
   const [index, setIndex] = useState(0);
   const [liked, setLiked] = useState<string[]>([]);
   const [disliked, setDisliked] = useState<string[]>([]);

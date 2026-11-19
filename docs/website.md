@@ -106,7 +106,8 @@ Läuft komplett lokal, ohne KI. Getestet mit Zara, H&M und About You; Zalando bl
 
 ### Swipen (`/outfits/swipen`)
 
-Teile wie bei Tinder wischen (oder ✕/♥ antippen, am PC Pfeiltasten ←/→, ↶ macht den letzten Swipe rückgängig). Zwei Modi:
+Teile wie bei Tinder wischen (oder ✕/♥ antippen, am PC Pfeiltasten ←/→, ↶ macht den letzten Swipe rückgängig). Zwei Modi,
+der Umschalter steht beim Öffnen auf „Outfit finden“ (links), „Öfter / seltener“ rechts daneben:
 
 - **Öfter / seltener**: alle aktiven Teile (ohne Unterwäsche), noch nicht bewertete zuerst. Rechts = öfter tragen, links =
   seltener, *Egal* setzt zurück. Wird am Teil als `wear: mehr` bzw. `weniger` gespeichert (auch per Regler
