@@ -15,17 +15,20 @@ Am PC alles in der oberen Leiste.
 - Teile sind nach Kategorie gruppiert: Jacken & Mäntel, Oberteile, Hosen, Schuhe, Accessoires …
 - **Sprungmarken** am rechten Rand: ein Punkt je Kategorie, der aktuelle ist hervorgehoben; Klick scrollt weich dorthin, am PC
   erscheint beim Darüberfahren der Name (`web/components/section-rail.tsx`).
-- **Suche** oben: findet Teile, deren Name, Marke, Unterkategorie, Farben oder Tags alle eingegebenen Wörter enthalten.
+- **Suche** oben (mit Lupe): findet Teile, deren Name, Marke, Unterkategorie, Farben oder Tags alle eingegebenen Wörter enthalten.
   Beim Tippen erscheinen bis zu 6 passende Namen, Marken, Tags und Farben; ein Klick (oder Pfeiltasten + Enter) sucht
-  sofort danach (`web/components/search-field.tsx`).
-  Steht als `?q=` in der URL und lässt sich mit den Filtern kombinieren (Button **Suchen** oder Enter, kein JavaScript nötig).
-- Filter: Kategorie, Saison und Farbe, frei kombinierbar. Sie sind eingeklappt; der Schalter **Filter ▾** unter der Suche
-  klappt sie auf (ohne JavaScript, per CSS). Ist ein Filter aktiv, sind sie offen, der Schalter zeigt die Anzahl
-  aktiver Filter und daneben setzt **↺** alle Filter zurück (Suche, Sortierung und Ansicht bleiben). Die Gruppierung bleibt beim Filtern erhalten.
-- **Sortieren** oben rechts (innerhalb jeder Kategorie): älteste/neueste zuerst, Name A–Z/Z–A, teuerste/günstigste zuerst.
+  sofort danach. Das **✕** im Feld leert es und hebt eine Suche auf (`web/components/search-field.tsx`).
+  Steht als `?q=` in der URL und lässt sich mit den Filtern kombinieren (Enter, kein JavaScript nötig).
+- **Werkzeugleiste**: Suche, Button **Filter** und Sortierung in einer Zeile (am Handy die Suche allein darüber).
+- Filter: Kategorie, Saison und Farbe, frei kombinierbar. Sie sind eingeklappt; der Button **Filter** klappt ein Panel
+  mit beschrifteten Zeilen auf (ohne JavaScript, per CSS). Ist ein Filter aktiv, ist es offen, der Button zeigt die Anzahl
+  aktiver Filter und **Filter zurücksetzen** unten im Panel löscht alle (Suche, Sortierung und Ansicht bleiben).
+  Die Gruppierung bleibt beim Filtern erhalten. Am PC brechen die Chips um, am Handy scrollen sie seitlich
+  (`web/components/filter-panel.tsx`, auch von den Outfits genutzt).
+- **Sortieren** in der Werkzeugleiste (innerhalb jeder Kategorie): älteste/neueste zuerst, Name A–Z/Z–A, teuerste/günstigste zuerst.
   Steht als `?sort=` in der URL und bleibt beim Filtern erhalten. Dieselbe Auswahl gibt es bei Outfits und Wunschliste
   (`web/lib/sort.ts`, `web/components/sort-select.tsx`).
-- **Ansicht** daneben: „Nach Kategorie“ (Standard, gruppiert) oder „Alle in einem Raster“ ohne Gruppen und Sprungleiste.
+- **Ansicht** rechts neben dem Titel: „Nach Kategorie“ (Standard, gruppiert) oder „Alle in einem Raster“ ohne Gruppen und Sprungleiste.
   Steht als `?view=raster` in der URL und bleibt beim Filtern erhalten; dieselbe Umschaltung hat die Wunschliste
   (`web/components/view-toggle.tsx`, Ansichten in `web/lib/categories.ts`).
 - Unter jedem Teil: Farbpunkte, Marke und Unterkategorie.
@@ -91,8 +94,10 @@ Läuft komplett lokal, ohne KI. Getestet mit Zara, H&M und About You; Zalando bl
   Ein neuer Vorschlag muss sich in mindestens 2 Teilen von jedem gespeicherten Outfit und vom anderen neuen Vorschlag
   unterscheiden (`differentParts` in `scripts/lib/outfit-match.mjs`); ist er in einem gespeicherten Outfit enthalten, zählt er
   nicht als neu. Gewürfelt wird bis zu 30-mal; findet sich nichts Passendes, erscheinen lieber weniger neue Vorschläge als Fast-Duplikate.
-- Übersicht als Collage mit Anlass, Bewertung und Hinweis, ob Claude das Outfit vorgeschlagen hat. Sortierbar nach Alter,
-  Name, Punktzahl und Sternen.
+- Übersicht **Deine Outfits** als Collage mit Anlass, Bewertung und Hinweis, ob Claude das Outfit vorgeschlagen hat.
+  Darüber Anzahl, Button **Filter** und Sortierung (Alter, Name, Punktzahl, Sterne). Filter wie im Kleiderschrank:
+  **Saison** (die gespeicherten Saisons des Outfits, sonst die, zu denen alle Teile passen) und **Farbe** (mindestens
+  ein Teil in dieser Farbe; angeboten werden nur Farben aus Outfits), als `?season=` bzw. `?color=` in der URL.
 - Oben rechts auf jeder Karte die Punktzahl des Outfit-Builders (0–100, gleiche Farben wie im Builder); beim Darüberfahren
   Urteil und erkannte Probleme.
 - **Outfit bauen** öffnet den Builder (siehe unten), **Aus Liste** die schlichte Auswahl per Raster, **Swipen** das Swipen.

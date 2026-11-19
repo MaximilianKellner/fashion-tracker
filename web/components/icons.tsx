@@ -56,7 +56,13 @@ export const Search = (props: SVGProps<SVGSVGElement>) => (
   </Icon>
 );
 
-export const SlidersHorizontal = (props: SVGProps<SVGSVGElement>) => (
+export const X = (props: SVGProps<SVGSVGElement>) => (
+  <Icon {...props}>
+    <path d="M18 6 6 18M6 6l12 12" />
+  </Icon>
+);
+
+export const SlidersHorizontal =(props: SVGProps<SVGSVGElement>) => (
   <Icon {...props}>
     <path d="M3 6h11M18 6h3M3 12h3M10 12h11M3 18h13M20 18h1" />
     <circle cx="16" cy="6" r="2" />
