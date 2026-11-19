@@ -125,6 +125,22 @@ body {
 ::view-transition-new(root) {
   animation: none;
 }
+/* Navigationsleisten: Beim Seitenwechsel liegen die animierten Seiten in einer Ebene über dem ganzen Dokument, auch
+   über `fixed`/`sticky`-Leisten, die dann kurz verschwinden. Deshalb bekommen die Leisten eine eigene Ebene
+   (nav.tsx `.nav-bar`), die über der Seite liegt (z-index) und live bleibt. */
+.nav-bar {
+  view-transition-class: nav;
+}
+::view-transition-old(.nav) {
+  display: none;
+}
+::view-transition-new(.nav) {
+  animation: none;
+}
+::view-transition-group(.nav) {
+  animation: none;
+  z-index: 1;
+}
 
 /* Seitenwechsel: alte Seite blendet schnell aus, neue gleitet von unten herein */
 ::view-transition-old(.page) {
@@ -159,6 +175,8 @@ body {
 
 /* Markierung des aktiven Menüpunkts bzw. der Ansicht gleitet zum neuen Punkt */
 ::view-transition-group(.indicator) {
+  /* über den Navigationsleisten (.nav) */
+  z-index: 2;
   animation-duration: 340ms;
   animation-timing-function: var(--ease-out);
 }
