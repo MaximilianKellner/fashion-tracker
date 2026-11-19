@@ -4,12 +4,10 @@ import { useState } from "react";
 
 /**
  * Foto in einem festen Rahmen, ohne es abzuschneiden: Das Bild wird vollständig eingepasst, und die freien
- * Flächen füllt der verlängerte, weichgezeichnete Bildrand. Bei Produktfotos mit einfarbigem Hintergrund
- * sieht das nahtlos aus. Größe und Seitenverhältnis kommen über className, z. B. "aspect-[3/4] w-24".
+ * Flächen bekommen die Farbe der linken oberen Bildecke (freigestellte Fotos #eeeeee, Shop-Fotos meist Weiß).
+ * Lässt sich die Farbe nicht lesen (fremde Seite ohne CORS), bleibt es Weiß. Größe und Seitenverhältnis
+ * kommen über className, z. B. "aspect-[3/4] w-24".
  */
-// Weichzeichnung blendet an den Kanten ins Dunkle aus; so weit ragt die Fläche über den Rahmen hinaus
-const BLEED = 24;
-
 export function Photo({
   src,
   alt = "",
@@ -24,59 +22,28 @@ export function Photo({
   remote?: boolean;
   lazy?: boolean;
 }) {
-  // Breiter als der Rahmen: oben/unten ist Platz frei, sonst links/rechts (Normalfall bei Hochkant-Fotos)
-  const [wide, setWide] = useState(false);
-  const shared = {
-    src,
-    loading: lazy ? ("lazy" as const) : undefined,
-    referrerPolicy: remote ? ("no-referrer" as const) : undefined,
-  };
+  const [background, setBackground] = useState("#ffffff");
 
   function measure(img: HTMLImageElement | null) {
     if (!img?.naturalWidth) return;
-    const box = img.parentElement!.getBoundingClientRect();
-    setWide(img.naturalWidth / img.naturalHeight > box.width / box.height);
+    try {
+      const ctx = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+      if (!ctx) return;
+      ctx.drawImage(img, 0, 0, 1, 1, 0, 0, 1, 1);
+      const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+      setBackground(`rgb(${r} ${g} ${b})`);
+    } catch {
+      // Canvas durch fremdes Bild gesperrt: Weiß behalten
+    }
   }
 
-  // Jede Hälfte zeigt nur den äußersten Streifen des Bildes, stark in die Länge gezogen
-  const edge = (side: "start" | "end") => (
-    <div
-      aria-hidden
-      className={`absolute overflow-hidden ${wide ? "inset-x-0 h-1/2" : "inset-y-0 w-1/2"} ${
-        side === "start" ? "left-0 top-0" : wide ? "bottom-0 left-0" : "right-0 top-0"
-      }`}
-    >
-      <img
-        {...shared}
-        alt=""
-        className="absolute max-w-none blur-md"
-        style={{
-          objectFit: "fill",
-          ...(wide
-            ? {
-                left: -BLEED,
-                width: `calc(100% + ${2 * BLEED}px)`,
-                height: "5000%",
-                [side === "start" ? "top" : "bottom"]: -BLEED,
-              }
-            : {
-                top: -BLEED,
-                height: `calc(100% + ${2 * BLEED}px)`,
-                width: "5000%",
-                [side === "start" ? "left" : "right"]: -BLEED,
-              }),
-        }}
-      />
-    </div>
-  );
-
   return (
-    <div className={`relative overflow-hidden bg-surface-2 ${className}`}>
-      {edge("start")}
-      {edge("end")}
+    <div className={`relative overflow-hidden ${className}`} style={{ background }}>
       <img
-        {...shared}
+        src={src}
         alt={alt}
+        loading={lazy ? "lazy" : undefined}
+        referrerPolicy={remote ? "no-referrer" : undefined}
         onLoad={(e) => measure(e.currentTarget)}
         // Schon geladen, bevor React übernommen hat (Cache): dann gleich messen
         ref={(img) => {

@@ -33,8 +33,8 @@ Am PC alles in der oberen Leiste.
   Steht als `?view=raster` in der URL und bleibt beim Filtern erhalten; dieselbe Umschaltung hat die Wunschliste
   (`web/components/view-toggle.tsx`, Ansichten in `web/lib/categories.ts`).
 - Unter jedem Teil: Farbpunkte, Marke und Unterkategorie.
-- Fotos werden nie abgeschnitten. Schmale Hochkant-Fotos (z. B. Hosen) bekommen einen unscharf gestreckten Hintergrund aus ihren
-  eigenen Rändern, damit sie ins Raster passen.
+- Fotos werden nie abgeschnitten. Schmale Hochkant-Fotos (z. B. Hosen) werden auf eine einfarbige Fläche in der Farbe ihrer
+  linken oberen Ecke gesetzt (freigestellt `#eeeeee`, Shop-Fotos meist Weiß), damit sie ins Raster passen.
 
 ## Teil ansehen, erfassen und bearbeiten (`/items/…`)
 
