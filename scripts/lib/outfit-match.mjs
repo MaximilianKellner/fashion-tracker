@@ -409,22 +409,20 @@ export const oftenPenalty = (item, context = {}) => Math.round(10 * oftenFactor(
 const OFTEN_DRAW = 0.65;
 
 /**
- * Wie gern will man ein Teil tragen? Aus dem Swipen (Website → Outfits → „Swipen“):
- * Feld `wear` am Teil („mehr“ = +1, „weniger“ = −1) und, nur für eine Swipe-Runde, `context.liked` / `context.disliked`
- * (Item-IDs, zählen doppelt). Ergebnis etwa −3..3, 0 = neutral. Wirkt wie `palette.often` nur auf Vorschläge.
+ * Swipe-Runde im Modus „Outfit finden“ (Website → Outfits → „Swipen“): `context.liked` / `context.disliked` (Item-IDs)
+ * ergeben +2 bzw. −2, sonst 0. Wirkt wie `palette.often` nur auf Vorschläge.
  */
-export function wearFactor(item, context = {}) {
-  let f = item.data.wear === 'mehr' ? 1 : item.data.wear === 'weniger' ? -1 : 0;
-  if (context.liked?.includes(item.id)) f += 2;
-  if (context.disliked?.includes(item.id)) f -= 2;
-  return f;
+export function likeFactor(item, context = {}) {
+  if (context.liked?.includes(item.id)) return 2;
+  if (context.disliked?.includes(item.id)) return -2;
+  return 0;
 }
 // Punkte je Stufe beim Sortieren von Vorschlägen bzw. beim besten Outfit
-const WEAR_POINTS = 8;
-/** Gesamter Abzug beim Sortieren: oft getragene Farben minus Swipe-Vorliebe (negativ = Bonus) */
-export const suggestPenalty = (item, context = {}) => oftenPenalty(item, context) - WEAR_POINTS * wearFactor(item, context);
-/** Gewicht beim Würfeln: oft getragene Farben seltener, „mehr“ häufiger (×1,8 je Stufe), „weniger“ seltener */
-const drawWeight = (item, context) => (1 - OFTEN_DRAW * oftenFactor(item, context)) * 1.8 ** wearFactor(item, context);
+const LIKE_POINTS = 8;
+/** Gesamter Abzug beim Sortieren: oft getragene Farben minus Swipe-Runde (negativ = Bonus) */
+export const suggestPenalty = (item, context = {}) => oftenPenalty(item, context) - LIKE_POINTS * likeFactor(item, context);
+/** Gewicht beim Würfeln: oft getragene Farben seltener, in der Swipe-Runde gemochte häufiger (×1,8 je Stufe) */
+const drawWeight = (item, context) => (1 - OFTEN_DRAW * oftenFactor(item, context)) * 1.8 ** likeFactor(item, context);
 
 /**
  * Gesamturteil über ein Outfit: jedes Teil gegen die übrigen, gewichtet nach Sichtbarkeit.
@@ -472,7 +470,7 @@ export const outfitSlots = (seasons = []) =>
 export function completeOutfit(chosen, items, context = {}, { slots = ['oberteil', 'hose', 'schuhe'], random = 0 } = {}) {
   const open = slots.filter((s) => !chosen[s]);
   const filled = (partial) => Object.values(partial).filter(Boolean);
-  // penalty: Teile in oft getragenen Farben und ungern getragene mit Abzug sortieren, gern getragene mit Bonus
+  // penalty: Teile in oft getragenen Farben und in der Swipe-Runde abgelehnte mit Abzug sortieren, gemochte mit Bonus
   // (beim Würfeln stattdessen seltener bzw. häufiger ziehen)
   const rank = (partial, slot, penalty = true) => {
     const selected = filled(partial);
@@ -487,7 +485,7 @@ export function completeOutfit(chosen, items, context = {}, { slots = ['oberteil
     const base = scoreOutfit(selected, context)?.score ?? (selected[0] ? scoreCandidate(selected[0], [], context).score : 0);
     return base - (penalty ? selected.reduce((sum, i) => sum + suggestPenalty(i, context), 0) : 0);
   };
-  // Zufällig ziehen, gewichtet nach oft getragenen Farben und Swipe-Vorliebe
+  // Zufällig ziehen, gewichtet nach oft getragenen Farben und Swipe-Runde
   const draw = (pool) => {
     const weights = pool.map((r) => drawWeight(r.item, context));
     let x = Math.random() * weights.reduce((a, b) => a + b, 0);
@@ -508,11 +506,11 @@ export function completeOutfit(chosen, items, context = {}, { slots = ['oberteil
     }
     const top = Math.max(...runs.map((r) => r.score));
     const good = runs.filter((r) => r.score >= top - 5);
-    // Unter den stimmigsten Outfits ebenfalls seltener eines mit oft getragenen Farben oder ungern getragenen Teilen
+    // Unter den stimmigsten Outfits ebenfalls seltener eines mit oft getragenen Farben oder abgelehnten Teilen
     const weights = good.map((r) => {
       const parts = filled(r.partial);
       const often = 1 - OFTEN_DRAW * Math.max(0, ...parts.map((i) => oftenFactor(i, context)));
-      return often * 1.8 ** parts.reduce((s, i) => s + wearFactor(i, context), 0);
+      return often * 1.8 ** parts.reduce((s, i) => s + likeFactor(i, context), 0);
     });
     let x = Math.random() * weights.reduce((a, b) => a + b, 0);
     return (good.find((_, i) => (x -= weights[i]) < 0) ?? good.at(-1)).partial;

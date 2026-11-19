@@ -71,8 +71,6 @@ function withSuggestions(name: string, values: Values, own: Set<Key>) {
 
 export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions, importedPhotos = [], wishPhotos = [] }: Props) {
   const [state, formAction, pending] = useActionState(saveItem, null);
-  // Regler: 0 = weniger, 1 = normal, 2 = mehr (gleiches Feld wie beim Swipen)
-  const [wear, setWear] = useState(data.wear === "weniger" ? 0 : data.wear === "mehr" ? 2 : 1);
   const picker = usePhotoPicker({
     saved: id ? (data.photos ?? []).map((p) => ({ name: p, src: `/photos/${id}/${p}` })) : [],
     carried: wishPhotos.map((p) => ({ name: p, src: `/wish-photos/${fromWish}/${p}` })),
@@ -243,24 +241,6 @@ export function ItemForm({ id, data = {}, body = "", fromWish, colorSuggestions,
             </select>
           </Field>
         </div>
-        <Field label="In Outfits vorschlagen">
-          <input
-            type="range"
-            name="wear"
-            min={0}
-            max={2}
-            step={1}
-            value={wear}
-            onChange={(e) => setWear(Number(e.target.value))}
-            aria-valuetext={["weniger", "normal", "mehr"][wear]}
-            className="w-full accent-[var(--color-accent)]"
-          />
-          <div className="flex justify-between text-xs text-muted">
-            <span>weniger</span>
-            <span>normal</span>
-            <span>mehr</span>
-          </div>
-        </Field>
         <Field label="Tags" hint="Mit Komma getrennt, z. B. lieblingsteil, buero">
           <input name="tags" defaultValue={data.tags?.join(", ")} className="field" />
         </Field>

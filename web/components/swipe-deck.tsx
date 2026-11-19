@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { saveWear } from "@/app/actions";
 import { completeOutfit, outfitSlots, scoreOutfit, seasonsOf, slotsFor } from "@lib/outfit-match.mjs";
 import { label, scoreTone } from "@/lib/labels";
 import { shuffle } from "@/lib/sort";
@@ -19,16 +18,12 @@ type Props = {
   seed: number;
 };
 
-type Mode = "vorlieben" | "outfit";
 type Dir = "left" | "right";
-type Wear = "mehr" | "weniger" | null;
 
 // Ab dieser Strecke (px) zählt das Ziehen als Swipe
 const THRESHOLD = 90;
 // Runden im Outfit-Modus: so viele Swipes, dann kommen die Vorschläge
 const ROUNDS = [6, 10, 16];
-// Mit Swipe-Ergebnissen erst speichern, wenn eine Weile nicht geswipt wurde: ein Commit statt einem pro Swipe
-const SAVE_DELAY = 2000;
 
 type Rand = () => number;
 /** Zufallszahlen 0..1 aus einem Seed (mulberry32), auf Server und im Browser gleich */
@@ -44,11 +39,6 @@ function seeded(seed: number): Rand {
 }
 
 
-/** Vorlieben-Modus: noch nicht bewertete Teile zuerst, dann die schon bewerteten (zum Nachjustieren) */
-function preferenceDeck(items: Item[], rand?: Rand) {
-  return [...shuffle(items.filter((i) => !i.data.wear), rand), ...shuffle(items.filter((i) => i.data.wear), rand)];
-}
-
 /** Outfit-Modus: Teile für Oberteil, Hose, Schuhe (und Jacke, wenn es kalt ist), passend zur Saison, abwechselnd gemischt */
 function outfitDeck(items: Item[], season: string, size: number, rand?: Rand) {
   const groups = outfitSlots([season])
@@ -62,158 +52,16 @@ function outfitDeck(items: Item[], season: string, size: number, rand?: Rand) {
 }
 
 export function SwipeDeck({ items, outfits, palette, season, seed }: Props) {
-  const [mode, setMode] = useState<Mode>("outfit");
   const [rounds, setRounds] = useState(10);
 
   return (
     <div className="mx-auto max-w-sm">
-      <div className="mb-3 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1 text-sm">
-        {(
-          [
-            ["outfit", "Outfit finden"],
-            ["vorlieben", "Öfter / seltener"],
-          ] as const
-        ).map(([id, text]) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setMode(id)}
-            className={`rounded-lg py-1.5 ${mode === id ? "bg-surface font-medium shadow-sm" : "text-muted"}`}
-          >
-            {text}
-          </button>
-        ))}
-      </div>
-      {mode === "vorlieben" ? (
-        <PreferenceMode items={items} seed={seed} />
-      ) : (
-        <OutfitMode key={rounds} items={items} outfits={outfits} palette={palette} season={season} rounds={rounds} setRounds={setRounds} seed={seed} />
-      )}
+      <OutfitMode key={rounds} items={items} outfits={outfits} palette={palette} season={season} rounds={rounds} setRounds={setRounds} seed={seed} />
     </div>
   );
 }
 
-// ---------- Modus 1: dauerhaft öfter / seltener tragen ----------
-
-function PreferenceMode({ items, seed }: { items: Item[]; seed: number }) {
-  const [deck, setDeck] = useState(() => preferenceDeck(items, seeded(seed)));
-  const [index, setIndex] = useState(0);
-  // Aktueller Stand je Teil (inkl. noch nicht gespeicherter Swipes) und Verlauf zum Rückgängigmachen
-  const [wear, setWear] = useState<Record<string, Wear>>(() => Object.fromEntries(items.map((i) => [i.id, i.data.wear ?? null])));
-  const [history, setHistory] = useState<{ id: string; before: Wear }[]>([]);
-  const [saving, setSaving] = useState<"idle" | "pending" | "saved">("idle");
-
-  // Ungespeicherte Änderungen sammeln und gebündelt schicken
-  const queue = useRef<Record<string, Wear>>({});
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const flush = useCallback(() => {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = null;
-    const changes = queue.current;
-    queue.current = {};
-    if (!Object.keys(changes).length) return;
-    saveWear(changes).then(
-      () => setSaving(Object.keys(queue.current).length ? "pending" : "saved"),
-      () => {
-        // Fehlgeschlagen: beim nächsten Mal erneut versuchen
-        queue.current = { ...changes, ...queue.current };
-        setSaving("pending");
-      },
-    );
-  }, []);
-  const schedule = (id: string, value: Wear) => {
-    queue.current[id] = value;
-    setSaving("pending");
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(flush, SAVE_DELAY);
-  };
-  // Beim Verlassen der Seite (oder Wechsel des Modus) sofort speichern
-  useEffect(() => {
-    const onHide = () => document.visibilityState === "hidden" && flush();
-    document.addEventListener("visibilitychange", onHide);
-    return () => {
-      document.removeEventListener("visibilitychange", onHide);
-      flush();
-    };
-  }, [flush]);
-
-  const current = deck[index];
-  function decide(value: Wear) {
-    if (!current) return;
-    setHistory((h) => [...h, { id: current.id, before: wear[current.id] }]);
-    setWear((w) => ({ ...w, [current.id]: value }));
-    if (wear[current.id] !== value) schedule(current.id, value);
-    setIndex((i) => i + 1);
-  }
-  function undo() {
-    const last = history.at(-1);
-    if (!last) return;
-    setHistory((h) => h.slice(0, -1));
-    setWear((w) => ({ ...w, [last.id]: last.before }));
-    schedule(last.id, last.before);
-    setIndex((i) => i - 1);
-  }
-
-  const values = Object.values(wear);
-  const more = values.filter((v) => v === "mehr").length;
-  const less = values.filter((v) => v === "weniger").length;
-
-  return (
-    <div>
-      <p className="mb-3 text-sm text-muted">
-        Rechts: öfter tragen, links: seltener. Das wirkt dauerhaft auf Würfeln, „Vorschläge für heute“ und die Sortierung im Builder.
-      </p>
-      <div className="mb-2 flex items-center justify-between text-xs text-muted">
-        <span>
-          {Math.min(index + 1, deck.length)} / {deck.length} · {more} öfter · {less} seltener
-        </span>
-        <span>{saving === "pending" ? "speichert …" : saving === "saved" ? "gespeichert" : ""}</span>
-      </div>
-      {current ? (
-        <SwipeStack
-          key={current.id + index}
-          item={current}
-          next={deck[index + 1]}
-          badge={wear[current.id] ? `bisher: ${wear[current.id] === "mehr" ? "öfter" : "seltener"}` : undefined}
-          leftLabel="Seltener"
-          rightLabel="Öfter"
-          onSwipe={(dir) => decide(dir === "right" ? "mehr" : "weniger")}
-          onSkip={() => decide(null)}
-          skipLabel="Egal"
-          onUndo={history.length ? undo : undefined}
-        />
-      ) : (
-        <div className="rounded-2xl border border-line bg-surface p-6 text-center">
-          <p className="font-medium">Alle Teile durch.</p>
-          <p className="mt-1 text-sm text-muted">
-            {more} öfter, {less} seltener. Die Vorschläge berücksichtigen das ab jetzt.
-          </p>
-          <div className="mt-4 flex justify-center gap-2">
-            {history.length > 0 && (
-              <button type="button" className="btn-ghost" onClick={undo}>
-                Rückgängig
-              </button>
-            )}
-            <button
-              type="button"
-              className="btn-primary"
-              onClick={() => {
-                flush();
-                setDeck(shuffle(items));
-                setIndex(0);
-                setHistory([]);
-              }}
-            >
-              Nochmal von vorn
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ---------- Modus 2: x Swipes, dann zwei Outfits ----------
+// ---------- x Swipes, dann zwei Outfits ----------
 
 type OutfitModeProps = Props & { rounds: number; setRounds: (n: number) => void };
 
@@ -374,22 +222,16 @@ function OutfitMode({ items, outfits, palette, season, rounds, setRounds, seed }
 function SwipeStack({
   item,
   next,
-  badge,
   leftLabel,
   rightLabel,
   onSwipe,
-  onSkip,
-  skipLabel,
   onUndo,
 }: {
   item: Item;
   next?: Item;
-  badge?: string;
   leftLabel: string;
   rightLabel: string;
   onSwipe: (dir: Dir) => void;
-  onSkip?: () => void;
-  skipLabel?: string;
   onUndo?: () => void;
 }) {
   const [drag, setDrag] = useState({ x: 0, y: 0 });
@@ -456,7 +298,7 @@ function SwipeStack({
           className={`absolute inset-0 cursor-grab touch-none overflow-hidden rounded-2xl border border-line bg-surface shadow-lg active:cursor-grabbing ${dragging ? "" : "transition-transform duration-200 ease-out"}`}
           style={{ transform: `translate(${x}px, ${y}px) rotate(${x / 18}deg)` }}
         >
-          <CardFace item={item} badge={badge} />
+          <CardFace item={item} />
           {/* Einblendung, in welche Richtung es gerade geht */}
           <span
             className="pointer-events-none absolute left-4 top-4 -rotate-12 rounded-lg border-2 border-accent bg-surface/80 px-2 py-0.5 text-lg font-bold uppercase text-accent"
@@ -492,11 +334,6 @@ function SwipeStack({
         >
           ✕
         </button>
-        {onSkip && (
-          <button type="button" onClick={onSkip} className="rounded-full border border-line bg-surface px-3 py-2 text-sm text-muted">
-            {skipLabel}
-          </button>
-        )}
         <button
           type="button"
           onClick={() => fly("right")}
@@ -511,7 +348,7 @@ function SwipeStack({
   );
 }
 
-function CardFace({ item, badge }: { item: Item; badge?: string }) {
+function CardFace({ item }: { item: Item }) {
   const src = photoUrl(item);
   return (
     <div className="pointer-events-none flex h-full flex-col">
@@ -521,7 +358,6 @@ function CardFace({ item, badge }: { item: Item; badge?: string }) {
         ) : (
           <div className="flex h-full items-center justify-center p-4 text-center text-muted">Kein Foto</div>
         )}
-        {badge && <span className="absolute bottom-2 left-2 rounded-full bg-surface/90 px-2 py-0.5 text-xs text-muted">{badge}</span>}
       </div>
       <div className="border-t border-line p-3">
         <div className="truncate font-medium">{item.data.name}</div>
