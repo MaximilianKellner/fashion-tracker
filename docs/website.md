@@ -241,8 +241,9 @@ Alles ist unter **Bearbeiten** änderbar und landet im Frontmatter von `profile.
 - Footer: Version der geladenen Seite und **Nach Updates suchen** (sucht sofort nach neuem Code und baut ihn mit
   `CODE_AUTOUPDATE=1` im Hintergrund, siehe [home-pc.md](home-pc.md#git-abgleich-scriptslibgit-syncmjs)).
 - Next.js 16 weicht in einigen APIs von älteren Versionen ab; vor Änderungen `web/AGENTS.md` lesen.
-- Animationen: Seitenwechsel, das Foto von der Karte zur Detailseite, der Strich über dem aktiven Tab am Handy und das
-  Überblenden der Liste bei neuer Suche, Filtern oder Sortierung (Kleiderschrank und Outfits) laufen über React
+- Animationen: Seitenwechsel, die Karte, die beim Öffnen zum großen Foto der Detailseite wird, der Strich über dem
+  aktiven Tab am Handy und das Überblenden der Liste bei neuer Suche, Ansicht, Filtern oder Sortierung (Kleiderschrank
+  und Outfits; Teile-Karten, die sichtbar bleiben, gleiten als Ganzes an ihren neuen Platz) laufen über React
   `<ViewTransition>` (`web/components/page-transition.tsx`, `item-card.tsx`, `nav.tsx`, `app/page.tsx`,
   `app/outfits/page.tsx`). Die Abläufe stehen als CSS-Klassen (`.page`, `.swap`, `.morph`, `.indicator`) im Abschnitt
   „Animationen“ von `web/app/globals.css`, ebenso `card-lift` (Karten heben sich beim Überfahren), `animate-rise`

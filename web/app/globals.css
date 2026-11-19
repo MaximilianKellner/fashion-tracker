@@ -106,9 +106,6 @@ body {
 @keyframes vt-sink {
   to { translate: 0 -6px; }
 }
-@keyframes vt-via-blur {
-  35% { filter: blur(2px); }
-}
 @keyframes rise-in {
   from { opacity: 0; translate: 0 12px; }
 }
@@ -145,19 +142,19 @@ body {
   animation: 240ms ease-out 40ms both vt-fade-in;
 }
 
-/* Foto wandert von der Karte zur Detailseite und zurück */
+/* Karte gleitet als Ganzes an ihren neuen Platz (neue Ansicht, Filter, Sortierung) bzw. wird zum großen Foto der
+   Detailseite. Die Karte wird samt runden Ecken als ein Bild bewegt. */
 ::view-transition-group(.morph) {
-  animation-duration: 420ms;
+  animation-duration: 450ms;
   animation-timing-function: var(--ease-out);
-}
-::view-transition-image-pair(.morph) {
-  animation-name: vt-via-blur;
 }
 ::view-transition-old(.morph),
 ::view-transition-new(.morph) {
-  /* Fotos nicht verzerren, wenn sich das Seitenverhältnis ändert */
+  /* Nicht verzerren, wenn sich das Seitenverhältnis ändert (Karte ↔ Foto): oben bündig, der Textstreifen der
+     Karte wird unten abgeschnitten */
   height: 100%;
   object-fit: cover;
+  object-position: top;
 }
 
 /* Markierung des aktiven Menüpunkts bzw. der Ansicht gleitet zum neuen Punkt */

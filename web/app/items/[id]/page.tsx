@@ -4,7 +4,7 @@ import { ViewTransition } from "react";
 import { deleteItem } from "@/app/actions";
 import { getItem, getItems, getOutfits } from "@/lib/data";
 import { euro, FORMALITY, label } from "@/lib/labels";
-import { ColorDot, ItemThumb, itemPhotoTransition } from "@/components/item-card";
+import { ColorDot, ItemThumb, itemTransition } from "@/components/item-card";
 import { ConfirmButton } from "@/components/confirm-button";
 
 function Row({ k, v }: { k: string; v?: React.ReactNode }) {
@@ -36,7 +36,7 @@ export default async function ItemPage({ params }: PageProps<"/items/[id]">) {
             const img = <img key={p} src={`/photos/${id}/${p}`} alt={data.name} className="w-full rounded-xl border border-line" />;
             // Das erste Foto ist dasselbe wie auf der Karte und wandert beim Öffnen von dort hierher
             return i === 0 ? (
-              <ViewTransition key={p} name={itemPhotoTransition(id)} share="morph" default="none">
+              <ViewTransition key={p} name={itemTransition(id)} share="morph" default="none">
                 {img}
               </ViewTransition>
             ) : (
@@ -44,7 +44,7 @@ export default async function ItemPage({ params }: PageProps<"/items/[id]">) {
             );
           })
         ) : (
-          <ViewTransition name={itemPhotoTransition(id)} share="morph" default="none">
+          <ViewTransition name={itemTransition(id)} share="morph" default="none">
             <div className="aspect-[3/4] overflow-hidden rounded-xl border border-line">
               <ItemThumb item={item} />
             </div>
