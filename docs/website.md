@@ -15,7 +15,13 @@ Am PC alles in der oberen Leiste.
 - Teile sind nach Kategorie gruppiert: Jacken & Mäntel, Oberteile, Hosen, Schuhe, Accessoires …
 - **Sprungmarken** am rechten Rand: ein Punkt je Kategorie, der aktuelle ist hervorgehoben; Klick scrollt weich dorthin, am PC
   erscheint beim Darüberfahren der Name (`web/components/section-rail.tsx`).
-- Filter oben: Kategorie, Saison und Farbe, frei kombinierbar. Die Gruppierung bleibt beim Filtern erhalten.
+- **Suche** oben: findet Teile, deren Name, Marke, Unterkategorie, Farben oder Tags alle eingegebenen Wörter enthalten.
+  Beim Tippen erscheinen bis zu 6 passende Namen, Marken, Tags und Farben; ein Klick (oder Pfeiltasten + Enter) sucht
+  sofort danach (`web/components/search-field.tsx`).
+  Steht als `?q=` in der URL und lässt sich mit den Filtern kombinieren (Button **Suchen** oder Enter, kein JavaScript nötig).
+- Filter: Kategorie, Saison und Farbe, frei kombinierbar. Sie sind eingeklappt; der Schalter **Filter ▾** unter der Suche
+  klappt sie auf (ohne JavaScript, per CSS). Ist ein Filter aktiv, sind sie offen, der Schalter zeigt die Anzahl
+  aktiver Filter und daneben setzt **↺** alle Filter zurück (Suche, Sortierung und Ansicht bleiben). Die Gruppierung bleibt beim Filtern erhalten.
 - **Sortieren** oben rechts (innerhalb jeder Kategorie): älteste/neueste zuerst, Name A–Z/Z–A, teuerste/günstigste zuerst.
   Steht als `?sort=` in der URL und bleibt beim Filtern erhalten. Dieselbe Auswahl gibt es bei Outfits und Wunschliste
   (`web/lib/sort.ts`, `web/components/sort-select.tsx`).

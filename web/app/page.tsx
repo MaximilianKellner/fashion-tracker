@@ -3,6 +3,7 @@ import { getItems } from "@/lib/data";
 import { label } from "@/lib/labels";
 import { CATEGORIES, SEASONS } from "@lib/schema.mjs";
 import { ColorDot, ItemCard } from "@/components/item-card";
+import { SearchField } from "@/components/search-field";
 import { SectionRail } from "@/components/section-rail";
 import { CATEGORY_VIEWS, categoryRank as rank, groupTitle, pickView } from "@/lib/categories";
 import { SortSelect } from "@/components/sort-select";
@@ -17,8 +18,8 @@ const ITEM_SORTS: SortOption<Item>[] = [
   { id: "preis-auf", label: "Günstigste zuerst", compare: (a, b) => byNumber(a.data.purchase?.price, b.data.purchase?.price, 1) || byId(a, b) },
 ];
 
-// sort und view gehören dazu, damit Filter-Links die gewählte Sortierung und Ansicht behalten
-type Filters = { category?: string; color?: string; season?: string; status?: string; sort?: string; view?: string };
+// q, sort und view gehören dazu, damit Filter-Links Suche, Sortierung und Ansicht behalten
+type Filters = { q?: string; category?: string; color?: string; season?: string; status?: string; sort?: string; view?: string };
 
 /** Link, der einen Filter setzt bzw. beim erneuten Klick wieder entfernt */
 function filterHref(current: Filters, key: keyof Filters, value: string) {
@@ -31,6 +32,7 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
   const sp = await searchParams;
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
   const filters: Filters = {
+    q: one(sp.q)?.trim() || undefined,
     category: one(sp.category),
     color: one(sp.color),
     season: one(sp.season),
@@ -43,12 +45,19 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
   const view = pickView(filters.view);
 
   const all = await getItems();
+  // Suche: alle Wörter müssen in Name, Marke, Unterkategorie, Farben oder Tags vorkommen
+  const words = filters.q?.toLowerCase().split(/\s+/) ?? [];
+  const searchText = (i: Item) =>
+    [i.data.name, i.data.brand, i.data.subcategory, ...(i.data.colors ?? []).flatMap((c) => [c, label(c)]), ...(i.data.tags ?? [])]
+      .join(" ")
+      .toLowerCase();
   const items = all.filter(
     (i) =>
       (status === "alle" || i.data.status === status) &&
       (!filters.category || i.data.category === filters.category) &&
       (!filters.color || i.data.colors?.includes(filters.color)) &&
-      (!filters.season || i.data.seasons?.includes(filters.season)),
+      (!filters.season || i.data.seasons?.includes(filters.season)) &&
+      words.every((w) => searchText(i).includes(w)),
   ).sort(sort.compare);
 
   // Nur Filter anbieten, die im Bestand vorkommen
@@ -59,6 +68,7 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
     .map((c) => ({ category: c, items: items.filter((i) => i.data.category === c) }));
   const colors = [...new Set(all.flatMap((i) => i.data.colors ?? []))].sort();
   const hasOtherStatus = all.some((i) => i.data.status !== "aktiv");
+  const activeFilters = [filters.category, filters.color, filters.season, filters.status].filter(Boolean).length;
 
   if (all.length === 0) {
     return (
@@ -92,7 +102,44 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
         </div>
       </div>
 
-      <div className="mt-4 space-y-2">
+      <form className="mt-4 flex gap-2">
+        {Object.entries(filters).map(([k, v]) => v && k !== "q" && <input key={k} type="hidden" name={k} value={v} />)}
+        {/* Vorschläge beim Tippen: Namen, Marken, Tags und Farben aller Teile */}
+        <SearchField
+          defaultValue={filters.q}
+          suggestions={[
+            ...new Set(
+              all
+                .flatMap((i) => [i.data.name, i.data.brand, ...(i.data.tags ?? [])])
+                .concat(colors.map((c) => label(c)))
+                .filter((s): s is string => !!s),
+            ),
+          ].sort()}
+        />
+        <button type="submit" className="btn-primary shrink-0">
+          Suchen
+        </button>
+      </form>
+
+      {/* Filter einklappbar: der Schalter setzt eine versteckte Checkbox (ohne JavaScript), bei aktiven Filtern offen */}
+      <input type="checkbox" id="filter-toggle" className="peer sr-only" defaultChecked={activeFilters > 0} />
+      <label htmlFor="filter-toggle" className="mt-2 inline-flex cursor-pointer items-center gap-1 text-sm text-muted peer-checked:[&>span]:rotate-180">
+        Filter{activeFilters > 0 && ` (${activeFilters})`}
+        <span className="transition-transform">▾</span>
+      </label>
+      {activeFilters > 0 && (
+        // Alle Filter löschen, Suche, Sortierung und Ansicht bleiben
+        <Link
+          href={`/?${new URLSearchParams(Object.entries({ q: filters.q, sort: filters.sort, view: filters.view }).filter(([, v]) => v) as [string, string][])}`}
+          title="Filter zurücksetzen"
+          aria-label="Filter zurücksetzen"
+          className="ml-2 text-sm text-muted hover:text-ink"
+        >
+          ↺
+        </Link>
+      )}
+
+      <div className="mt-2 hidden space-y-2 peer-checked:block">
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
           {categories.map((c) => (
             <Link key={c} href={filterHref(filters, "category", c)} className={`chip shrink-0 ${filters.category === c ? "chip-active" : ""}`}>
@@ -100,7 +147,7 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
             </Link>
           ))}
         </div>
-        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-3">
           {SEASONS.map((s) => (
             <Link key={s} href={filterHref(filters, "season", s)} className={`chip shrink-0 ${filters.season === s ? "chip-active" : ""}`}>
               {label(s)}
