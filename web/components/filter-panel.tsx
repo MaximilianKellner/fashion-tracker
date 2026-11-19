@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ColorDot } from "@/components/item-card";
 import { SlidersHorizontal } from "@/components/icons";
+import { FilterKeepOpen } from "@/components/filter-keep-open";
 
 export type FilterChip = { href: string; text: string; active: boolean; color?: string };
 export type FilterRow = { title: string; chips: FilterChip[] };
@@ -30,7 +31,8 @@ export function FilterButton({ count }: { count: number }) {
 
 /**
  * Werkzeugleiste (children, mit einem FilterButton darin) und darunter das einklappbare Filter-Panel.
- * Der Button setzt eine versteckte Checkbox (ohne JavaScript); bei aktiven Filtern ist das Panel offen.
+ * Der Button setzt eine versteckte Checkbox (ohne JavaScript); bei aktiven Filtern ist das Panel offen, ebenso mit
+ * „aufgeklappt lassen“ (FilterKeepOpen; vor der Hydration über `data-filter-open` an <html>, ohne Animation).
  */
 export function FilterPanel({
   rows,
@@ -57,7 +59,7 @@ export function FilterPanel({
 
       {/* Aufklappen animiert: Zeilenhöhe 0fr → 1fr (Höhe des Inhalts) plus Einblenden. invisible im zugeklappten
           Zustand, damit die Chips dann nicht per Tab erreichbar sind; visibility springt erst am Ende des Zuklappens um */}
-      <div className="invisible grid grid-rows-[0fr] opacity-0 transition-[grid-template-rows,opacity,visibility] duration-300 ease-out peer-checked:visible peer-checked:grid-rows-[1fr] peer-checked:opacity-100 motion-reduce:transition-none">
+      <div className="invisible grid grid-rows-[0fr] opacity-0 transition-[grid-template-rows,opacity,visibility] duration-300 ease-out peer-checked:visible peer-checked:grid-rows-[1fr] peer-checked:opacity-100 motion-reduce:transition-none [:root[data-filter-open]_&]:visible [:root[data-filter-open]_&]:grid-rows-[1fr] [:root[data-filter-open]_&]:opacity-100 [:root[data-filter-open]_&]:transition-none">
         <div className="min-h-0 overflow-hidden">
           <div className="mt-3 rounded-xl border border-line bg-surface p-3 sm:p-4">
             <div className="space-y-3">
@@ -77,13 +79,14 @@ export function FilterPanel({
                   </div>
                 ))}
             </div>
-            {active > 0 && (
-              <div className="mt-3 flex justify-end border-t border-line pt-3">
+            <div className="mt-3 flex items-center justify-between gap-3 border-t border-line pt-3">
+              <FilterKeepOpen />
+              {active > 0 && (
                 <Link href={resetHref} className="text-sm text-muted hover:text-ink">
                   Filter zurücksetzen
                 </Link>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { Footer } from "@/components/footer";
 import { Nav } from "@/components/nav";
 import { PageTransition } from "@/components/page-transition";
 import { UpdateNotice } from "@/components/update-notice";
+import { filterOpenScript } from "@/lib/filter-open";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -23,7 +24,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="de" data-scroll-behavior="smooth" className={`${GeistSans.variable} h-full antialiased motion-safe:scroll-smooth`}>
+    <html lang="de" suppressHydrationWarning data-scroll-behavior="smooth" className={`${GeistSans.variable} h-full antialiased motion-safe:scroll-smooth`}>
+      <head>
+        {/* Vor dem ersten Zeichnen: Filter-Panel offen, wenn „aufgeklappt lassen“ gesetzt ist (siehe FilterKeepOpen) */}
+        <script dangerouslySetInnerHTML={{ __html: filterOpenScript }} />
+      </head>
       <body className="min-h-full font-sans">
         <Nav />
         {/* Unten Platz für die mobile Navigationsleiste lassen */}
