@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { flushSync } from "react-dom";
+import { Search as SearchIcon } from "@/components/icons";
 
 /** Suchfeld (Feld `q`) mit Vorschlägen im Stil der Seite; ein gewählter Vorschlag schickt das Formular gleich ab */
 export function SearchField({ defaultValue = "", suggestions }: { defaultValue?: string; suggestions: string[] }) {
@@ -41,6 +42,7 @@ export function SearchField({ defaultValue = "", suggestions }: { defaultValue?:
 
   return (
     <div className="relative min-w-0 flex-1">
+      <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
       <input
         ref={input}
         type="search"
@@ -55,7 +57,7 @@ export function SearchField({ defaultValue = "", suggestions }: { defaultValue?:
         onBlur={() => setOpen(false)}
         placeholder="Suchen …"
         autoComplete="off"
-        className="field"
+        className="field pl-9"
         role="combobox"
         aria-label="Suchen"
         aria-expanded={shown}

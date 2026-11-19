@@ -49,7 +49,23 @@ export const LayoutGrid = (props: SVGProps<SVGSVGElement>) => (
   </Icon>
 );
 
-export const Rows = (props: SVGProps<SVGSVGElement>) => (
+export const Search = (props: SVGProps<SVGSVGElement>) => (
+  <Icon {...props}>
+    <circle cx="11" cy="11" r="7" />
+    <path d="m20 20-3.5-3.5" />
+  </Icon>
+);
+
+export const SlidersHorizontal = (props: SVGProps<SVGSVGElement>) => (
+  <Icon {...props}>
+    <path d="M3 6h11M18 6h3M3 12h3M10 12h11M3 18h13M20 18h1" />
+    <circle cx="16" cy="6" r="2" />
+    <circle cx="8" cy="12" r="2" />
+    <circle cx="18" cy="18" r="2" />
+  </Icon>
+);
+
+export const Rows =(props: SVGProps<SVGSVGElement>) => (
   <Icon {...props}>
     <path d="M3 5h18" />
     <path d="M3 12h18" />
