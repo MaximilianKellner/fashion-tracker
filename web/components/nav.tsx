@@ -110,7 +110,7 @@ export function Nav() {
       {/* Mobil: Tab-Leiste unten */}
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden">
         <ul className="grid grid-cols-5">
-          {[...LINKS, ...SECONDARY].map((l) => (
+          {LINKS.map((l) => (
             <li key={l.href}>
               <Link
                 href={l.href}
