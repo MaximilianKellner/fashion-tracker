@@ -56,9 +56,6 @@ export const SEASONS = ['fruehling', 'sommer', 'herbst', 'winter'];
 
 export const ITEM_STATUS = ['aktiv', 'aussortiert', 'reparatur'];
 
-// Swipe-Vorliebe: öfter oder seltener tragen (Website → Outfits → „Swipen“), wirkt auf Outfit-Vorschläge
-export const WEAR = ['mehr', 'weniger'];
-
 export const OUTFIT_SOURCES = ['ich', 'claude'];
 
 export const WISHLIST_STATUS = ['offen', 'gekauft', 'verworfen'];
@@ -123,7 +120,6 @@ export const ITEM_FIELDS = {
   photos: { type: 'string[]' },
   tags: { type: 'string[]' },
   link: { type: 'string' },
-  wear: { type: 'string', enum: WEAR },
 };
 
 export const OUTFIT_FIELDS = {

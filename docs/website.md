@@ -106,18 +106,11 @@ Läuft komplett lokal, ohne KI. Getestet mit Zara, H&M und About You; Zalando bl
 
 ### Swipen (`/outfits/swipen`)
 
-Teile wie bei Tinder wischen (oder ✕/♥ antippen, am PC Pfeiltasten ←/→, ↶ macht den letzten Swipe rückgängig). Zwei Modi,
-der Umschalter steht beim Öffnen auf „Outfit finden“ (links), „Öfter / seltener“ rechts daneben:
-
-- **Öfter / seltener**: alle aktiven Teile (ohne Unterwäsche), noch nicht bewertete zuerst. Rechts = öfter tragen, links =
-  seltener, *Egal* setzt zurück. Wird am Teil als `wear: mehr` bzw. `weniger` gespeichert (auch per Regler
-  „In Outfits vorschlagen“ beim Bearbeiten eines Teils einstellbar), gesammelt alle paar Sekunden
-  (ein Commit statt einem pro Swipe). Wirkt auf Würfeln, „Vorschläge für heute“ und die Vorschlagsliste im Builder
-  (siehe [outfit-builder.md](outfit-builder.md)).
-- **Outfit finden**: 6, 10 oder 16 Teile für Oberteil, Hose, Schuhe (im Herbst und Winter auch Jacke), passend zur
-  Jahreszeit und abwechselnd gemischt. Rechts = heute gern, links = heute nicht. Danach zwei Outfits: „heute nicht“ fällt
-  raus, „gern“ bekommt einen kräftigen Bonus; das zweite hat ein anderes Oberteil und eine andere Hose. Von dort in den
-  Builder zum Anpassen und Speichern. Diese Runde wird nicht gespeichert.
+Teile wie bei Tinder wischen (oder ✕/♥ antippen, am PC Pfeiltasten ←/→, ↶ macht den letzten Swipe rückgängig), um ein
+Outfit für heute zu finden: 6, 10 oder 16 Teile für Oberteil, Hose, Schuhe (im Herbst und Winter auch Jacke), passend zur
+Jahreszeit und abwechselnd gemischt. Rechts = heute gern, links = heute nicht. Danach zwei Outfits: „heute nicht“ fällt
+raus, „gern“ bekommt einen kräftigen Bonus; das zweite hat ein anderes Oberteil und eine andere Hose. Von dort in den
+Builder zum Anpassen und Speichern. Die Runde wird nicht gespeichert.
 
 ### Outfit-Builder (`/outfits/builder`)
 
