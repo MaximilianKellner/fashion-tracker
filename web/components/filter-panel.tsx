@@ -55,31 +55,37 @@ export function FilterPanel({
         {children}
       </div>
 
-      <div className="mt-3 hidden rounded-xl border border-line bg-surface p-3 peer-checked:block sm:p-4">
-        <div className="space-y-3">
-          {rows
-            .filter((row) => row.chips.length > 0)
-            .map((row) => (
-              <div key={row.title} className="sm:flex sm:gap-4">
-                <p className="mb-1.5 text-xs font-medium tracking-wide text-muted uppercase sm:mb-0 sm:w-20 sm:shrink-0 sm:pt-1.5">{row.title}</p>
-                {/* Am Handy seitlich scrollen, am Desktop umbrechen */}
-                <div className="-mx-3 flex gap-2 overflow-x-auto px-3 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
-                  {row.chips.map((c) => (
-                    <Link key={c.href + c.text} href={c.href} className={`chip shrink-0 ${c.active ? "chip-active" : ""}`}>
-                      {c.color && <ColorDot color={c.color} />} {c.text}
-                    </Link>
-                  ))}
-                </div>
+      {/* Aufklappen animiert: Zeilenhöhe 0fr → 1fr (Höhe des Inhalts) plus Einblenden. invisible im zugeklappten
+          Zustand, damit die Chips dann nicht per Tab erreichbar sind; visibility springt erst am Ende des Zuklappens um */}
+      <div className="invisible grid grid-rows-[0fr] opacity-0 transition-[grid-template-rows,opacity,visibility] duration-300 ease-out peer-checked:visible peer-checked:grid-rows-[1fr] peer-checked:opacity-100 motion-reduce:transition-none">
+        <div className="min-h-0 overflow-hidden">
+          <div className="mt-3 rounded-xl border border-line bg-surface p-3 sm:p-4">
+            <div className="space-y-3">
+              {rows
+                .filter((row) => row.chips.length > 0)
+                .map((row) => (
+                  <div key={row.title} className="sm:flex sm:gap-4">
+                    <p className="mb-1.5 text-xs font-medium tracking-wide text-muted uppercase sm:mb-0 sm:w-20 sm:shrink-0 sm:pt-1.5">{row.title}</p>
+                    {/* Am Handy seitlich scrollen, am Desktop umbrechen */}
+                    <div className="-mx-3 flex gap-2 overflow-x-auto px-3 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+                      {row.chips.map((c) => (
+                        <Link key={c.href + c.text} href={c.href} className={`chip shrink-0 ${c.active ? "chip-active" : ""}`}>
+                          {c.color && <ColorDot color={c.color} />} {c.text}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+            </div>
+            {active > 0 && (
+              <div className="mt-3 flex justify-end border-t border-line pt-3">
+                <Link href={resetHref} className="text-sm text-muted hover:text-ink">
+                  Filter zurücksetzen
+                </Link>
               </div>
-            ))}
-        </div>
-        {active > 0 && (
-          <div className="mt-3 flex justify-end border-t border-line pt-3">
-            <Link href={resetHref} className="text-sm text-muted hover:text-ink">
-              Filter zurücksetzen
-            </Link>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </>
   );
