@@ -5,6 +5,7 @@ import { currentSeason, label, scoreTone } from "@/lib/labels";
 import { completeOutfit, differentParts, outfitSlots, scoreOutfit } from "@lib/outfit-match.mjs";
 import { OutfitCollage } from "@/components/outfit-collage";
 import { SortSelect } from "@/components/sort-select";
+import { RerollButton } from "@/components/reroll-button";
 import { FilterButton, FilterPanel, toggleHref, withParams } from "@/components/filter-panel";
 import { SEASONS } from "@lib/schema.mjs";
 import { basicSorts, byId as byAge, byNumber, pickSort, shuffle, sortChoices, type SortOption } from "@/lib/sort";
@@ -109,10 +110,13 @@ export default async function OutfitsPage({ searchParams }: PageProps<"/outfits"
       {(fresh.length > 0 || randomSaved.length > 0) && (
         // Hervorgehoben: Akzent-Rahmen und -Tönung, damit sich die Zeile klar von der Liste darunter abhebt
         <section className="mt-4 rounded-2xl border border-accent/50 bg-accent/10 p-3">
-          <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
-            <span aria-hidden className="text-accent">✦</span>
-            Vorschläge für heute
-          </h2>
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="flex items-center gap-1.5 text-sm font-semibold">
+              <span aria-hidden className="text-accent">✦</span>
+              Vorschläge für heute
+            </h2>
+            <RerollButton />
+          </div>
           <div className={GRID}>
             {picks.map((p, i) =>
               !p ? null : "ids" in p ? (
