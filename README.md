@@ -14,20 +14,24 @@ Dieses Repo enthält nur den Code. Jeder betreibt seine eigene Instanz mit eigen
 
 | | |
 |---|---|
-| **Kleiderschrank** nach Kategorien gruppiert, filterbar nach Kategorie, Saison und Farbe. Fotos werden nie abgeschnitten. | **Outfit-Builder**: Outfit als Flatlay zusammenstellen; die Vorschläge sortieren sich live nach Farbharmonie, Formalität und Saison. |
+| **Kleiderschrank** nach Kategorien gruppiert, mit Suche, Sortierung und Filter-Panel (Kategorie, Saison, Farbe). Fotos werden nie abgeschnitten. | **Outfit-Builder**: Outfit als Flatlay zusammenstellen; die Vorschläge sortieren sich live nach Farbharmonie, Formalität und Saison. |
 | ![Kleiderschrank](docs/screenshots/schrank.webp) | ![Outfit-Builder](docs/screenshots/builder.webp) |
-| **Detailseite** mit Farben, Größe, Kauf und den Outfits, in denen das Teil vorkommt. | **Outfits** als Collage, mit Anlass und Bewertung. |
-| ![Teil](docs/screenshots/teil.webp) | ![Outfits](docs/screenshots/outfits.webp) |
-| **Wunschliste** mit Bildern, Priorität und Begründung. „Gekauft“ macht daraus ein Kleidungsstück samt Fotos. | **Profil** mit Farbpalette, Körpermaßen (interaktive Grafik) und Größen als Grundlage für Empfehlungen. |
-| ![Wunschliste](docs/screenshots/wunschliste.webp) | ![Profil](docs/screenshots/profil.webp) |
-| **Statistik**: Wert, Kategorien, Farben, Ausgaben, Teile ohne Outfit. | **Empfehlungen**: Fragen an Claude stellen und seine Antworten nachlesen. |
-| ![Statistik](docs/screenshots/statistik.webp) | ![Empfehlungen](docs/screenshots/empfehlungen.webp) |
+| **Neues Teil**: Fotos per Kamera, Galerie, Drag & Drop oder Shop-Import; aus dem Namen werden Kategorie, Farben, Material, Formalität und Saisons vorgeschlagen. | **Detailseite** mit Farben, Größe, Kauf und den Outfits, in denen das Teil vorkommt. |
+| ![Neues Teil](docs/screenshots/neues-teil.webp) | ![Teil](docs/screenshots/teil.webp) |
+| **Outfits** als Collage mit Punktzahl, Filter und täglich neuen Vorschlägen. | **Wunschliste** nach Kategorien, mit Bildern, Priorität und Preis. „Gekauft“ macht daraus ein Kleidungsstück samt Fotos. |
+| ![Outfits](docs/screenshots/outfits.webp) | ![Wunschliste](docs/screenshots/wunschliste.webp) |
+| **Empfehlungen**: Fragen an Claude stellen und „Welche Farbe fehlt?“ je Kategorie, berechnet ohne KI. | **Statistik**: Farbmosaik, Wert, Kategorien, Marken, Ausgaben, Teile ohne Outfit. |
+| ![Empfehlungen](docs/screenshots/empfehlungen.webp) | ![Statistik](docs/screenshots/statistik.webp) |
+| **Profil** mit Farbpalette, Farbtyp-Test, Körpermaßen (interaktive Grafik) und Größen als Grundlage für Empfehlungen. | |
+| ![Profil](docs/screenshots/profil.webp) | |
 
-Fürs Handy gebaut: Erfassen mit der Kamera, Navigation unten, der Builder passt sich an.
+Fürs Handy gebaut: Erfassen mit der Kamera, Navigation unten, der Builder passt sich an, und beim **Swipen** findet man
+wie bei Tinder ein Outfit für heute.
 
 <p>
   <img src="docs/screenshots/handy-schrank.webp" width="240" alt="Kleiderschrank am Handy">
   <img src="docs/screenshots/handy-builder.webp" width="240" alt="Outfit-Builder am Handy">
+  <img src="docs/screenshots/swipen.webp" width="240" alt="Swipen am Handy">
 </p>
 
 Alle Seiten im Detail: [docs/website.md](docs/website.md)
@@ -100,6 +104,7 @@ Lokal ist der Git-Abgleich aus; Änderungen über die Website muss man dann selb
 | `npm run photo -- <foto> <item-id>` | Foto auf 1024 px verkleinern, als WebP ohne EXIF (GPS!) ablegen |
 | `npm run export -- <ordner>` / `npm run import -- <ordner>` | Daten als Markdown-Ordner holen bzw. übernehmen (Backup, Umzug, Claude im Datenbankmodus) |
 | `npm run init-data [-- <ordner>] [--git]` | leeres Datenverzeichnis mit Profil-Vorlage anlegen |
+| `npm run screenshots [-- <name> …]` | Screenshots für die Doku neu aufnehmen (Dev-Server muss laufen, siehe [docs/website.md](docs/website.md#screenshots)) |
 
 ## Dokumentation
 
@@ -119,7 +124,7 @@ Code (dieses Repo):
 
 ```
 scripts/lib/               Schema, Speicher (store/files, store/sqlite), Fotos, Farben, Outfit-Bewertung, Git-Abgleich
-scripts/                   Kommandozeile: validate, stats, photo, export, import, init-data
+scripts/                   Kommandozeile: validate, stats, photo, export, import, init-data, screenshots
 web/                       Next.js-16-App (npm-Workspace)
 nix/, flake.nix            Nix-Paket und NixOS-Modul
 .claude/commands/          Slash-Commands für Claude

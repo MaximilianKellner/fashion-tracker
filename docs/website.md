@@ -48,6 +48,8 @@ das Teil vorkommt. „Outfit mit diesem Teil“ öffnet den Outfit-Builder mit d
 
 **Neues Teil** (`/items/new`, am Handy der runde Knopf in der Mitte):
 
+![Neues Teil mit Vorschlägen aus dem Namen](screenshots/neues-teil.webp)
+
 - Fotos per **Kamera**, aus der **Galerie**, per **Drag & Drop** (auch Bilder direkt aus einem Shop-Tab) oder mit **Strg+V**.
   Der Browser verkleinert sie vor dem Hochladen, der Server speichert sie als WebP mit max. 1024 px und **ohne EXIF-Daten**
   (die den GPS-Standort enthalten können).
@@ -116,6 +118,8 @@ Läuft komplett lokal, ohne KI. Getestet mit Zara, H&M und About You; Zalando bl
 
 ### Swipen (`/outfits/swipen`)
 
+<img src="screenshots/swipen.webp" width="240" alt="Swipen am Handy">
+
 Teile wie bei Tinder wischen (oder ✕/♥ antippen, am PC Pfeiltasten ←/→, ↶ macht den letzten Swipe rückgängig), um ein
 Outfit für heute zu finden: 6, 10 oder 16 Teile für Oberteil, Hose, Schuhe (im Herbst und Winter auch Jacke), passend zur
 Jahreszeit und abwechselnd gemischt. Rechts = heute gern, links = heute nicht. Danach zwei Outfits: „heute nicht“ fällt
@@ -125,6 +129,8 @@ Builder zum Anpassen und Speichern. Die Runde wird nicht gespeichert.
 ### Outfit-Builder (`/outfits/builder`)
 
 ![Outfit-Builder](screenshots/builder.webp)
+
+<img src="screenshots/handy-builder.webp" width="240" alt="Outfit-Builder am Handy">
 
 - Das Outfit liegt als Flatlay da: Oberteil, Hose und Schuhe in der Mitte, Jacke rechts, Kopf, „Darunter“ und Accessoire links.
 - **Mehrere Accessoires**: Sobald im Accessoire-Feld eins gewählt ist, erscheint darunter ein weiteres leeres Feld
@@ -256,3 +262,18 @@ Alles ist unter **Bearbeiten** änderbar und landet im Frontmatter von `profile.
   Text (`web/components/sliding-pill.ts`); als `<ViewTransition>` läge er während der Animation über der Schrift. Ohne
   Browser-Unterstützung fehlt nur die Animation, und Listen außerhalb des sichtbaren Bereichs animieren nicht. Bei
   „Bewegung reduzieren“ im Betriebssystem ist alles aus. Gemeinsame `name`s müssen auf einer Seite eindeutig sein, sonst bricht der Übergang ab.
+
+## Screenshots
+
+Die Bilder in `docs/screenshots/` nimmt `npm run screenshots` auf (`scripts/screenshots.mjs`): Es startet Chrome bzw. Edge
+headless und steuert es über das DevTools-Protokoll, ohne Playwright. Vorher muss der Dev-Server laufen (`npm run dev`).
+Desktop 1280 × 900 (Builder und Statistik 1000 hoch), Handy 390 × 844, dunkles Farbschema, ohne Animationen und ohne das
+Next.js-Dev-Symbol. Gezeigt werden die eigenen Daten: das neueste Outfit im Builder, das neueste Teil, das in einem Outfit
+vorkommt, und vom Profil nur „Typ & Farben“ (ohne Körpermaße). Im Kleiderschrank ist das Filter-Panel offen, im Formular
+„Neues Teil“ ist ein Beispielname getippt, die Empfehlungen zeigen „Welche Farbe fehlt?“.
+
+```bash
+npm run screenshots -- --url http://localhost:3000 schrank builder
+```
+
+Ohne Namen entstehen alle Bilder; `--out <ordner>` schreibt woandershin, `CHROME=<pfad>` wählt den Browser.

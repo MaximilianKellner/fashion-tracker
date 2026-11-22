@@ -28,7 +28,8 @@ gelten **im Datenverzeichnis**. Vor der Arbeit `.env` lesen (fehlt sie, gelten `
 
 ## Struktur des Codes
 - `docs/`: `website.md` (alle Seiten), `outfit-builder.md` (Bewertung), `betrieb.md` (Speicher-Modi, Einrichtung für neue
-  Nutzer), `nix.md` (Flake und NixOS-Modul), `home-pc.md` (Server, Auto-Update), Screenshots in `docs/screenshots/`.
+  Nutzer), `nix.md` (Flake und NixOS-Modul), `home-pc.md` (Server, Auto-Update), Screenshots in `docs/screenshots/`
+  (neu aufnehmen mit `npm run screenshots`, Dev-Server muss laufen).
   Bei Änderungen an Website, Builder, Speicher oder Server die passende Seite aktualisieren.
 - `docs/schema.md`: alle Felder und erlaubten Werte. Die maschinenlesbare Version steht in `scripts/lib/schema.mjs`.
 - `scripts/lib/data.mjs`: Lesen und Schreiben, egal welcher Speicher (`scripts/lib/store/files.mjs`, `store/sqlite.mjs`).
