@@ -551,7 +551,7 @@ export function PhotoPicker({ picker, camera = true, tip }: { picker: PhotoPicke
           </div>
         </div>
       )}
-      {/* Ablagefläche am Desktop: Knöpfe plus Hinweis auf Ziehen und Einfügen; am Handy nur die Knöpfe */}
+      {/* Ablagefläche: „Bild hierher ziehen, einfügen oder [Aus Dateien]“; der gestrichelte Rahmen nur am Desktop */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:rounded-lg sm:border sm:border-dashed sm:border-line sm:p-3">
         {camera && (
           <label className="btn-primary cursor-pointer">
@@ -568,20 +568,25 @@ export function PhotoPicker({ picker, camera = true, tip }: { picker: PhotoPicke
             />
           </label>
         )}
-        <label className={`${camera ? "btn-ghost" : "btn-primary"} cursor-pointer`}>
-          {camera ? "Aus Galerie" : "Aus Dateien"}
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            className="sr-only"
-            onChange={(e) => {
-              addFiles(e.target.files);
-              e.target.value = "";
-            }}
-          />
-        </label>
-        <span className="hidden text-sm text-muted sm:inline">oder hierher ziehen (auch aus einem Shop-Tab) bzw. mit Strg+V einfügen</span>
+        {/* Text und Knopf bleiben in einer Zeile; am Handy bricht eher der Text um */}
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="min-w-0 text-sm text-muted">
+            Bild hierher ziehen, einfügen<span className="hidden sm:inline"> (Strg+V)</span> oder
+          </span>
+          <label className={`${camera ? "btn-ghost" : "btn-primary"} shrink-0 cursor-pointer`}>
+            {camera ? "Aus Galerie" : "Aus Dateien"}
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              className="sr-only"
+              onChange={(e) => {
+                addFiles(e.target.files);
+                e.target.value = "";
+              }}
+            />
+          </label>
+        </div>
       </div>
       {tip && <p className="text-xs text-muted">{tip}</p>}
     </>
