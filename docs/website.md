@@ -58,7 +58,13 @@ das Teil vorkommt. „Outfit mit diesem Teil“ öffnet den Outfit-Builder mit d
 - **×** nimmt ein Foto aus der Liste. Neue Dateien fallen weg, alles andere landet unter **„Weitere Bilder“** und kommt
   per Antippen wieder ans Ende der Liste. Dort stehen auch die übrigen Shop-Bilder (vorausgewählt ist nur das erste).
   Gespeicherte Fotos, die beim Speichern nicht in der Liste sind, werden gelöscht.
-- **Hintergrund weiß**: Unter jedem Foto der Liste (auch Shop-Bildern und gespeicherten Fotos) stellt der Knopf das Teil
+- **Foto antippen** öffnet einen Dialog zum Bearbeiten (für alle Fotos der Liste, auch Shop-Bilder und gespeicherte) mit
+  drei Icon-Knöpfen (aktiv = gefüllt): **Zuschneiden** (Rahmen mit Drittel-Raster verschieben, an den Eckwinkeln die Größe
+  ändern, der Zurücksetzen-Knopf (Pfeil im Kreis) zeigt wieder das ganze Bild), **Spiegeln** (horizontal; ein Zuschnitt bleibt dabei auf demselben Bildteil) und
+  **Hintergrund entfernen** (Bild mit Schachbrett, siehe „Hintergrund weiß“ unten). Zuschnitt und Spiegelung rechnet
+  der Browser per Canvas ins Bild (max. 2048 px, JPEG); bearbeitete Fotos werden beim Speichern wie neue Fotos hochgeladen.
+  Geändert wird erst mit dem Speichern des Formulars.
+- **Hintergrund weiß**: Im Bearbeiten-Dialog stellt der Knopf das Teil
   per KI frei und legt es auf helles Grau (`#eeeeee`, blendet weniger als reines Weiß), bei mehreren Fotos auch alle auf
   einmal („Alle Hintergründe weiß“). „Original“ schaltet zurück; die freigestellte Fassung bleibt dabei erhalten, sodass
   man ohne neue Berechnung hin- und herwechseln kann. Gespeichert wird, was gerade angezeigt wird. Shop-Bilder lädt der

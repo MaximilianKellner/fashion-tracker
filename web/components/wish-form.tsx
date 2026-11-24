@@ -40,7 +40,6 @@ export function WishForm({
         <PhotoPicker
           picker={picker}
           camera={false}
-          tip="Tipp: Produktbild aus dem Shop-Tab hierher ziehen, einen Screenshot einfügen (Strg+V) oder ein Foto aus dem Laden hochladen."
         />
       </Section>
 
