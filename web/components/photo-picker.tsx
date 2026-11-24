@@ -552,7 +552,7 @@ export function PhotoPicker({ picker, camera = true, tip }: { picker: PhotoPicke
         </div>
       )}
       {/* Ablagefläche: „Bild hierher ziehen, einfügen oder [Aus Dateien]“; der gestrichelte Rahmen nur am Desktop */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:rounded-lg sm:border sm:border-dashed sm:border-line sm:p-3">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:justify-center sm:rounded-lg sm:border sm:border-dashed sm:border-line sm:p-3">
         {camera && (
           <label className="btn-primary cursor-pointer">
             Foto aufnehmen
