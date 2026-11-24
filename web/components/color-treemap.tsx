@@ -111,7 +111,7 @@ export function ColorTreemap({ data }: { data: Record<string, number> }) {
         role="img"
         aria-label={`Farbverteilung: ${entries.map(([k, v]) => `${label(k)} ${v}`).join(", ")}`}
       >
-        {cells.map((c) => {
+        {cells.map((c, i) => {
           const hex = swatch(c.key);
           const cw = c.w / px;
           const ch = c.h / px;
@@ -123,13 +123,14 @@ export function ColorTreemap({ data }: { data: Record<string, number> }) {
             <Link
               key={c.key}
               href={`/?color=${encodeURIComponent(c.key)}`}
-              className="absolute block rounded p-px outline-none focus-visible:outline-2 focus-visible:outline-accent"
+              className="cell-in absolute block rounded p-px outline-none focus-visible:outline-2 focus-visible:outline-accent"
               style={{
+                "--i": i,
                 left: `${(c.x / W) * 100}%`,
                 top: `${(c.y / H) * 100}%`,
                 width: `${(c.w / W) * 100}%`,
                 height: `${(c.h / H) * 100}%`,
-              }}
+              } as React.CSSProperties}
               onMouseEnter={() => setActive(c.key)}
               onFocus={() => setActive(c.key)}
               aria-label={`${label(c.key)}: ${c.value} – im Kleiderschrank anzeigen`}
