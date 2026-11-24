@@ -13,7 +13,8 @@
     "export": "node scripts/export.mjs",
     "import": "node scripts/import.mjs",
     "purge-trash": "node scripts/purge-trash.mjs",
-    "init-data": "node scripts/init-data.mjs"
+    "init-data": "node scripts/init-data.mjs",
+    "screenshots": "node scripts/screenshots.mjs"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
