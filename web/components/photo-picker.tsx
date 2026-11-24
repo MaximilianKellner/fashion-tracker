@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type DragEvent as ReactDragEvent } from "react";
+import { useEffect, useRef, useState, type DragEvent as ReactDragEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { whitenBackground, type BgProgress } from "@/lib/bg-removal";
 import { Photo } from "./photo";
 
@@ -65,11 +65,39 @@ type PhotoEntry = {
   /** Fortschritt bzw. Fehler beim Weißmachen */
   whitening?: BgProgress;
   error?: string;
+  /** Horizontal gespiegelt */
+  mirrored?: boolean;
+  /** Zuschnitt in Anteilen (0–1) des (gegebenenfalls gespiegelten) Bildes */
+  crop?: Crop;
+  /** Im Browser berechnete Fassung mit Zuschnitt und Spiegelung; `sig` sagt, für welche Einstellungen sie gilt */
+  edited?: { sig: string; file?: File; url?: string };
 };
 
-/** Was angezeigt und gespeichert wird: die freigestellte Fassung oder das Original */
-const shown = (p: PhotoEntry) => (p.white && p.whitened ? p.whitened.url : p.src);
+/** Ausschnitt in Anteilen der Bildbreite bzw. -höhe */
+export type Crop = { x: number; y: number; w: number; h: number };
+
 const isWhite = (p: PhotoEntry) => !!(p.white && p.whitened);
+/** Ausgangsbild vor Zuschnitt und Spiegelung: die freigestellte Fassung oder das Original */
+const baseSrc = (p: PhotoEntry) => (p.white && p.whitened ? p.whitened.url : p.src);
+/** Kennung der Bearbeitung (null = unbearbeitet); ändert sie sich, muss die Fassung neu berechnet werden */
+const editSig = (p: PhotoEntry) =>
+  p.mirrored || p.crop
+    ? `${baseSrc(p)}|${p.mirrored ? 1 : 0}|${
+        p.crop
+          ? Object.values(p.crop)
+              .map((v) => v.toFixed(4))
+              .join(",")
+          : ""
+      }`
+    : null;
+const editedFile = (p: PhotoEntry) => {
+  const sig = editSig(p);
+  return sig && p.edited?.sig === sig ? p.edited : undefined;
+};
+/** Was angezeigt und gespeichert wird */
+const shown = (p: PhotoEntry) => editedFile(p)?.url ?? baseSrc(p);
+/** Bild liegt auf einer fremden Seite (keinen Referrer mitschicken) */
+const isRemote = (p: PhotoEntry) => p.source.type === "web" && !isWhite(p) && !editedFile(p)?.url;
 
 /** Bild als Datei holen, um es im Browser zu bearbeiten. Shop-Bilder über den eigenen Server (CORS). */
 async function loadImage({ source, src }: PhotoEntry): Promise<Blob> {
@@ -77,6 +105,33 @@ async function loadImage({ source, src }: PhotoEntry): Promise<Blob> {
   const res = await fetch(source.type === "web" ? `/image-proxy?url=${encodeURIComponent(source.url)}` : src);
   if (!res.ok) throw new Error((await res.text()) || `HTTP ${res.status}`);
   return res.blob();
+}
+
+/** Rechnet Zuschnitt und Spiegelung ins Bild (max. 2048px, JPEG) */
+async function renderEdited(p: PhotoEntry): Promise<File> {
+  const blob = isWhite(p) ? p.whitened!.file : await loadImage(p);
+  const bitmap = await createImageBitmap(blob, {
+    imageOrientation: "from-image",
+  });
+  const { width: W, height: H } = bitmap;
+  const c = p.crop ?? { x: 0, y: 0, w: 1, h: 1 };
+  // Der Zuschnitt gilt fürs gespiegelte Bild, im Original liegt er also gespiegelt
+  const sx = (p.mirrored ? 1 - c.x - c.w : c.x) * W;
+  const [sy, sw, sh] = [c.y * H, c.w * W, c.h * H];
+  const scale = Math.min(1, 2048 / Math.max(sw, sh));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(sw * scale));
+  canvas.height = Math.max(1, Math.round(sh * scale));
+  const ctx = canvas.getContext("2d")!;
+  if (p.mirrored) {
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+  }
+  ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const out = await new Promise<Blob>((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob"))), "image/jpeg", 0.9));
+  const base = p.source.type === "file" ? p.source.file.name.replace(/\.[^.]*$/, "") : "foto";
+  return new File([out], `${base}-bearbeitet.jpg`, { type: "image/jpeg" });
 }
 
 /**
@@ -249,6 +304,44 @@ export function usePhotoPicker({
     update(key, (p) => ({ ...p, white: false }));
   }
 
+  /** Spiegelt ein Foto horizontal (umschaltbar); ein Zuschnitt behält dabei denselben Bildteil */
+  function mirror(key: string) {
+    update(key, (p) => ({
+      ...p,
+      mirrored: !p.mirrored,
+      crop: p.crop && { ...p.crop, x: 1 - p.crop.x - p.crop.w },
+    }));
+  }
+
+  /** Setzt den Zuschnitt (undefined = ganzes Bild) */
+  function setCrop(key: string, crop?: Crop) {
+    update(key, (p) => ({ ...p, crop }));
+  }
+
+  // Vorschau der bearbeiteten Fassungen im Hintergrund berechnen
+  const rendering = useRef(new Set<string>());
+  useEffect(() => {
+    for (const p of entries) {
+      const sig = editSig(p);
+      if (!sig || p.edited?.sig === sig || rendering.current.has(sig)) continue;
+      rendering.current.add(sig);
+      renderEdited(p)
+        .then((file) => {
+          const url = URL.createObjectURL(file);
+          urls.current.add(url);
+          return { sig, file, url, error: undefined };
+        })
+        .catch((e: Error) => ({
+          sig,
+          file: undefined,
+          url: undefined,
+          error: e.message,
+        }))
+        .then(({ error, ...edited }) => update(p.key, (q) => (editSig(q) === sig ? { ...q, edited, error } : q)))
+        .finally(() => rendering.current.delete(sig));
+    }
+  }, [entries]);
+
   /**
    * Schreibt die Auswahl in die Formulardaten: "photoOrder" listet die Fotos in Reihenfolge
    * (saved:<datei>, carried:<datei>, web:<url> oder upload), "photos" enthält die hochzuladenden Dateien in derselben Reihenfolge.
@@ -257,20 +350,38 @@ export function usePhotoPicker({
     fd.delete("photos");
     fd.delete("photoOrder");
     setPreparing(true);
-    for (const p of entries.filter((e) => e.selected)) {
-      const { source, whitened } = p;
-      if (whitened && isWhite(p)) {
-        // Freigestellte Fotos sind schon verkleinert
-        fd.append("photos", whitened.file, whitened.file.name);
-        fd.append("photoOrder", "upload");
-      } else if (source.type === "file") {
-        fd.append("photos", await downscale(source.file), source.file.name);
-        fd.append("photoOrder", "upload");
-      } else {
-        fd.append("photoOrder", source.type === "web" ? `web:${source.url}` : `${source.type}:${source.name}`);
-      }
+    try {
+      for (const p of entries.filter((e) => e.selected)) await appendPhoto(fd, p);
+    } finally {
+      setPreparing(false);
     }
-    setPreparing(false);
+  }
+
+  async function appendPhoto(fd: FormData, p: PhotoEntry) {
+    const { source, whitened } = p;
+    if (editSig(p)) {
+      // Zugeschnittene oder gespiegelte Fotos werden wie neue Fotos hochgeladen
+      let file = editedFile(p)?.file;
+      if (!file) {
+        try {
+          file = await renderEdited(p);
+        } catch (e) {
+          update(p.key, (q) => ({ ...q, error: (e as Error).message }));
+          throw e; // Speichern abbrechen, sonst ginge das Foto unbearbeitet verloren
+        }
+      }
+      fd.append("photos", file, file.name);
+      fd.append("photoOrder", "upload");
+    } else if (whitened && isWhite(p)) {
+      // Freigestellte Fotos sind schon verkleinert
+      fd.append("photos", whitened.file, whitened.file.name);
+      fd.append("photoOrder", "upload");
+    } else if (source.type === "file") {
+      fd.append("photos", await downscale(source.file), source.file.name);
+      fd.append("photoOrder", "upload");
+    } else {
+      fd.append("photoOrder", source.type === "web" ? `web:${source.url}` : `${source.type}:${source.name}`);
+    }
   }
 
   return {
@@ -284,6 +395,8 @@ export function usePhotoPicker({
     move,
     whiten,
     restore,
+    mirror,
+    setCrop,
     appendTo,
   };
 }
@@ -294,11 +407,14 @@ const roundBtn = "flex size-6 items-center justify-center rounded-full bg-surfac
 
 /** Fotobereich eines Formulars: sortierbare Liste der Fotos, darunter nicht ausgewählte Bilder zum Hinzufügen */
 export function PhotoPicker({ picker, camera = true, tip }: { picker: PhotoPickerState; camera?: boolean; tip?: string }) {
-  const { entries, dragging, addFiles, remove, select, move, whiten, restore } = picker;
+  const { entries, dragging, addFiles, remove, select, move, whiten } = picker;
   const chosen = entries.filter((p) => p.selected);
   const others = entries.filter((p) => !p.selected);
   // Gerade per Drag & Drop verschobenes Foto
   const [sorting, setSorting] = useState<string | null>(null);
+  // Foto, dessen Bearbeiten-Dialog offen ist
+  const [editing, setEditing] = useState<string | null>(null);
+  const editingPhoto = chosen.find((p) => p.key === editing);
 
   const sortHandlers = (key: string, index: number) => ({
     draggable: true,
@@ -336,12 +452,26 @@ export function PhotoPicker({ picker, camera = true, tip }: { picker: PhotoPicke
                 className={`w-24 cursor-grab active:cursor-grabbing ${sorting === p.key ? "opacity-40" : ""}`}
               >
                 <div className="relative">
-                  <Photo
-                    src={shown(p)}
-                    remote={p.source.type === "web" && !isWhite(p)}
-                    lazy={false}
-                    className={`aspect-[3/4] w-24 rounded-lg ${i === 0 ? "ring-2 ring-accent" : ""}`}
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setEditing(p.key)}
+                    className="group relative block rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    aria-label="Foto bearbeiten"
+                    title="Bearbeiten: zuschneiden, spiegeln, Hintergrund entfernen"
+                  >
+                    <Photo
+                      src={shown(p)}
+                      remote={isRemote(p)}
+                      lazy={false}
+                      className={`aspect-[3/4] w-24 rounded-lg ${i === 0 ? "ring-2 ring-accent" : ""}`}
+                    />
+                    {/* Bearbeiten-Icon: mit Maus beim Überfahren, auf Touch-Geräten (ohne Hover) immer sichtbar */}
+                    <span className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg transition-[opacity,background-color] duration-150 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:bg-black/25 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-visible:opacity-100">
+                      <span className="flex size-8 items-center justify-center rounded-full bg-surface/90 text-ink shadow">
+                        <PencilIcon />
+                      </span>
+                    </span>
+                  </button>
                   {i === 0 && chosen.length > 1 && (
                     <span className="absolute left-1 top-1 rounded-full bg-accent px-1.5 text-[10px] font-medium text-accent-ink">
                       Hauptfoto
@@ -352,14 +482,7 @@ export function PhotoPicker({ picker, camera = true, tip }: { picker: PhotoPicke
                       Shop
                     </span>
                   )}
-                  {p.whitening && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-lg bg-bg/75 px-1 text-center text-xs font-medium">
-                      <span className="size-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-                      {p.whitening.stage === "download"
-                        ? `KI-Modell lädt${p.whitening.percent !== undefined ? ` ${p.whitening.percent} %` : " …"}`
-                        : `Wird freigestellt${p.whitening.backend === "webgpu" ? " (GPU)" : ""} …`}
-                    </div>
-                  )}
+                  {p.whitening && <WhiteningOverlay progress={p.whitening} />}
                   <button type="button" onClick={() => remove(p.key)} className={`absolute right-1 top-1 ${roundBtn}`} aria-label="Foto entfernen">
                     ×
                   </button>
@@ -378,21 +501,6 @@ export function PhotoPicker({ picker, camera = true, tip }: { picker: PhotoPicke
                     </div>
                   )}
                 </div>
-                <button
-                  type="button"
-                  disabled={!!p.whitening}
-                  onClick={() => (isWhite(p) ? restore(p.key) : whiten(p.key))}
-                  title={
-                    isWhite(p)
-                      ? "Wieder das unveränderte Foto verwenden"
-                      : p.whitened
-                        ? "Wieder die freigestellte Fassung verwenden"
-                        : "Hintergrund per KI entfernen und weiß machen"
-                  }
-                  className="mt-1 w-full rounded-md border border-line px-1 py-0.5 text-xs text-muted hover:bg-surface-2 disabled:opacity-50"
-                >
-                  {isWhite(p) ? "Original" : "Hintergrund weiß"}
-                </button>
                 {p.error && (
                   <p className="mt-1 text-xs text-danger" title={p.error}>
                     Fehlgeschlagen
@@ -401,7 +509,8 @@ export function PhotoPicker({ picker, camera = true, tip }: { picker: PhotoPicke
               </div>
             ))}
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <p className="text-xs text-muted">Zum Bearbeiten auf ein Foto klicken.</p>
             {chosen.filter((p) => !isWhite(p)).length > 1 && (
               <button
                 type="button"
@@ -412,16 +521,10 @@ export function PhotoPicker({ picker, camera = true, tip }: { picker: PhotoPicke
                 Alle Hintergründe weiß
               </button>
             )}
-            {chosen.length > 1 && (
-              <span className="text-xs text-muted">Das erste Foto ist das Hauptfoto. Zum Umsortieren ziehen oder die Pfeile nutzen.</span>
-            )}
           </div>
-          <p className="text-xs text-muted">
-            „Hintergrund weiß“ stellt das Teil per KI direkt im Browser frei, ohne fremde Dienste. Mit Grafikkarte (WebGPU, nur
-            über HTTPS) dauert das wenige Sekunden, sonst je nach Gerät 10–60 Sekunden; beim ersten Mal wird dafür einmalig ein Modell geladen (88 MB).
-          </p>
         </div>
       )}
+      {editingPhoto && <PhotoEditor photo={editingPhoto} picker={picker} onClose={() => setEditing(null)} />}
       {others.length > 0 && (
         <div>
           <p className="mb-2 text-sm text-muted">Weitere Bilder (antippen zum Hinzufügen):</p>
@@ -437,7 +540,7 @@ export function PhotoPicker({ picker, camera = true, tip }: { picker: PhotoPicke
               >
                 <Photo
                   src={shown(p)}
-                  remote={p.source.type === "web" && !isWhite(p)}
+                  remote={isRemote(p)}
                   className="aspect-[3/4] w-16 rounded-lg opacity-60 transition-opacity group-hover:opacity-100"
                 />
                 <span className="absolute inset-0 flex items-center justify-center">
@@ -448,7 +551,8 @@ export function PhotoPicker({ picker, camera = true, tip }: { picker: PhotoPicke
           </div>
         </div>
       )}
-      <div className="flex flex-wrap gap-2">
+      {/* Ablagefläche: „Bild hierher ziehen, einfügen oder [Aus Dateien]“; der gestrichelte Rahmen nur am Desktop */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:justify-center sm:rounded-lg sm:border sm:border-dashed sm:border-line sm:p-3">
         {camera && (
           <label className="btn-primary cursor-pointer">
             Foto aufnehmen
@@ -464,24 +568,360 @@ export function PhotoPicker({ picker, camera = true, tip }: { picker: PhotoPicke
             />
           </label>
         )}
-        <label className={`${camera ? "btn-ghost" : "btn-primary"} cursor-pointer`}>
-          {camera ? "Aus Galerie" : "Bild hinzufügen"}
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            className="sr-only"
-            onChange={(e) => {
-              addFiles(e.target.files);
-              e.target.value = "";
-            }}
-          />
-        </label>
+        {/* Text und Knopf bleiben in einer Zeile; am Handy bricht eher der Text um */}
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="min-w-0 text-sm text-muted">
+            Bild hierher ziehen, einfügen<span className="hidden sm:inline"> (Strg+V)</span> oder
+          </span>
+          <label className={`${camera ? "btn-ghost" : "btn-primary"} shrink-0 cursor-pointer`}>
+            {camera ? "Aus Galerie" : "Aus Dateien"}
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              className="sr-only"
+              onChange={(e) => {
+                addFiles(e.target.files);
+                e.target.value = "";
+              }}
+            />
+          </label>
+        </div>
       </div>
-      <p className="hidden rounded-lg border border-dashed border-line px-3 py-4 text-center text-sm text-muted sm:block">
-        Fotos hierher ziehen, auch Bilder direkt aus einem Shop-Tab, oder mit Strg+V einfügen
-      </p>
       {tip && <p className="text-xs text-muted">{tip}</p>}
     </>
+  );
+}
+
+function WhiteningOverlay({ progress }: { progress: BgProgress }) {
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-lg bg-bg/75 px-1 text-center text-xs font-medium">
+      <span className="size-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+      {progress.stage === "download"
+        ? `KI-Modell lädt${progress.percent !== undefined ? ` ${progress.percent} %` : " …"}`
+        : `Wird freigestellt${progress.backend === "webgpu" ? " (GPU)" : ""} …`}
+    </div>
+  );
+}
+
+const FULL: Crop = { x: 0, y: 0, w: 1, h: 1 };
+const isFull = (c: Crop) => c.x < 0.002 && c.y < 0.002 && c.w > 0.998 && c.h > 0.998;
+
+/** Dialog nach Antippen eines Fotos: zuschneiden, spiegeln, Hintergrund weiß */
+function PhotoEditor({ photo: p, picker, onClose }: { photo: PhotoEntry; picker: PhotoPickerState; onClose: () => void }) {
+  const { whiten, restore, mirror, setCrop } = picker;
+  const dialog = useRef<HTMLDialogElement>(null);
+  // Zuschnitt, solange man ihn einstellt
+  const [draft, setDraft] = useState<Crop | null>(null);
+  useEffect(() => {
+    dialog.current?.showModal();
+  }, []);
+  const close = () => dialog.current?.close();
+
+  return (
+    <dialog
+      ref={dialog}
+      onClose={onClose}
+      // Klick auf den abgedunkelten Hintergrund schließt
+      onClick={(e) => e.target === e.currentTarget && close()}
+      className="m-auto max-h-[calc(100dvh-2rem)] w-[min(calc(100vw-2rem),34rem)] overflow-auto rounded-xl border border-line bg-surface p-0 text-ink backdrop:bg-black/60"
+    >
+      <div className="space-y-3 p-4">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="font-semibold">{draft ? "Zuschneiden" : "Foto bearbeiten"}</h2>
+          <button type="button" onClick={close} className={roundBtn} aria-label="Schließen">
+            ×
+          </button>
+        </div>
+        <div className="flex justify-center">
+          {draft ? (
+            <CropArea src={baseSrc(p)} remote={p.source.type === "web" && !isWhite(p)} mirrored={!!p.mirrored} crop={draft} onChange={setDraft} />
+          ) : (
+            <div className="relative w-[min(100%,20rem)]">
+              <Photo src={shown(p)} remote={isRemote(p)} lazy={false} className="aspect-[3/4] w-full rounded-lg" />
+              {p.whitening && <WhiteningOverlay progress={p.whitening} />}
+            </div>
+          )}
+        </div>
+        {p.error && <p className="text-sm text-danger">Fehlgeschlagen: {p.error}</p>}
+        {draft ? (
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setCrop(p.key, isFull(draft) ? undefined : draft);
+                setDraft(null);
+              }}
+              className="btn-primary"
+            >
+              Übernehmen
+            </button>
+            <button type="button" onClick={() => setDraft(null)} className="btn-ghost">
+              Abbrechen
+            </button>
+            <button
+              type="button"
+              onClick={() => setDraft(FULL)}
+              disabled={isFull(draft)}
+              className={`${iconBtn} ml-auto`}
+              aria-label="Zuschnitt zurücksetzen"
+              title="Zurücksetzen: ganzes Bild"
+            >
+              <ResetIcon />
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setDraft(p.crop ?? FULL)}
+                className={`${iconBtn} ${p.crop ? "chip-active" : ""}`}
+                aria-label="Zuschneiden"
+                title={p.crop ? "Zugeschnitten: Ausschnitt ändern" : "Zuschneiden"}
+              >
+                <CropIcon />
+              </button>
+              <button
+                type="button"
+                onClick={() => mirror(p.key)}
+                aria-pressed={!!p.mirrored}
+                className={`${iconBtn} ${p.mirrored ? "chip-active" : ""}`}
+                aria-label="Spiegeln"
+                title={p.mirrored ? "Spiegelung aufheben" : "Spiegeln"}
+              >
+                <MirrorIcon />
+              </button>
+              <button
+                type="button"
+                disabled={!!p.whitening}
+                onClick={() => (isWhite(p) ? restore(p.key) : whiten(p.key))}
+                aria-pressed={isWhite(p)}
+                className={`${iconBtn} ${isWhite(p) ? "chip-active" : ""}`}
+                aria-label="Hintergrund entfernen"
+                title={isWhite(p) ? "Hintergrund entfernt: wieder das unveränderte Foto verwenden" : "Hintergrund per KI entfernen und weiß machen"}
+              >
+                <EraseBackgroundIcon />
+              </button>
+              <button type="button" onClick={close} className="btn-primary ml-auto">
+                Fertig
+              </button>
+            </div>
+            <p className="text-xs text-muted">
+              „Hintergrund entfernen“ stellt das Teil per KI direkt im Browser frei, ohne fremde Dienste. Mit Grafikkarte (WebGPU, nur über HTTPS)
+              dauert das wenige Sekunden, sonst je nach Gerät 10–60 Sekunden; beim ersten Mal wird dafür einmalig ein Modell geladen (88 MB).
+              Änderungen werden erst mit dem Formular gespeichert.
+            </p>
+          </>
+        )}
+      </div>
+    </dialog>
+  );
+}
+
+type Handle = "move" | "nw" | "ne" | "sw" | "se";
+const MIN_CROP = 0.08;
+const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+const HANDLE_POS: Record<Exclude<Handle, "move">, string> = {
+  nw: "-left-[3px] -top-[3px] cursor-nwse-resize",
+  ne: "-right-[3px] -top-[3px] cursor-nesw-resize",
+  sw: "-left-[3px] -bottom-[3px] cursor-nesw-resize",
+  se: "-right-[3px] -bottom-[3px] cursor-nwse-resize",
+};
+
+/** Ausschnitt per Ziehen einstellen: Rahmen verschieben, an den Ecken Größe ändern (Maus und Touch) */
+function CropArea({
+  src,
+  remote,
+  mirrored,
+  crop,
+  onChange,
+}: {
+  src: string;
+  remote: boolean;
+  mirrored: boolean;
+  crop: Crop;
+  onChange: (c: Crop) => void;
+}) {
+  const box = useRef<HTMLDivElement>(null);
+  const drag = useRef<{
+    handle: Handle;
+    x: number;
+    y: number;
+    start: Crop;
+  } | null>(null);
+
+  function onMove(e: ReactPointerEvent) {
+    const d = drag.current;
+    const r = box.current?.getBoundingClientRect();
+    if (!d || !r) return;
+    const dx = (e.clientX - d.x) / r.width;
+    const dy = (e.clientY - d.y) / r.height;
+    const s = d.start;
+    if (d.handle === "move")
+      return onChange({
+        ...s,
+        x: clamp(s.x + dx, 0, 1 - s.w),
+        y: clamp(s.y + dy, 0, 1 - s.h),
+      });
+    let { x, y, w, h } = s;
+    if (d.handle.includes("w")) {
+      x = clamp(s.x + dx, 0, s.x + s.w - MIN_CROP);
+      w = s.x + s.w - x;
+    } else w = clamp(s.w + dx, MIN_CROP, 1 - s.x);
+    if (d.handle.includes("n")) {
+      y = clamp(s.y + dy, 0, s.y + s.h - MIN_CROP);
+      h = s.y + s.h - y;
+    } else h = clamp(s.h + dy, MIN_CROP, 1 - s.y);
+    onChange({ x, y, w, h });
+  }
+  const end = () => {
+    drag.current = null;
+  };
+  function onDown(e: ReactPointerEvent<HTMLElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    drag.current = {
+      handle: e.currentTarget.dataset.handle as Handle,
+      x: e.clientX,
+      y: e.clientY,
+      start: crop,
+    };
+  }
+  // Ziehbare Teile; welcher Teil es ist, steht in data-handle
+  const handlers = {
+    onPointerDown: onDown,
+    onPointerMove: onMove,
+    onPointerUp: end,
+    onPointerCancel: end,
+  };
+
+  const cropBox = { left: `${crop.x * 100}%`, top: `${crop.y * 100}%`, width: `${crop.w * 100}%`, height: `${crop.h * 100}%` };
+
+  return (
+    <div ref={box} className="relative touch-none select-none">
+      {/* eslint-disable-next-line @next/next/no-img-element -- lokale bzw. Shop-Vorschau, keine Optimierung nötig */}
+      <img
+        src={src}
+        alt=""
+        draggable={false}
+        referrerPolicy={remote ? "no-referrer" : undefined}
+        className={`block max-h-[min(60dvh,28rem)] max-w-full rounded-lg ${mirrored ? "-scale-x-100" : ""}`}
+      />
+      {/* Abdunkeln außerhalb des Ausschnitts, auf das (abgerundete) Bild begrenzt; der Rahmen liegt darüber und wird nicht abgeschnitten */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-lg" aria-hidden>
+        <div className="absolute" style={{ ...cropBox, boxShadow: "0 0 0 9999px color-mix(in srgb, var(--bg) 72%, transparent)" }} />
+      </div>
+      <div
+        {...handlers}
+        data-handle="move"
+        className="absolute cursor-move border border-accent"
+        // Schwarzer Schatten am Rahmen, damit er auch auf hellen Fotos sichtbar ist
+        style={{ ...cropBox, boxShadow: "0 0 3px rgb(0 0 0 / 0.8)" }}
+      >
+        {/* Drittel-Raster, ebenfalls mit schwarzem Schatten */}
+        <div className="pointer-events-none absolute inset-0 drop-shadow-[0_0_1.5px_rgb(0_0_0/0.9)]" aria-hidden>
+          <span className="absolute inset-y-0 left-1/3 border-l border-accent/80" />
+          <span className="absolute inset-y-0 left-2/3 border-l border-accent/80" />
+          <span className="absolute inset-x-0 top-1/3 border-t border-accent/80" />
+          <span className="absolute inset-x-0 top-2/3 border-t border-accent/80" />
+        </div>
+        {/* Ecken: dickere Winkel, mit großer Greiffläche */}
+        {(Object.keys(HANDLE_POS) as (keyof typeof HANDLE_POS)[]).map((h) => (
+          <span key={h} {...handlers} data-handle={h} className={`absolute size-8 ${HANDLE_POS[h]}`} aria-hidden>
+            <span
+              className={`pointer-events-none absolute size-4 border-accent drop-shadow-[0_0_2px_rgb(0_0_0/0.9)] ${
+                {
+                  nw: "left-0 top-0 rounded-tl-md border-l-4 border-t-4",
+                  ne: "right-0 top-0 rounded-tr-md border-r-4 border-t-4",
+                  sw: "bottom-0 left-0 rounded-bl-md border-b-4 border-l-4",
+                  se: "bottom-0 right-0 rounded-br-md border-b-4 border-r-4",
+                }[h]
+              }`}
+            />
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const iconBtn =
+  "flex size-10 items-center justify-center rounded-full border border-line bg-surface text-ink transition-colors hover:bg-surface-2 disabled:opacity-50";
+
+const iconProps = {
+  viewBox: "0 0 24 24",
+  className: "size-5",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 2,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  "aria-hidden": true,
+} as const;
+
+function CropIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M6 2v14a2 2 0 0 0 2 2h14" />
+      <path d="M18 22V8a2 2 0 0 0-2-2H2" />
+    </svg>
+  );
+}
+
+function MirrorIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M12 3v18" strokeDasharray="2.5 2.5" strokeLinecap="butt" />
+      <path d="M9 6 3 18h6z" fill="currentColor" />
+      <path d="m15 6 6 12h-6z" />
+    </svg>
+  );
+}
+
+/** Bild mit Berg links, rechts Schachbrett (= transparenter Hintergrund) */
+function EraseBackgroundIcon() {
+  return (
+    <svg {...iconProps}>
+      <defs>
+        <clipPath id="erase-bg-clip">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+        </clipPath>
+      </defs>
+      <g clipPath="url(#erase-bg-clip)" fill="currentColor" stroke="none">
+        <rect x="12" y="3" width="3" height="3" />
+        <rect x="18" y="3" width="3" height="3" />
+        <rect x="15" y="6" width="3" height="3" />
+        <rect x="12" y="9" width="3" height="3" />
+        <rect x="18" y="9" width="3" height="3" />
+        <rect x="15" y="12" width="3" height="3" />
+        <rect x="12" y="15" width="3" height="3" />
+        <rect x="18" y="15" width="3" height="3" />
+        <rect x="15" y="18" width="3" height="3" />
+      </g>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M12 3v18" />
+      <circle cx="7.5" cy="8" r="1.5" />
+      <path d="m3 17 4.5-5 4.5 5" />
+    </svg>
+  );
+}
+
+function PencilIcon() {
+  return (
+    <svg {...iconProps} className="size-4">
+      <path d="M21.17 6.81a1 1 0 0 0-3.98-3.98L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5z" />
+      <path d="m15 5 4 4" />
+    </svg>
+  );
+}
+
+function ResetIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <path d="M3 3v5h5" />
+    </svg>
   );
 }
