@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { importNotes, parseImport } from "@/lib/import";
 import { WishForm } from "@/components/wish-form";
 
@@ -13,7 +14,14 @@ export default async function NewWishPage({ searchParams }: PageProps<"/wishlist
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-4 text-2xl font-semibold tracking-tight">Neuer Wunsch</h1>
+      <div className="mb-4 flex items-baseline justify-between gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight">Neuer Wunsch</h1>
+        {!product && (
+          <Link href="/bookmarklet" className="text-sm text-muted underline">
+            Aus Online-Shop übernehmen
+          </Link>
+        )}
+      </div>
       <WishForm data={data} body={product ? importNotes(product) : ""} importedPhotos={product?.images} />
     </div>
   );

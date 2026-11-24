@@ -88,7 +88,7 @@ das Teil vorkommt. „Outfit mit diesem Teil“ öffnet den Outfit-Builder mit d
 
 ### Aus einem Online-Shop übernehmen
 
-Unter **Neues Teil → „Aus Online-Shop übernehmen“** (`/bookmarklet`) das Lesezeichen „Zum Kleiderschrank“ einmalig in die
+Unter **Neues Teil** bzw. **Neuer Wunsch → „Aus Online-Shop übernehmen“** (`/bookmarklet`) das Lesezeichen „Zum Kleiderschrank“ einmalig in die
 Firefox-Symbolleiste ziehen. Auf einer Produktseite angeklickt, übernimmt es Name, Marke, Preis, Farbe, Material, Kategorie
 und Produktbilder; Formalität, Saisons und Muster werden wie oben vorgeschlagen (Farbe notfalls aus dem Namen, z. B.
 „… - Beige“). Auf der Zwischenseite (`/import`) wählt man, ob daraus ein **Kleidungsstück** oder ein **Wunsch** wird.
