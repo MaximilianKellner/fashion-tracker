@@ -113,6 +113,23 @@ body {
   from { opacity: 0; scale: 1 0.96; translate: 0 -4px; }
 }
 
+@keyframes grow-x {
+  from { scale: 0 1; }
+}
+@keyframes cell-in {
+  from { opacity: 0; scale: 0.85; }
+}
+/* Statistik: Balken wachsen von links, Mosaik-Kacheln poppen nacheinander auf (Verzögerung per --i) */
+.bar-grow {
+  transform-origin: left;
+  animation: grow-x 0.7s var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 40ms + 150ms);
+}
+.cell-in {
+  animation: cell-in 0.5s var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 35ms + 100ms);
+}
+
 /* Klicks während der Animation gehen an die neue Seite */
 ::view-transition {
   pointer-events: none;

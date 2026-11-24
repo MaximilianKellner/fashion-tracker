@@ -58,7 +58,7 @@ function BarList({
   const listClass = twoCol ? "grid grid-cols-2 gap-x-4 gap-y-2.5 sm:gap-x-6" : "space-y-2.5";
 
   const rows = (list: [string, number][]) =>
-    list.map(([key, value]) => (
+    list.map(([key, value], i) => (
       <li key={key} title={`${label(key)}: ${format(value)}`}>
         <div className="flex items-center justify-between gap-3 text-sm">
           <span className="flex min-w-0 items-center gap-2">
@@ -68,7 +68,10 @@ function BarList({
           <span className="shrink-0 tabular-nums text-muted">{format(value)}</span>
         </div>
         <div className="mt-1 h-2 rounded bg-surface-2">
-          <div className="h-2 rounded bg-accent" style={{ width: `${(value / max) * 100}%` }} />
+          <div
+            className="bar-grow h-2 rounded bg-accent"
+            style={{ width: `${(value / max) * 100}%`, "--i": i } as React.CSSProperties}
+          />
         </div>
       </li>
     ));
