@@ -166,7 +166,7 @@ export default async function WardrobePage({ searchParams }: PageProps<"/">) {
       </div>
       </ViewTransition>
       {view === "liste" && (
-        <SectionRail sections={groups.map((g) => ({ id: `kat-${g.category}`, label: groupTitle(g.category), count: g.items.length }))} />
+        <SectionRail sections={groups.map((g) => ({ id: `kat-${g.category}`, label: groupTitle(g.category), category: g.category, count: g.items.length }))} />
       )}
     </div>
   );
