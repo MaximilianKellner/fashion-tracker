@@ -16,7 +16,27 @@ function Icon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-export const Pencil = (props: SVGProps<SVGSVGElement>) => (
+const CATEGORY_PATHS: Record<string, string[]> = {
+  oberteil: ["M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"],
+  hose: ["M7 3h10l1.5 18h-4.5L12 10l-2 11H5.5z"],
+  jacke: ["M8 3 4 6v15h4.5V12M16 3l4 3v15h-4.5V12M8 3l4 4 4-4M12 7v14"],
+  schuhe: ["M4 3h6v8l8.5 2.5A2 2 0 0 1 20 15.4V19H4z"],
+  kleid: ["M9 2l1 6-4 14h12L14 8l1-6z"],
+  accessoire: ["M9 6l.5-3h5L15 6M9 18l.5 3h5l.5-3M12 9v3l1.5 1.5", "M12 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"],
+  sport: ["M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"],
+  unterwaesche: ["M3 5h18l-1 6c-3 0-6 2-8 8-2-6-5-8-8-8z"],
+};
+
+/** Icon einer Kategorie (Schema-Wert wie „oberteil“); unbekannte Kategorien bekommen ein Etikett */
+export const CategoryIcon = ({ category, ...props }: { category?: string } & SVGProps<SVGSVGElement>) => (
+  <Icon {...props}>
+    {(CATEGORY_PATHS[category ?? ""] ?? ["M12 2 2 12l10 10 10-10zM12 9v.01"]).map((d) => (
+      <path key={d} d={d} />
+    ))}
+  </Icon>
+);
+
+export const Pencil =(props: SVGProps<SVGSVGElement>) => (
   <Icon {...props}>
     <path d="M21.2 5.6a2.1 2.1 0 0 0-3-3L3.5 17.3 2 22l4.7-1.5z" />
     <path d="m15 5 4 4" />

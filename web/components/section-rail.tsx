@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { CategoryIcon } from "./icons";
 
-export type RailSection = { id: string; label: string; count?: number };
+export type RailSection = { id: string; label: string; count?: number; category?: string };
 
 /** Durchmesser eines Punkts und Länge der aktiven Pille in px */
 const DOT = 8;
 const PILL = 24;
+/** Durchmesser der Icon-Kreise, wenn die Leiste aufgeklappt ist */
+const BIG = 28;
 /** Abstand über und unter jedem Punkt in px; zwei Punkte liegen also 2 × PAD auseinander */
 const PAD = 3;
 /** So lange bleibt der Name nach einem Wechsel sichtbar (Handy) */
@@ -23,7 +26,8 @@ const smooth = (w: number) => w * w * (3 - 2 * w);
  * bis dorthin, dann zieht die hintere nach. Eine Feder glättet die Bewegung.
  * Klick scrollt weich zum Abschnitt. Mit dem Finger (oder gedrückter Maus) kann man über die Leiste wischen, die Seite
  * springt dann live mit. Am Desktop erscheint der Name beim Darüberfahren, am Handy kurz nach jedem Wechsel und beim
- * Wischen. Die Abschnitte brauchen ein Element mit der passenden id.
+ * Wischen. Beim Darüberfahren (und beim Wischen) wächst die Leiste: jeder Punkt wird zu einem Kreis mit Kategorie-Icon.
+ * Die Abschnitte brauchen ein Element mit der passenden id.
  */
 export function SectionRail({ sections }: { sections: RailSection[] }) {
   const key = sections.map((s) => s.id).join(",");
@@ -31,9 +35,14 @@ export function SectionRail({ sections }: { sections: RailSection[] }) {
   // Name am Handy sichtbar (beim Wischen und kurz nach einem Wechsel)
   const [show, setShow] = useState(false);
   const nav = useRef<HTMLElement>(null);
+  // Leiste aufgeklappt (Maus darüber oder Wischen), Icons je Punkt
+  const [open, setOpen] = useState(false);
+  const openRef = useRef(false);
+  const wake = useRef<() => void>(() => {});
   const dots = useRef<(HTMLSpanElement | null)[]>([]);
   // Die farbige Pille, die zwischen den Punkten springt
   const blob = useRef<HTMLSpanElement>(null);
+  const icons = useRef<(HTMLSpanElement | null)[]>([]);
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   // Nach dem Wischen den Klick beim Loslassen ignorieren
   const suppressClick = useRef(false);
@@ -45,6 +54,9 @@ export function SectionRail({ sections }: { sections: RailSection[] }) {
     let vel = 0;
     let frame = 0;
     let shown = -1;
+    // Aufklappen 0 → 1, folgt ebenfalls einer Feder
+    let grow = 0;
+    let growVel = 0;
     let hideTimer = 0;
     // Wischen: Zeiger, Startpunkt, ob es schon losging, gewählter Abschnitt
     let pointer: number | null = null;
@@ -80,14 +92,21 @@ export function SectionRail({ sections }: { sections: RailSection[] }) {
     const paint = () => {
       const p = Math.min(sections.length - 1, Math.max(0, pos));
       // Graue Punkte: der aktuelle wächst, der vorige schrumpft im Gleichtakt (Gesamtlänge bleibt gleich)
-      const heights = sections.map((_, i) => DOT + (PILL - DOT) * smooth(Math.max(0, 1 - Math.abs(p - i))));
+      const dot = DOT + (BIG - DOT) * grow;
+      const pill = PILL + (BIG - PILL) * grow;
+      const heights = sections.map((_, i) => dot + (pill - dot) * smooth(Math.max(0, 1 - Math.abs(p - i))));
       const tops: number[] = [];
       let y = 0;
       heights.forEach((h, i) => {
         tops.push(y + PAD);
         y += h + 2 * PAD;
         const el = dots.current[i];
-        if (el) el.style.height = `${h}px`;
+        if (el) {
+          el.style.height = `${h}px`;
+          el.style.width = `${dot}px`;
+        }
+        const ic = icons.current[i];
+        if (ic) ic.style.opacity = `${Math.max(0, grow * 1.6 - 0.6)}`;
       });
       // Farbige Pille: in der ersten Hälfte des Wechsels wandert die vordere Kante zum nächsten Punkt, in der zweiten
       // zieht die hintere nach. Rückwärts läuft es spiegelbildlich, weil beides nur von p abhängt.
@@ -101,6 +120,8 @@ export function SectionRail({ sections }: { sections: RailSection[] }) {
       if (blob.current) {
         blob.current.style.transform = `translateY(${top}px)`;
         blob.current.style.height = `${bottom - top}px`;
+        blob.current.style.width = `${dot}px`;
+        blob.current.style.right = `calc(var(--pr) + 6px - ${dot / 2}px)`;
       }
       const idx = Math.round(p);
       if (idx !== shown) {
@@ -115,7 +136,11 @@ export function SectionRail({ sections }: { sections: RailSection[] }) {
       // Leicht unterdämpfte Feder: folgt zügig, schwingt kaum nach
       vel = (vel + (target - pos) * 0.14) * 0.7;
       pos += vel;
-      if (Math.abs(target - pos) < 0.001 && Math.abs(vel) < 0.001) {
+      const gt = openRef.current ? 1 : 0;
+      growVel = (growVel + (gt - grow) * 0.09) * 0.74;
+      grow = Math.min(1, Math.max(0, grow + growVel));
+      if (Math.abs(target - pos) < 0.001 && Math.abs(vel) < 0.001 && Math.abs(gt - grow) < 0.002 && Math.abs(growVel) < 0.002) {
+        grow = gt;
         pos = target;
         frame = 0;
       } else {
@@ -180,6 +205,7 @@ export function SectionRail({ sections }: { sections: RailSection[] }) {
         } catch {}
         clearTimeout(hideTimer);
         setShow(true);
+        setOpen(true);
       }
       scrubTo(e.clientY);
     };
@@ -191,11 +217,13 @@ export function SectionRail({ sections }: { sections: RailSection[] }) {
       scrubbing = false;
       suppressClick.current = true;
       flashLabel(LABEL_MS * 0.7);
+      setOpen(false);
       // Ab jetzt wieder der Scroll-Position folgen
       target = measure();
       animate();
     };
 
+    wake.current = animate;
     target = pos = measure();
     paint();
     const el = nav.current;
@@ -215,19 +243,27 @@ export function SectionRail({ sections }: { sections: RailSection[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- sections wird bei jedem Render neu gebaut, der Inhalt steckt im Schlüssel
   }, [key]);
 
+  useEffect(() => {
+    openRef.current = open;
+    wake.current();
+  }, [open]);
+
   if (sections.length < 2) return null;
   return (
     // touch-none: Wischen über die Leiste scrollt nicht die Seite, sondern wählt den Abschnitt
     <nav
       ref={nav}
       aria-label="Zu Kategorie springen"
-      className="fixed right-0 top-1/2 z-30 flex -translate-y-1/2 touch-none select-none flex-col items-end [-webkit-touch-callout:none] sm:right-3"
+      data-open={open ? "" : undefined}
+      onPointerEnter={(e) => e.pointerType === "mouse" && setOpen(true)}
+      onPointerLeave={(e) => e.pointerType === "mouse" && setOpen(false)}
+      className="group/rail [--pr:8px] sm:[--pr:0px] fixed right-0 top-1/2 z-30 flex -translate-y-1/2 touch-none select-none flex-col items-end [-webkit-touch-callout:none] sm:right-3"
     >
       {/* Lage und Länge setzt die Animation direkt */}
       <span
         ref={blob}
         aria-hidden
-        className="pointer-events-none absolute right-[10px] top-0 z-10 w-2 rounded-full bg-accent sm:right-[2px]"
+        className="pointer-events-none absolute top-0 z-10 w-2 rounded-full bg-accent "
         style={{ height: PILL }}
       />
       {sections.map((s, i) => {
@@ -251,22 +287,33 @@ export function SectionRail({ sections }: { sections: RailSection[] }) {
             style={{ paddingTop: PAD, paddingBottom: PAD }}
           >
             <span
-              className={`pointer-events-none absolute right-full top-1/2 mr-1 -translate-y-1/2 whitespace-nowrap rounded-full bg-surface px-3 py-1 text-sm shadow ring-1 ring-line transition-opacity duration-300 sm:mr-2 sm:px-2 sm:py-0.5 sm:text-xs ${
+              className={`pointer-events-none absolute right-full top-1/2 mr-1 -translate-y-1/2 transition-transform group-data-[open]/rail:-translate-x-2.5 whitespace-nowrap rounded-full bg-surface px-3 py-1 text-sm shadow ring-1 ring-line transition-opacity duration-300 sm:mr-2 sm:px-2 sm:py-0.5 sm:text-xs ${
                 on && show ? "opacity-100" : "opacity-0"
               } ${on ? "sm:opacity-100" : "sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-visible:opacity-100"}`}
             >
               {s.label}
               {s.count != null && <span className="ml-1.5 text-muted">{s.count}</span>}
             </span>
-            <span className="flex w-3 justify-center">
+            <span className="relative flex w-3 justify-center">
               {/* Höhe setzt die Animation direkt */}
               <span
                 ref={(el) => {
                   dots.current[i] = el;
                 }}
-                className="block w-2 rounded-full bg-muted/50 transition-colors group-hover:bg-muted"
-                style={{ height: DOT }}
+                className="relative block shrink-0 rounded-full bg-muted/50 transition-colors group-hover:bg-muted group-data-[open]/rail:bg-surface-2 group-data-[open]/rail:shadow-[inset_0_0_0_1px_var(--line)] group-data-[open]/rail:group-hover:bg-line"
+                style={{ height: DOT, width: DOT }}
               />
+              {/* Icon über Punkt und farbiger Pille; blendet beim Aufklappen ein */}
+              <span
+                ref={(el) => {
+                  icons.current[i] = el;
+                }}
+                aria-hidden
+                className={`pointer-events-none absolute inset-0 z-20 flex items-center justify-center ${on ? "text-accent-ink" : "text-ink"}`}
+                style={{ opacity: 0 }}
+              >
+                <CategoryIcon category={s.category} className="size-4" />
+              </span>
             </span>
           </button>
         );
